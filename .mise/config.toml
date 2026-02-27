@@ -16,6 +16,7 @@ depends = ["build"]
 run = """
 zellij \
   -s zellij-status-dev \
+  --config-dir ./examples/dev \
   --config ./examples/dev/config.kdl \
   -n ./examples/dev/layout.kdl
 """

@@ -1,4 +1,6 @@
-.clones/**
+/.clones/**
+/.claude
 /.opencode
+/.openpackage
 /target/
 thoughts/
