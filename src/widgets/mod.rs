@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use zellij_tile::prelude::{ModeInfo, PaneManifest, TabInfo};
@@ -5,6 +6,10 @@ use zellij_tile::prelude::{ModeInfo, PaneManifest, TabInfo};
 use crate::config::PluginConfig;
 use crate::notify::tracker::NotificationTracker;
 
+pub mod datetime;
+pub mod mode;
+pub mod notification;
+pub mod session;
 pub mod tabs;
 
 /// A read-only view of plugin state passed to widgets for rendering.
@@ -26,15 +31,28 @@ pub trait Widget: Send + Sync {
 }
 
 /// Register all built-in widgets, returning them keyed by name.
-pub fn register_widgets(
-    config: &PluginConfig,
-) -> std::collections::BTreeMap<String, Arc<dyn Widget>> {
-    let mut map: std::collections::BTreeMap<String, Arc<dyn Widget>> =
-        std::collections::BTreeMap::new();
+pub fn register_widgets(config: &PluginConfig) -> BTreeMap<String, Arc<dyn Widget>> {
+    let mut map: BTreeMap<String, Arc<dyn Widget>> = BTreeMap::new();
 
     map.insert(
         "tabs".to_string(),
         Arc::new(tabs::TabsWidget::new(&config.raw)),
+    );
+    map.insert(
+        "mode".to_string(),
+        Arc::new(mode::ModeWidget::new(&config.raw)),
+    );
+    map.insert(
+        "session".to_string(),
+        Arc::new(session::SessionWidget::new(&config.raw)),
+    );
+    map.insert(
+        "datetime".to_string(),
+        Arc::new(datetime::DateTimeWidget::new(&config.raw)),
+    );
+    map.insert(
+        "notifications".to_string(),
+        Arc::new(notification::NotificationWidget::new(&config.raw)),
     );
 
     map

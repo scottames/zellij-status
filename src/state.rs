@@ -7,6 +7,7 @@ use zellij_tile::shim::{switch_tab_to, unblock_cli_pipe_input};
 use crate::config::{LayoutMode, PluginConfig};
 use crate::notify::protocol::parse_pipe_message;
 use crate::notify::tracker::NotificationTracker;
+use crate::render::bar::render_bar;
 use crate::render::vertical::{render_vertical, tab_at_row};
 use crate::widgets::{register_widgets, tabs::TabsWidget, PluginState};
 
@@ -130,15 +131,15 @@ impl ZellijPlugin for State {
             notifications: &self.notifications,
         };
 
+        let widgets = register_widgets(config);
+
         match config.layout_mode {
             LayoutMode::Vertical => {
                 let tabs_widget = TabsWidget::new(&config.raw);
-                render_vertical(&tabs_widget, &state, rows, cols);
+                render_vertical(&tabs_widget, &widgets, &state, rows, cols);
             }
             LayoutMode::Horizontal => {
-                // Phase 4: horizontal bar renderer — placeholder for now.
-                let _widgets = register_widgets(config);
-                print!("zellij-status: horizontal mode (Phase 4)");
+                render_bar(&widgets, &state, rows, cols);
             }
         }
     }

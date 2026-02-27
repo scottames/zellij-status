@@ -15,6 +15,11 @@ layout {
                     color_accent  "#a6e3a1"
                     color_muted   "#6c7086"
 
+                    // Universal sections (vertical: top / middle / bottom)
+                    format_1      "#[fg=$accent,bold] {mode} "
+                    format_2      "{tabs}"
+                    format_3      "#[fg=$muted] {session} {datetime} "
+
                     // Tab format strings — clean and simple
                     tab_normal          " {index} {name} {notification}"
                     tab_active          "#[fg=$bg,bg=$accent,fill] {index} {name} {notification}"
@@ -37,6 +42,10 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   "⏳"
                     notification_completed_icon "✅"
+
+                    // DateTime widget
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
                 }
             }
             children
@@ -56,6 +65,11 @@ layout {
                     color_accent  "#a6e3a1"
                     color_muted   "#6c7086"
 
+                    // Universal sections (vertical: top / middle / bottom)
+                    format_1      "#[fg=$accent,bold] {mode} "
+                    format_2      "{tabs}"
+                    format_3      "#[fg=$muted] {session} {datetime} "
+
                     // Tab format strings — clean and simple
                     tab_normal          " {index} {name} {notification}"
                     tab_active          "#[fg=$bg,bg=$accent,fill] {index} {name} {notification}"
@@ -78,6 +92,10 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   "⏳"
                     notification_completed_icon "✅"
+
+                    // DateTime widget
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
                 }
             }
             pane command="sh"

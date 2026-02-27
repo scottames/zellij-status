@@ -1,6 +1,10 @@
+use std::collections::BTreeMap;
+use std::sync::Arc;
+
 use unicode_width::UnicodeWidthStr;
 
-use crate::widgets::{tabs::TabsWidget, PluginState};
+use crate::render::bar::render_section;
+use crate::widgets::{tabs::TabsWidget, PluginState, Widget};
 
 /// Calculate the visible tab window for a vertical list.
 ///
@@ -102,48 +106,58 @@ pub fn tab_at_row(
 
 /// Render the vertical tab list to stdout.
 ///
+/// Layout: `format_1` (top) → padding → overflow/tabs/overflow → `format_3` (bottom).
+///
 /// Outputs exactly `rows` lines (using `println!` for all but the last, which
 /// uses `print!` to avoid a trailing newline that Zellij would render as blank).
 pub fn render_vertical(
     tabs_widget: &TabsWidget,
+    widgets: &BTreeMap<String, Arc<dyn Widget>>,
     state: &PluginState<'_>,
     rows: usize,
     cols: usize,
 ) {
+    let config = state.config;
+    let aliases = &config.color_aliases;
+    let border_fmt = &config.tabs.border;
     let tab_count = state.tabs.len();
-    let padding_top = state.config.tabs.padding_top;
-    let available = rows.saturating_sub(padding_top);
+    let padding_top = config.tabs.padding_top;
+
+    // Render section lines (format_1 at top, format_3 at bottom).
+    let section_top = render_section_line(&config.format_1, widgets, state, cols, border_fmt);
+    let section_bot = render_section_line(&config.format_3, widgets, state, cols, border_fmt);
+
+    let top_rows = usize::from(section_top.is_some());
+    let bot_rows = usize::from(section_bot.is_some());
+    let available = rows
+        .saturating_sub(padding_top)
+        .saturating_sub(top_rows)
+        .saturating_sub(bot_rows);
 
     let active_index = state.tabs.iter().position(|t| t.active).unwrap_or(0);
     let (start, end, tabs_above, tabs_below) =
         calculate_visible_range(tab_count, available, active_index);
 
-    let start_index = state.config.tabs.start_index;
-
+    let start_index = config.tabs.start_index;
     let mut lines: Vec<String> = Vec::with_capacity(rows);
+
+    // format_1 section (top).
+    if let Some(line) = section_top {
+        lines.push(line);
+    }
 
     // Top padding rows.
     for _ in 0..padding_top {
-        lines.push(build_empty_line(
-            &state.config.tabs.border,
-            cols,
-            &state.config.color_aliases,
-        ));
+        lines.push(build_empty_line(border_fmt, cols, aliases));
     }
 
     // Overflow-above indicator.
     if tabs_above > 0 {
-        let text = state
-            .config
+        let text = config
             .tabs
             .overflow_above
             .replace("{count}", &tabs_above.to_string());
-        lines.push(build_plain_line(
-            &text,
-            cols,
-            &state.config.tabs.border,
-            &state.config.color_aliases,
-        ));
+        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
     }
 
     // Visible tabs.
@@ -156,34 +170,35 @@ pub fn render_vertical(
                 &rendered,
                 cols,
                 is_active && has_fill,
-                &state.config.tabs.border,
-                &state.config.color_aliases,
+                border_fmt,
+                aliases,
             ));
         }
     }
 
     // Overflow-below indicator.
     if tabs_below > 0 {
-        let text = state
-            .config
+        let text = config
             .tabs
             .overflow_below
             .replace("{count}", &tabs_below.to_string());
-        lines.push(build_plain_line(
-            &text,
-            cols,
-            &state.config.tabs.border,
-            &state.config.color_aliases,
-        ));
+        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
     }
 
-    // Fill remaining rows with empty lines.
+    // Fill remaining rows (reserving space for format_3 at bottom).
+    let target_before_bottom = rows.saturating_sub(bot_rows);
+    while lines.len() < target_before_bottom {
+        lines.push(build_empty_line(border_fmt, cols, aliases));
+    }
+
+    // format_3 section (bottom).
+    if let Some(line) = section_bot {
+        lines.push(line);
+    }
+
+    // Safety: pad to exactly `rows` if needed.
     while lines.len() < rows {
-        lines.push(build_empty_line(
-            &state.config.tabs.border,
-            cols,
-            &state.config.color_aliases,
-        ));
+        lines.push(build_empty_line(border_fmt, cols, aliases));
     }
 
     // Print all lines. Last line must not have a trailing newline.
@@ -195,6 +210,25 @@ pub fn render_vertical(
             print!("{}\x1b[m", line);
         }
     }
+}
+
+/// Render a format section as a full-width line with border, or None if empty.
+fn render_section_line(
+    format_str: &str,
+    widgets: &BTreeMap<String, Arc<dyn Widget>>,
+    state: &PluginState<'_>,
+    cols: usize,
+    border_fmt: &str,
+) -> Option<String> {
+    if format_str.is_empty() {
+        return None;
+    }
+    let aliases = &state.config.color_aliases;
+    let rendered = render_section(format_str, widgets, state, aliases);
+    if rendered.is_empty() {
+        return None;
+    }
+    Some(build_plain_line(&rendered, cols, border_fmt, aliases))
 }
 
 /// Build a tab row: content padded/filled to `cols`, with optional right border.

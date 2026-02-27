@@ -37,6 +37,11 @@ layout {
                     color_mantle    "#181825"
                     color_crust     "#11111b"
 
+                    // Universal sections (vertical: top / middle / bottom)
+                    format_1                "#[fg=$base,bg=$green,bold] {mode} "
+                    format_2                "{tabs}"
+                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+
                     // Tab format strings — layered Catppuccin surfaces for depth
                     tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
                     tab_active              "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification}"
@@ -59,6 +64,25 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   ""
                     notification_completed_icon ""
+
+                    // Mode widget (Catppuccin colours per mode)
+                    mode_normal       "#[fg=$green]NORMAL"
+                    mode_locked       "#[fg=$red,bold]LOCKED"
+                    mode_pane         "#[fg=$blue]PANE"
+                    mode_tab          "#[fg=$peach]TAB"
+                    mode_resize       "#[fg=$yellow]RESIZE"
+                    mode_move         "#[fg=$mauve]MOVE"
+                    mode_scroll       "#[fg=$teal]SCROLL"
+                    mode_session      "#[fg=$pink]SESSION"
+                    mode_tmux         "#[fg=$flamingo]TMUX"
+                    mode_enter_search "#[fg=$sky]SEARCH"
+                    mode_search       "#[fg=$sky]SEARCH"
+                    mode_rename_tab   "#[fg=$peach,italic]RENAME"
+                    mode_rename_pane  "#[fg=$blue,italic]RENAME"
+
+                    // DateTime widget
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
                 }
             }
             children
@@ -100,6 +124,11 @@ layout {
                     color_mantle    "#181825"
                     color_crust     "#11111b"
 
+                    // Universal sections (vertical: top / middle / bottom)
+                    format_1                "#[fg=$base,bg=$green,bold] {mode} "
+                    format_2                "{tabs}"
+                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+
                     // Tab format strings — layered Catppuccin surfaces for depth
                     tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
                     tab_active              "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification}"
@@ -122,6 +151,25 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   ""
                     notification_completed_icon ""
+
+                    // Mode widget (Catppuccin colours per mode)
+                    mode_normal       "#[fg=$green]NORMAL"
+                    mode_locked       "#[fg=$red,bold]LOCKED"
+                    mode_pane         "#[fg=$blue]PANE"
+                    mode_tab          "#[fg=$peach]TAB"
+                    mode_resize       "#[fg=$yellow]RESIZE"
+                    mode_move         "#[fg=$mauve]MOVE"
+                    mode_scroll       "#[fg=$teal]SCROLL"
+                    mode_session      "#[fg=$pink]SESSION"
+                    mode_tmux         "#[fg=$flamingo]TMUX"
+                    mode_enter_search "#[fg=$sky]SEARCH"
+                    mode_search       "#[fg=$sky]SEARCH"
+                    mode_rename_tab   "#[fg=$peach,italic]RENAME"
+                    mode_rename_pane  "#[fg=$blue,italic]RENAME"
+
+                    // DateTime widget
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
                 }
             }
             pane command="fish"

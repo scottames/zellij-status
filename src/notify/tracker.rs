@@ -36,6 +36,11 @@ impl NotificationTracker {
         self.notifications.is_empty()
     }
 
+    /// Returns the total number of panes with active notifications.
+    pub fn total_count(&self) -> usize {
+        self.notifications.len()
+    }
+
     /// Get the aggregate notification state for a tab.
     ///
     /// Iterates all non-plugin panes in the tab and returns the highest-priority
