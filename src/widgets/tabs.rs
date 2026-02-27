@@ -4,6 +4,7 @@ use unicode_width::UnicodeWidthStr;
 use zellij_tile::prelude::{InputMode, PaneInfo, TabInfo};
 use zellij_tile::shim::switch_tab_to;
 
+use crate::notify::NotificationType;
 use crate::render::format::parse_format_string;
 
 use super::{PluginState, Widget};
@@ -109,7 +110,7 @@ impl TabsWidget {
     /// Supported variables:
     /// - `{index}` — tab position (1-based by default, controlled by `start_index`)
     /// - `{name}` — tab name (shows "Enter name..." when renaming and name is empty)
-    /// - `{notification}` — placeholder for future notification system (Phase 3)
+    /// - `{notification}` — notification icon for the tab (or empty if none)
     pub fn render_tab(
         &self,
         tab: &TabInfo,
@@ -121,6 +122,9 @@ impl TabsWidget {
 
         let name = resolve_tab_name(tab, &state.mode.mode);
         let name_truncated = truncate_str(&name, max_name);
+
+        // Resolve notification icon for this tab
+        let notification_icon = resolve_notification_icon(tab, state);
 
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let mut out = String::new();
@@ -134,9 +138,8 @@ impl TabsWidget {
             if content.contains("{name}") {
                 content = content.replace("{name}", &name_truncated);
             }
-            // {notification} is empty until Phase 3 wires in the tracker
             if content.contains("{notification}") {
-                content = content.replace("{notification}", "");
+                content = content.replace("{notification}", &notification_icon);
             }
 
             out.push_str(&part.render(&content));
@@ -197,6 +200,26 @@ impl Widget for TabsWidget {
     }
 }
 
+/// Resolve the notification icon for a tab based on tracker state and config.
+///
+/// Returns the appropriate icon string, or an empty string if no notification
+/// is active or notifications are disabled.
+fn resolve_notification_icon(tab: &TabInfo, state: &PluginState<'_>) -> String {
+    let notify_config = &state.config.notifications;
+    if !notify_config.enabled {
+        return String::new();
+    }
+
+    match state
+        .notifications
+        .get_tab_notification(tab.position, state.panes)
+    {
+        Some(NotificationType::Waiting) => notify_config.waiting_icon.clone(),
+        Some(NotificationType::Completed) => notify_config.completed_icon.clone(),
+        None => String::new(),
+    }
+}
+
 /// Resolve what name to display for a tab.
 fn resolve_tab_name(tab: &TabInfo, mode: &InputMode) -> String {
     if *mode == InputMode::RenameTab && tab.active {
@@ -242,9 +265,8 @@ pub fn truncate_str(s: &str, max_width: usize) -> String {
 pub fn strip_ansi_width(s: &str) -> usize {
     let mut width = 0;
     let mut in_escape = false;
-    let mut chars = s.chars().peekable();
 
-    while let Some(ch) = chars.next() {
+    for ch in s.chars() {
         if ch == '\x1b' {
             in_escape = true;
             continue;

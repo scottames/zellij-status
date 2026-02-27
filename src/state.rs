@@ -2,13 +2,16 @@ use std::cmp::{max, min};
 use std::collections::BTreeMap;
 
 use zellij_tile::prelude::*;
-use zellij_tile::shim::switch_tab_to;
+use zellij_tile::shim::{switch_tab_to, unblock_cli_pipe_input};
 
 use crate::config::{LayoutMode, PluginConfig};
+use crate::notify::protocol::parse_pipe_message;
+use crate::notify::tracker::NotificationTracker;
 use crate::render::vertical::{render_vertical, tab_at_row};
 use crate::widgets::{register_widgets, tabs::TabsWidget, PluginState};
 
 /// Main plugin state implementing ZellijPlugin.
+#[derive(Default)]
 pub struct State {
     /// Whether permissions have been granted by Zellij.
     permissions_granted: bool,
@@ -33,21 +36,9 @@ pub struct State {
 
     /// Cached number of rows from last render (needed for click handling).
     last_rows: usize,
-}
 
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            permissions_granted: false,
-            pending_events: Vec::new(),
-            config: None,
-            tabs: Vec::new(),
-            panes: PaneManifest::default(),
-            mode: ModeInfo::default(),
-            sessions: Vec::new(),
-            last_rows: 0,
-        }
-    }
+    /// Per-pane notification tracker (Phase 3).
+    notifications: NotificationTracker,
 }
 
 impl ZellijPlugin for State {
@@ -94,6 +85,31 @@ impl ZellijPlugin for State {
         self.handle_event(event)
     }
 
+    fn pipe(&mut self, pipe_message: PipeMessage) -> bool {
+        let payload_ref = pipe_message.payload.as_deref();
+
+        if let Some(notification) = parse_pipe_message(&pipe_message.name, payload_ref) {
+            let enabled = self
+                .config
+                .as_ref()
+                .map(|c| c.notifications.enabled)
+                .unwrap_or(true);
+
+            if enabled {
+                self.notifications
+                    .add(notification.pane_id, notification.notification_type);
+            }
+
+            // Always unblock the pipe so the CLI command returns
+            unblock_cli_pipe_input(&pipe_message.name);
+            return enabled; // re-render only if notifications are enabled
+        }
+
+        // Not our message — unblock and ignore
+        unblock_cli_pipe_input(&pipe_message.name);
+        false
+    }
+
     fn render(&mut self, rows: usize, cols: usize) {
         self.last_rows = rows;
 
@@ -111,6 +127,7 @@ impl ZellijPlugin for State {
             panes: &self.panes,
             mode: &self.mode,
             config,
+            notifications: &self.notifications,
         };
 
         match config.layout_mode {
@@ -133,10 +150,18 @@ impl State {
         match event {
             Event::TabUpdate(tabs) => {
                 self.tabs = tabs;
+                // Clear notifications for the focused pane (focus-clears behavior)
+                let cleared = self.notifications.clear_focused(&self.tabs, &self.panes);
+                let cleaned = self.notifications.clean_stale(&self.panes);
+                // Always re-render on tab update; cleared/cleaned just confirm side effects
+                let _ = (cleared, cleaned);
                 true
             }
             Event::PaneUpdate(panes) => {
                 self.panes = panes;
+                // Clear focused pane notifications + clean stale entries
+                self.notifications.clear_focused(&self.tabs, &self.panes);
+                self.notifications.clean_stale(&self.panes);
                 true
             }
             Event::ModeUpdate(mode) => {

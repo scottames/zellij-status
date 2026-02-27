@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use crate::notify::config::NotificationConfig;
+
 /// Layout rendering mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LayoutMode {
@@ -165,6 +167,9 @@ pub struct PluginConfig {
     /// Tab rendering config (used by the `{tabs}` widget).
     pub tabs: TabConfig,
 
+    /// Notification system configuration.
+    pub notifications: NotificationConfig,
+
     /// Raw flat key-value map from Zellij — passed to widgets for flexible access.
     pub raw: BTreeMap<String, String>,
 }
@@ -198,6 +203,7 @@ impl PluginConfig {
             .is_some_and(|v| v == "true");
 
         let tabs = TabConfig::from_raw(&config);
+        let notifications = NotificationConfig::from_raw(&config);
 
         Ok(Self {
             layout_mode,
@@ -209,6 +215,7 @@ impl PluginConfig {
             format_precedence,
             hide_on_overlength,
             tabs,
+            notifications,
             raw: config,
         })
     }

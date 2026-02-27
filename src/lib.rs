@@ -1,4 +1,5 @@
 pub mod config;
+pub mod notify;
 pub mod render;
 pub mod state;
 pub mod widgets;

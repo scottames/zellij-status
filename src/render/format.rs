@@ -57,16 +57,16 @@ impl FormattedPart {
                 bg = parse_color(color_str, aliases);
             } else {
                 match part.to_lowercase().as_str() {
-                    "bold" => effects = effects | Effects::BOLD,
-                    "dim" | "dimmed" => effects = effects | Effects::DIMMED,
-                    "italic" | "italics" => effects = effects | Effects::ITALIC,
+                    "bold" => effects |= Effects::BOLD,
+                    "dim" | "dimmed" => effects |= Effects::DIMMED,
+                    "italic" | "italics" => effects |= Effects::ITALIC,
                     "underscore" | "underline" => {
-                        effects = effects | Effects::UNDERLINE;
+                        effects |= Effects::UNDERLINE;
                     }
-                    "blink" => effects = effects | Effects::BLINK,
-                    "reverse" => effects = effects | Effects::INVERT,
-                    "hidden" => effects = effects | Effects::HIDDEN,
-                    "strikethrough" => effects = effects | Effects::STRIKETHROUGH,
+                    "blink" => effects |= Effects::BLINK,
+                    "reverse" => effects |= Effects::INVERT,
+                    "hidden" => effects |= Effects::HIDDEN,
+                    "strikethrough" => effects |= Effects::STRIKETHROUGH,
                     "fill" => fill = true,
                     _ => {} // Unknown directives are silently ignored
                 }

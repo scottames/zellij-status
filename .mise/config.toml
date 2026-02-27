@@ -22,8 +22,8 @@ zellij \
 """
 
 [tasks.test]
-description = "Run tests (native target)"
-run = "cargo test --target x86_64-unknown-linux-gnu"
+description = "Run tests (native target, lib only — binary requires WASM host)"
+run = "cargo test --lib --target x86_64-unknown-linux-gnu"
 
 [tasks.lint]
 description = "Run clippy"

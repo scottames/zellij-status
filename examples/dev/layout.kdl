@@ -16,13 +16,18 @@ layout {
                 color_surface "#313244"
 
                 // Tab format strings
-                tab_normal   " {index} {name} "
-                tab_active   "#[fg=$bg,bg=$accent,fill] {index} {name} "
-                tab_normal_fullscreen   " {index} {name} 󰊓 "
-                tab_active_fullscreen   "#[fg=$bg,bg=$accent,fill] {index} {name} 󰊓 "
-                tab_normal_sync   " {index} {name}  "
-                tab_active_sync   "#[fg=$bg,bg=$accent,fill] {index} {name}  "
+                tab_normal   " {index} {name} {notification}"
+                tab_active   "#[fg=$bg,bg=$accent,fill] {index} {name} {notification}"
+                tab_normal_fullscreen   " {index} {name} 󰊓 {notification}"
+                tab_active_fullscreen   "#[fg=$bg,bg=$accent,fill] {index} {name} 󰊓 {notification}"
+                tab_normal_sync   " {index} {name}  {notification}"
+                tab_active_sync   "#[fg=$bg,bg=$accent,fill] {index} {name}  {notification}"
                 tab_rename   "#[fg=$accent,italic] {index} {name} "
+
+                // Notification icons
+                notification_enabled        "true"
+                notification_waiting_icon   "⏳"
+                notification_completed_icon "✅"
                 tab_separator "#[fg=$muted]─"
 
                 overflow_above  "#[fg=$muted]  ^ +{count}"

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use zellij_tile::prelude::{ModeInfo, PaneManifest, TabInfo};
 
 use crate::config::PluginConfig;
+use crate::notify::tracker::NotificationTracker;
 
 pub mod tabs;
 
@@ -12,6 +13,7 @@ pub struct PluginState<'a> {
     pub panes: &'a PaneManifest,
     pub mode: &'a ModeInfo,
     pub config: &'a PluginConfig,
+    pub notifications: &'a NotificationTracker,
 }
 
 /// A widget that can render a string value and handle click events.
