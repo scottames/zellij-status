@@ -1,0 +1,6 @@
+[tools]
+"npm:fission-ai/openspec" = "latest"
+
+[tasks."check"]
+description = "Run all checks"
+run = ["trunk check"]
