@@ -1,0 +1,25 @@
+[package]
+name = "zellij-status"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "A Zellij plugin combining vertical tabs, styled status bar, and notifications"
+
+[dependencies]
+zellij-tile = "0.43.1"
+anstyle = "1.0"
+unicode-width = "0.2"
+regex = "1.12"
+chrono = "0.4"
+chrono-tz = "0.10"
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+rstest = "0.25"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"

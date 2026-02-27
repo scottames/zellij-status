@@ -1,2 +1,4 @@
 .clones/**
 /.opencode
+/target/
+thoughts/

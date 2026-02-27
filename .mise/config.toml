@@ -1,6 +1,33 @@
 [tools]
 "npm:fission-ai/openspec" = "latest"
+rust = "latest"
 
-[tasks."check"]
+[tasks.build]
+description = "Build the plugin"
+run = "cargo build"
+
+[tasks."build-release"]
+description = "Build the plugin in release mode"
+run = "cargo build --release"
+
+[tasks.dev]
+description = "Build and launch a Zellij dev session"
+depends = ["build"]
+run = """
+zellij \
+  -s zellij-status-dev \
+  --config ./examples/dev/config.kdl \
+  -n ./examples/dev/layout.kdl
+"""
+
+[tasks.test]
+description = "Run tests (native target)"
+run = "cargo test --target x86_64-unknown-linux-gnu"
+
+[tasks.lint]
+description = "Run clippy"
+run = "cargo clippy --all-features --lib"
+
+[tasks.check]
 description = "Run all checks"
 run = ["trunk check"]

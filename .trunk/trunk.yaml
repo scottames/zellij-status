@@ -33,6 +33,10 @@ lint:
         - CHANGELOG.md
         - "**/AGENTS.md"
         - openspec/**/*.md
+    - linters:
+        - ALL
+      paths:
+        - target/**
 actions:
   enabled:
     - trunk-announce
