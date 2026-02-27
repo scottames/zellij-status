@@ -1,0 +1,102 @@
+// Default layout for zellij-status — new user experience.
+// Left sidebar: plugin in vertical tab mode with minimal styling.
+// Right area: shell panes (tab content).
+
+layout {
+    default_tab_template {
+        pane split_direction="vertical" {
+            pane size=20 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // Minimal colour aliases
+                    color_bg      "#1e1e2e"
+                    color_fg      "#cdd6f4"
+                    color_accent  "#a6e3a1"
+                    color_muted   "#6c7086"
+
+                    // Tab format strings — clean and simple
+                    tab_normal          " {index} {name} {notification}"
+                    tab_active          "#[fg=$bg,bg=$accent,fill] {index} {name} {notification}"
+                    tab_normal_fullscreen " {index} {name} 󰊓 {notification}"
+                    tab_active_fullscreen "#[fg=$bg,bg=$accent,fill] {index} {name} 󰊓 {notification}"
+                    tab_normal_sync     " {index} {name}  {notification}"
+                    tab_active_sync     "#[fg=$bg,bg=$accent,fill] {index} {name}  {notification}"
+                    tab_rename          "#[fg=$accent,italic] {index} {name} "
+                    tab_separator       "#[fg=$muted]─"
+
+                    overflow_above      "#[fg=$muted]  ^ +{count}"
+                    overflow_below      "#[fg=$muted]  v +{count}"
+
+                    max_name_length     18
+                    padding_top         0
+                    border              "#[fg=$muted]│"
+                    start_index         1
+
+                    // Notifications
+                    notification_enabled        "true"
+                    notification_waiting_icon   "⏳"
+                    notification_completed_icon "✅"
+                }
+            }
+            children
+        }
+    }
+
+    // Runtime-created tabs (eg. NewTab) use this template.
+    new_tab_template {
+        pane split_direction="vertical" {
+            pane size=20 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // Minimal colour aliases
+                    color_bg      "#1e1e2e"
+                    color_fg      "#cdd6f4"
+                    color_accent  "#a6e3a1"
+                    color_muted   "#6c7086"
+
+                    // Tab format strings — clean and simple
+                    tab_normal          " {index} {name} {notification}"
+                    tab_active          "#[fg=$bg,bg=$accent,fill] {index} {name} {notification}"
+                    tab_normal_fullscreen " {index} {name} 󰊓 {notification}"
+                    tab_active_fullscreen "#[fg=$bg,bg=$accent,fill] {index} {name} 󰊓 {notification}"
+                    tab_normal_sync     " {index} {name}  {notification}"
+                    tab_active_sync     "#[fg=$bg,bg=$accent,fill] {index} {name}  {notification}"
+                    tab_rename          "#[fg=$accent,italic] {index} {name} "
+                    tab_separator       "#[fg=$muted]─"
+
+                    overflow_above      "#[fg=$muted]  ^ +{count}"
+                    overflow_below      "#[fg=$muted]  v +{count}"
+
+                    max_name_length     18
+                    padding_top         0
+                    border              "#[fg=$muted]│"
+                    start_index         1
+
+                    // Notifications
+                    notification_enabled        "true"
+                    notification_waiting_icon   "⏳"
+                    notification_completed_icon "✅"
+                }
+            }
+            pane command="sh"
+        }
+    }
+
+    tab name="default-1" {
+        pane
+    }
+
+    tab name="default-2" {
+        pane
+        pane
+    }
+
+    tab name="default-3" {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}

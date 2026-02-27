@@ -1,0 +1,146 @@
+// Scotty's layout for zellij-status — Catppuccin Mocha with depth.
+// Left sidebar: plugin in vertical tab mode with full colour palette.
+// Replaces zjstatus (bottom bar) + zellij-attention (notifications).
+
+layout {
+    default_tab_template {
+        pane split_direction="vertical" {
+            pane size=24 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // -- Catppuccin Mocha palette --
+                    color_rosewater "#f5e0dc"
+                    color_flamingo  "#f2cdcd"
+                    color_pink      "#f5c2e7"
+                    color_mauve     "#cba6f7"
+                    color_red       "#f38ba8"
+                    color_maroon    "#eba0ac"
+                    color_peach     "#fab387"
+                    color_yellow    "#f9e2af"
+                    color_green     "#a6e3a1"
+                    color_teal      "#94e2d5"
+                    color_sky       "#89dceb"
+                    color_sapphire  "#74c7ec"
+                    color_blue      "#89b4fa"
+                    color_lavender  "#b4befe"
+                    color_text      "#cdd6f4"
+                    color_subtext1  "#bac2de"
+                    color_subtext0  "#a6adc8"
+                    color_overlay2  "#9399b2"
+                    color_overlay1  "#7f849c"
+                    color_overlay0  "#6c7086"
+                    color_surface2  "#585b70"
+                    color_surface1  "#45475a"
+                    color_surface0  "#313244"
+                    color_base      "#1e1e2e"
+                    color_mantle    "#181825"
+                    color_crust     "#11111b"
+
+                    // Tab format strings — layered Catppuccin surfaces for depth
+                    tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
+                    tab_active              "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification}"
+                    tab_normal_fullscreen   "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} 󰊓 {notification}"
+                    tab_active_fullscreen   "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification}"
+                    tab_normal_sync         "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name}  {notification}"
+                    tab_active_sync         "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification}"
+                    tab_rename              "#[fg=$green,bg=$mantle,italic] {index} {name} "
+                    tab_separator           "#[fg=$surface1,bg=$mantle]─"
+
+                    overflow_above          "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    overflow_below          "#[fg=$overlay0,bg=$mantle]  v +{count}"
+
+                    max_name_length         20
+                    padding_top             0
+                    border                  "#[fg=$surface1]│"
+                    start_index             1
+
+                    // Notifications (replacing zellij-attention icons)
+                    notification_enabled        "true"
+                    notification_waiting_icon   ""
+                    notification_completed_icon ""
+                }
+            }
+            children
+        }
+    }
+
+    // Runtime-created tabs (eg. NewTab) use this template.
+    new_tab_template {
+        pane split_direction="vertical" {
+            pane size=24 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // -- Catppuccin Mocha palette --
+                    color_rosewater "#f5e0dc"
+                    color_flamingo  "#f2cdcd"
+                    color_pink      "#f5c2e7"
+                    color_mauve     "#cba6f7"
+                    color_red       "#f38ba8"
+                    color_maroon    "#eba0ac"
+                    color_peach     "#fab387"
+                    color_yellow    "#f9e2af"
+                    color_green     "#a6e3a1"
+                    color_teal      "#94e2d5"
+                    color_sky       "#89dceb"
+                    color_sapphire  "#74c7ec"
+                    color_blue      "#89b4fa"
+                    color_lavender  "#b4befe"
+                    color_text      "#cdd6f4"
+                    color_subtext1  "#bac2de"
+                    color_subtext0  "#a6adc8"
+                    color_overlay2  "#9399b2"
+                    color_overlay1  "#7f849c"
+                    color_overlay0  "#6c7086"
+                    color_surface2  "#585b70"
+                    color_surface1  "#45475a"
+                    color_surface0  "#313244"
+                    color_base      "#1e1e2e"
+                    color_mantle    "#181825"
+                    color_crust     "#11111b"
+
+                    // Tab format strings — layered Catppuccin surfaces for depth
+                    tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
+                    tab_active              "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification}"
+                    tab_normal_fullscreen   "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} 󰊓 {notification}"
+                    tab_active_fullscreen   "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification}"
+                    tab_normal_sync         "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name}  {notification}"
+                    tab_active_sync         "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification}"
+                    tab_rename              "#[fg=$green,bg=$mantle,italic] {index} {name} "
+                    tab_separator           "#[fg=$surface1,bg=$mantle]─"
+
+                    overflow_above          "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    overflow_below          "#[fg=$overlay0,bg=$mantle]  v +{count}"
+
+                    max_name_length         20
+                    padding_top             0
+                    border                  "#[fg=$surface1]│"
+                    start_index             1
+
+                    // Notifications (replacing zellij-attention icons)
+                    notification_enabled        "true"
+                    notification_waiting_icon   ""
+                    notification_completed_icon ""
+                }
+            }
+            pane command="fish"
+        }
+    }
+
+    tab name="~" {
+        pane
+    }
+
+    tab name="dev" {
+        pane
+        pane
+    }
+
+    tab name="split" {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}

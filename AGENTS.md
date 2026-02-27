@@ -34,12 +34,12 @@ Use `realpath target/wasm32-wasip1/debug/zellij-status.wasm` for the exact path.
 # 1. build the plugin
 mise run build
 
-# 2. spawn a zellij dev session via pilotty
+# 2. spawn a zellij dev session via pilotty (use any profile: default, scotty)
 pilotty spawn --name dev-view zellij \
-  -s zellij-status-dev \
-  --config-dir ./examples/dev \
-  --config ./examples/dev/config.kdl \
-  -n ./examples/dev/layout.kdl
+  -s zellij-status-default \
+  --config-dir ./examples/default \
+  --config ./examples/default/config.kdl \
+  -n ./examples/default/layout.kdl
 
 # 3. wait for it to load (if first run, grant permissions first — see above)
 sleep 5
@@ -49,12 +49,14 @@ pilotty snapshot -s dev-view --format text
 
 # 5. clean up
 pilotty kill -s dev-view
-zellij delete-session zellij-status-dev --force
+zellij delete-session zellij-status-default --force
 ```
 
 ### notes
 
-- `mise run dev` launches the same session interactively (for manual testing)
-- `--config-dir ./examples/dev` isolates the session from your user config
-- The wasm path in `examples/dev/layout.kdl` uses a hyphen: `zellij-status.wasm`
+- `mise run dev` launches the default profile interactively
+- `mise run dev scotty` launches with Scotty's keybindings and styling
+- Available profiles live in `examples/<profile>/` (each has config.kdl + layout.kdl)
+- `--config-dir ./examples/<profile>` isolates the session from your user config
+- The wasm path in layout files uses a hyphen: `zellij-status.wasm`
   (matches the crate name); do not use underscores

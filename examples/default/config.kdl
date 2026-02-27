@@ -1,0 +1,8 @@
+// Default config for testing zellij-status as a new user would experience it.
+// Uses Zellij's built-in keybindings — no overrides.
+default_shell "fish"
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}
