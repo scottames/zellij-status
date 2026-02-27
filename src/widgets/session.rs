@@ -38,6 +38,8 @@ mod tests {
         PaneManifest,
         PluginConfig,
         NotificationTracker,
+        BTreeMap<String, crate::widgets::command::CommandResult>,
+        BTreeMap<String, String>,
     ) {
         let tabs = vec![];
         let mut mode = ModeInfo::default();
@@ -45,18 +47,30 @@ mod tests {
         let panes = PaneManifest::default();
         let config = PluginConfig::from_configuration(std::collections::BTreeMap::new()).unwrap();
         let notifications = NotificationTracker::default();
-        (tabs, mode, panes, config, notifications)
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        (
+            tabs,
+            mode,
+            panes,
+            config,
+            notifications,
+            command_results,
+            pipe_data,
+        )
     }
 
     #[test]
     fn returns_session_name() {
-        let (tabs, mode, panes, config, notifications) = make_state("my-session");
+        let (tabs, mode, panes, config, notifications, cmd, pipe) = make_state("my-session");
         let state = PluginState {
             tabs: &tabs,
             panes: &panes,
             mode: &mode,
             config: &config,
             notifications: &notifications,
+            command_results: &cmd,
+            pipe_data: &pipe,
         };
         let w = SessionWidget::new(&BTreeMap::new());
         assert_eq!(w.process("session", &state), "my-session");
@@ -64,13 +78,15 @@ mod tests {
 
     #[test]
     fn returns_empty_when_no_session_name() {
-        let (tabs, mode, panes, config, notifications) = make_state("");
+        let (tabs, mode, panes, config, notifications, cmd, pipe) = make_state("");
         let state = PluginState {
             tabs: &tabs,
             panes: &panes,
             mode: &mode,
             config: &config,
             notifications: &notifications,
+            command_results: &cmd,
+            pipe_data: &pipe,
         };
         let w = SessionWidget::new(&BTreeMap::new());
         assert_eq!(w.process("session", &state), "");

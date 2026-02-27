@@ -5,10 +5,11 @@ use zellij_tile::prelude::*;
 use zellij_tile::shim::{switch_tab_to, unblock_cli_pipe_input};
 
 use crate::config::{LayoutMode, PluginConfig};
-use crate::notify::protocol::parse_pipe_message;
+use crate::notify::protocol::{parse_pipe_data, parse_pipe_message};
 use crate::notify::tracker::NotificationTracker;
 use crate::render::bar::render_bar;
 use crate::render::vertical::{render_vertical, tab_at_row};
+use crate::widgets::command::CommandResult;
 use crate::widgets::{register_widgets, tabs::TabsWidget, PluginState};
 
 /// Main plugin state implementing ZellijPlugin.
@@ -40,6 +41,12 @@ pub struct State {
 
     /// Per-pane notification tracker (Phase 3).
     notifications: NotificationTracker,
+
+    /// Cached command widget results keyed by widget name (Phase 5).
+    command_results: BTreeMap<String, CommandResult>,
+
+    /// Pipe widget data keyed by widget name (Phase 5).
+    pipe_data: BTreeMap<String, String>,
 }
 
 impl ZellijPlugin for State {
@@ -48,6 +55,7 @@ impl ZellijPlugin for State {
             PermissionType::ReadApplicationState,
             PermissionType::ChangeApplicationState,
             PermissionType::ReadCliPipes,
+            PermissionType::RunCommands,
         ]);
 
         subscribe(&[
@@ -57,6 +65,7 @@ impl ZellijPlugin for State {
             EventType::PaneUpdate,
             EventType::PermissionRequestResult,
             EventType::SessionUpdate,
+            EventType::RunCommandResult,
         ]);
 
         match PluginConfig::from_configuration(configuration) {
@@ -89,6 +98,7 @@ impl ZellijPlugin for State {
     fn pipe(&mut self, pipe_message: PipeMessage) -> bool {
         let payload_ref = pipe_message.payload.as_deref();
 
+        // Try notification protocol first.
         if let Some(notification) = parse_pipe_message(&pipe_message.name, payload_ref) {
             let enabled = self
                 .config
@@ -101,12 +111,18 @@ impl ZellijPlugin for State {
                     .add(notification.pane_id, notification.notification_type);
             }
 
-            // Always unblock the pipe so the CLI command returns
             unblock_cli_pipe_input(&pipe_message.name);
-            return enabled; // re-render only if notifications are enabled
+            return enabled;
         }
 
-        // Not our message — unblock and ignore
+        // Try pipe widget data protocol.
+        if let Some(data) = parse_pipe_data(&pipe_message.name, payload_ref) {
+            self.pipe_data.insert(data.key, data.value);
+            unblock_cli_pipe_input(&pipe_message.name);
+            return true; // re-render with new data
+        }
+
+        // Not our message — unblock and ignore.
         unblock_cli_pipe_input(&pipe_message.name);
         false
     }
@@ -129,6 +145,8 @@ impl ZellijPlugin for State {
             mode: &self.mode,
             config,
             notifications: &self.notifications,
+            command_results: &self.command_results,
+            pipe_data: &self.pipe_data,
         };
 
         let widgets = register_widgets(config);
@@ -171,6 +189,20 @@ impl State {
             }
             Event::SessionUpdate(sessions, _) => {
                 self.sessions = sessions;
+                true
+            }
+            Event::RunCommandResult(exit_code, stdout, stderr, context) => {
+                if let Some(name) = context.get("name").cloned() {
+                    self.command_results.insert(
+                        name,
+                        CommandResult {
+                            exit_code,
+                            stdout: String::from_utf8_lossy(&stdout).to_string(),
+                            stderr: String::from_utf8_lossy(&stderr).to_string(),
+                            context,
+                        },
+                    );
+                }
                 true
             }
             Event::Mouse(me) => self.handle_mouse(me),

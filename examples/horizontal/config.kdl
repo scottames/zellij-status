@@ -1,0 +1,8 @@
+// Horizontal bar config for testing zellij-status in zjstatus-compatible mode.
+// Bottom status bar with left/center/right sections.
+default_shell "fish"
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}

@@ -6,10 +6,13 @@ use zellij_tile::prelude::{ModeInfo, PaneManifest, TabInfo};
 use crate::config::PluginConfig;
 use crate::notify::tracker::NotificationTracker;
 
+pub mod command;
 pub mod datetime;
 pub mod mode;
 pub mod notification;
+pub mod pipe;
 pub mod session;
+pub mod swap_layout;
 pub mod tabs;
 
 /// A read-only view of plugin state passed to widgets for rendering.
@@ -19,6 +22,10 @@ pub struct PluginState<'a> {
     pub mode: &'a ModeInfo,
     pub config: &'a PluginConfig,
     pub notifications: &'a NotificationTracker,
+    /// Cached command results keyed by widget name (e.g., `"command_git"`).
+    pub command_results: &'a BTreeMap<String, command::CommandResult>,
+    /// Pipe widget data keyed by widget name (e.g., `"pipe_status"`).
+    pub pipe_data: &'a BTreeMap<String, String>,
 }
 
 /// A widget that can render a string value and handle click events.
@@ -54,6 +61,21 @@ pub fn register_widgets(config: &PluginConfig) -> BTreeMap<String, Arc<dyn Widge
         "notifications".to_string(),
         Arc::new(notification::NotificationWidget::new(&config.raw)),
     );
+    map.insert(
+        "swap_layout".to_string(),
+        Arc::new(swap_layout::SwapLayoutWidget::new(&config.raw)),
+    );
+
+    // Dynamic widgets: one entry per configured instance.
+    let command_widget = Arc::new(command::CommandWidget::new(&config.raw));
+    for name in command_widget.names() {
+        map.insert(name, Arc::clone(&command_widget) as Arc<dyn Widget>);
+    }
+
+    let pipe_widget = Arc::new(pipe::PipeWidget::new(&config.raw));
+    for name in pipe_widget.names() {
+        map.insert(name, Arc::clone(&pipe_widget) as Arc<dyn Widget>);
+    }
 
     map
 }

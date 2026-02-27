@@ -1,6 +1,10 @@
 // Scotty's layout for zellij-status — Catppuccin Mocha with depth.
 // Left sidebar: plugin in vertical tab mode with full colour palette.
 // Replaces zjstatus (bottom bar) + zellij-attention (notifications).
+//
+// Demonstrates all Phase 1-5 features:
+//   Sections, tabs, mode, session, datetime, notifications,
+//   swap layout, command widget (git branch), pipe widget.
 
 layout {
     default_tab_template {
@@ -40,7 +44,7 @@ layout {
                     // Universal sections (vertical: top / middle / bottom)
                     format_1                "#[fg=$base,bg=$green,bold] {mode} "
                     format_2                "{tabs}"
-                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+                    format_3                "#[fg=$overlay0] {session} {command_git}{swap_layout}{pipe_status}#[fg=$subtext0]{datetime} "
 
                     // Tab format strings — layered Catppuccin surfaces for depth
                     tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
@@ -83,6 +87,20 @@ layout {
                     // DateTime widget
                     datetime_format   "%H:%M"
                     datetime_timezone "America/Los_Angeles"
+
+                    // Swap layout widget (click to cycle layouts)
+                    swap_layout_format        "#[fg=$overlay0] {name}"
+                    swap_layout_hide_if_empty "true"
+
+                    // Command widget: show current git branch (re-runs every 5s)
+                    command_git_command    "git branch --show-current"
+                    command_git_format     "#[fg=$blue] {stdout} "
+                    command_git_interval   "5"
+                    command_git_rendermode "static"
+
+                    // Pipe widget: display arbitrary data sent via pipe
+                    // Usage: zellij pipe --name "zellij-status::pipe::status::running"
+                    pipe_status_format "#[fg=$green]{output} "
                 }
             }
             children
@@ -127,7 +145,7 @@ layout {
                     // Universal sections (vertical: top / middle / bottom)
                     format_1                "#[fg=$base,bg=$green,bold] {mode} "
                     format_2                "{tabs}"
-                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+                    format_3                "#[fg=$overlay0] {session} {command_git}{swap_layout}{pipe_status}#[fg=$subtext0]{datetime} "
 
                     // Tab format strings — layered Catppuccin surfaces for depth
                     tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
@@ -170,6 +188,20 @@ layout {
                     // DateTime widget
                     datetime_format   "%H:%M"
                     datetime_timezone "America/Los_Angeles"
+
+                    // Swap layout widget (click to cycle layouts)
+                    swap_layout_format        "#[fg=$overlay0] {name}"
+                    swap_layout_hide_if_empty "true"
+
+                    // Command widget: show current git branch (re-runs every 5s)
+                    command_git_command    "git branch --show-current"
+                    command_git_format     "#[fg=$blue] {stdout} "
+                    command_git_interval   "5"
+                    command_git_rendermode "static"
+
+                    // Pipe widget: display arbitrary data sent via pipe
+                    // Usage: zellij pipe --name "zellij-status::pipe::status::running"
+                    pipe_status_format "#[fg=$green]{output} "
                 }
             }
             pane command="fish"

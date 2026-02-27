@@ -15,7 +15,7 @@ description = "Build and launch a Zellij dev session with a config profile"
 depends = ["build"]
 usage = '''
 arg "[profile]" help="Config profile to use" default="default" {
-    choices "default" "scotty"
+    choices "default" "scotty" "horizontal"
 }
 '''
 run = """
@@ -24,7 +24,7 @@ profile="${1:-default}"
 config_dir="./examples/$profile"
 if [[ ! -d "$config_dir" ]]; then
   echo "error: unknown profile '$profile' (no directory at $config_dir)" >&2
-  echo "available profiles: default, scotty" >&2
+  echo "available profiles: default, scotty, horizontal" >&2
   exit 1
 fi
 zellij \

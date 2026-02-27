@@ -1,11 +1,15 @@
 // Default layout for zellij-status — new user experience.
 // Left sidebar: plugin in vertical tab mode with minimal styling.
 // Right area: shell panes (tab content).
+//
+// Demonstrates all Phase 1-5 features:
+//   Sections, tabs, mode, session, datetime, notifications,
+//   swap layout, command widget (git branch), pipe widget.
 
 layout {
     default_tab_template {
         pane split_direction="vertical" {
-            pane size=20 borderless=true {
+            pane size=22 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
 
@@ -14,11 +18,12 @@ layout {
                     color_fg      "#cdd6f4"
                     color_accent  "#a6e3a1"
                     color_muted   "#6c7086"
+                    color_blue    "#89b4fa"
 
                     // Universal sections (vertical: top / middle / bottom)
                     format_1      "#[fg=$accent,bold] {mode} "
                     format_2      "{tabs}"
-                    format_3      "#[fg=$muted] {session} {datetime} "
+                    format_3      "#[fg=$muted] {session} {command_git}{swap_layout}{datetime} "
 
                     // Tab format strings — clean and simple
                     tab_normal          " {index} {name} {notification}"
@@ -46,6 +51,20 @@ layout {
                     // DateTime widget
                     datetime_format   "%H:%M"
                     datetime_timezone "America/Los_Angeles"
+
+                    // Swap layout widget (click to cycle layouts)
+                    swap_layout_format        "#[fg=$muted] {name}"
+                    swap_layout_hide_if_empty "true"
+
+                    // Command widget: show current git branch (re-runs every 10s)
+                    command_git_command    "git branch --show-current"
+                    command_git_format     "#[fg=$blue] {stdout} "
+                    command_git_interval   "10"
+                    command_git_rendermode "static"
+
+                    // Pipe widget: display arbitrary data sent via pipe
+                    // Usage: zellij pipe --name "zellij-status::pipe::status::ok"
+                    pipe_status_format "#[fg=$accent]{output}"
                 }
             }
             children
@@ -55,7 +74,7 @@ layout {
     // Runtime-created tabs (eg. NewTab) use this template.
     new_tab_template {
         pane split_direction="vertical" {
-            pane size=20 borderless=true {
+            pane size=22 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
 
@@ -64,11 +83,12 @@ layout {
                     color_fg      "#cdd6f4"
                     color_accent  "#a6e3a1"
                     color_muted   "#6c7086"
+                    color_blue    "#89b4fa"
 
                     // Universal sections (vertical: top / middle / bottom)
                     format_1      "#[fg=$accent,bold] {mode} "
                     format_2      "{tabs}"
-                    format_3      "#[fg=$muted] {session} {datetime} "
+                    format_3      "#[fg=$muted] {session} {command_git}{swap_layout}{datetime} "
 
                     // Tab format strings — clean and simple
                     tab_normal          " {index} {name} {notification}"
@@ -96,6 +116,20 @@ layout {
                     // DateTime widget
                     datetime_format   "%H:%M"
                     datetime_timezone "America/Los_Angeles"
+
+                    // Swap layout widget (click to cycle layouts)
+                    swap_layout_format        "#[fg=$muted] {name}"
+                    swap_layout_hide_if_empty "true"
+
+                    // Command widget: show current git branch (re-runs every 10s)
+                    command_git_command    "git branch --show-current"
+                    command_git_format     "#[fg=$blue] {stdout} "
+                    command_git_interval   "10"
+                    command_git_rendermode "static"
+
+                    // Pipe widget: display arbitrary data sent via pipe
+                    // Usage: zellij pipe --name "zellij-status::pipe::status::ok"
+                    pipe_status_format "#[fg=$accent]{output}"
                 }
             }
             pane command="sh"

@@ -1,12 +1,21 @@
 use super::NotificationType;
 
-/// Result of parsing a pipe message.
+/// Result of parsing a pipe message as a notification.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeNotification {
     /// The type of notification (waiting or completed).
     pub notification_type: NotificationType,
     /// The pane ID that the notification applies to.
     pub pane_id: u32,
+}
+
+/// Result of parsing a pipe message as widget data.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PipeData {
+    /// Widget key, including the `pipe_` prefix (e.g., `"pipe_my_key"`).
+    pub key: String,
+    /// The data value to display.
+    pub value: String,
 }
 
 /// Parse a pipe message name into a notification.
@@ -21,6 +30,43 @@ pub struct PipeNotification {
 pub fn parse_pipe_message(name: &str, payload: Option<&str>) -> Option<PipeNotification> {
     // Try name first, then payload
     parse_notification_str(name).or_else(|| payload.and_then(parse_notification_str))
+}
+
+/// Parse a pipe message for widget data.
+///
+/// Expected formats:
+/// - `zellij-status::pipe::KEY::VALUE` — key and value in name
+/// - `zellij-status::pipe::KEY` with payload as value
+///
+/// Also checks the payload for the same format (broadcast pipes may
+/// put the message in payload instead of name).
+///
+/// The returned key includes the `pipe_` prefix to match widget names
+/// (e.g., sending `zellij-status::pipe::status::ok` yields key `"pipe_status"`).
+pub fn parse_pipe_data(name: &str, payload: Option<&str>) -> Option<PipeData> {
+    parse_pipe_data_str(name, payload)
+        .or_else(|| payload.and_then(|p| parse_pipe_data_str(p, None)))
+}
+
+/// Parse a single string in `zellij-status::pipe::KEY[::VALUE]` format.
+fn parse_pipe_data_str(s: &str, payload: Option<&str>) -> Option<PipeData> {
+    // Use splitn(4, ...) so the value can contain "::"
+    let parts: Vec<&str> = s.splitn(4, "::").collect();
+
+    if parts.len() < 3 || parts[0] != "zellij-status" || parts[1] != "pipe" {
+        return None;
+    }
+
+    let key = format!("pipe_{}", parts[2]);
+
+    let value = if parts.len() >= 4 {
+        parts[3].to_string()
+    } else {
+        // Fall back to payload if value is not in the name
+        payload.unwrap_or("").to_string()
+    };
+
+    Some(PipeData { key, value })
 }
 
 /// Parse a single string in `zellij-status::EVENT::PANE_ID` format.
@@ -138,6 +184,94 @@ mod tests {
             Some(PipeNotification {
                 notification_type: NotificationType::Waiting,
                 pane_id: 42,
+            })
+        );
+    }
+
+    // -- parse_pipe_data tests --
+
+    #[test]
+    fn parse_pipe_data_from_name() {
+        let result = parse_pipe_data("zellij-status::pipe::status::running", None);
+        assert_eq!(
+            result,
+            Some(PipeData {
+                key: "pipe_status".to_string(),
+                value: "running".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_pipe_data_value_with_colons() {
+        let result = parse_pipe_data("zellij-status::pipe::msg::hello::world", None);
+        assert_eq!(
+            result,
+            Some(PipeData {
+                key: "pipe_msg".to_string(),
+                value: "hello::world".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_pipe_data_from_payload() {
+        let result = parse_pipe_data("zellij-status::pipe::key", Some("my value"));
+        assert_eq!(
+            result,
+            Some(PipeData {
+                key: "pipe_key".to_string(),
+                value: "my value".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_pipe_data_name_value_over_payload() {
+        let result = parse_pipe_data("zellij-status::pipe::key::from_name", Some("from_payload"));
+        assert_eq!(
+            result,
+            Some(PipeData {
+                key: "pipe_key".to_string(),
+                value: "from_name".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_pipe_data_payload_fallback_format() {
+        let result = parse_pipe_data("some-other-name", Some("zellij-status::pipe::key::value"));
+        assert_eq!(
+            result,
+            Some(PipeData {
+                key: "pipe_key".to_string(),
+                value: "value".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_pipe_data_ignores_wrong_prefix() {
+        assert_eq!(
+            parse_pipe_data("other-plugin::pipe::key::value", None),
+            None
+        );
+    }
+
+    #[test]
+    fn parse_pipe_data_ignores_notification_format() {
+        // Notifications use "waiting"/"completed", not "pipe"
+        assert_eq!(parse_pipe_data("zellij-status::waiting::42", None), None);
+    }
+
+    #[test]
+    fn parse_pipe_data_empty_value_from_payload() {
+        let result = parse_pipe_data("zellij-status::pipe::key", None);
+        assert_eq!(
+            result,
+            Some(PipeData {
+                key: "pipe_key".to_string(),
+                value: String::new(),
             })
         );
     }

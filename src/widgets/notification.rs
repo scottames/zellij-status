@@ -71,6 +71,8 @@ mod tests {
         PaneManifest,
         PluginConfig,
         NotificationTracker,
+        std::collections::BTreeMap<String, crate::widgets::command::CommandResult>,
+        std::collections::BTreeMap<String, String>,
     ) {
         let tabs = vec![];
         let mode = ModeInfo::default();
@@ -80,18 +82,31 @@ mod tests {
         for i in 0..count {
             notifications.add(i as u32, NotificationType::Waiting);
         }
-        (tabs, mode, panes, config, notifications)
+        let command_results = std::collections::BTreeMap::new();
+        let pipe_data = std::collections::BTreeMap::new();
+        (
+            tabs,
+            mode,
+            panes,
+            config,
+            notifications,
+            command_results,
+            pipe_data,
+        )
     }
 
     #[test]
     fn empty_when_no_notifications() {
-        let (tabs, mode, panes, config, notifications) = make_state_with_notifications(0);
+        let (tabs, mode, panes, config, notifications, cmd, pipe) =
+            make_state_with_notifications(0);
         let state = PluginState {
             tabs: &tabs,
             panes: &panes,
             mode: &mode,
             config: &config,
             notifications: &notifications,
+            command_results: &cmd,
+            pipe_data: &pipe,
         };
         let w = NotificationWidget::new(&BTreeMap::new());
         assert_eq!(w.process("notifications", &state), "");
@@ -99,13 +114,16 @@ mod tests {
 
     #[test]
     fn shows_count_when_notifications_exist() {
-        let (tabs, mode, panes, config, notifications) = make_state_with_notifications(3);
+        let (tabs, mode, panes, config, notifications, cmd, pipe) =
+            make_state_with_notifications(3);
         let state = PluginState {
             tabs: &tabs,
             panes: &panes,
             mode: &mode,
             config: &config,
             notifications: &notifications,
+            command_results: &cmd,
+            pipe_data: &pipe,
         };
         let w = NotificationWidget::new(&BTreeMap::new());
         assert_eq!(w.process("notifications", &state), " 3");
@@ -113,13 +131,16 @@ mod tests {
 
     #[test]
     fn custom_format() {
-        let (tabs, mode, panes, config, notifications) = make_state_with_notifications(2);
+        let (tabs, mode, panes, config, notifications, cmd, pipe) =
+            make_state_with_notifications(2);
         let state = PluginState {
             tabs: &tabs,
             panes: &panes,
             mode: &mode,
             config: &config,
             notifications: &notifications,
+            command_results: &cmd,
+            pipe_data: &pipe,
         };
         let widget_config =
             BTreeMap::from([("notification_format".to_string(), "({count})".to_string())]);
@@ -129,13 +150,16 @@ mod tests {
 
     #[test]
     fn show_if_empty_option() {
-        let (tabs, mode, panes, config, notifications) = make_state_with_notifications(0);
+        let (tabs, mode, panes, config, notifications, cmd, pipe) =
+            make_state_with_notifications(0);
         let state = PluginState {
             tabs: &tabs,
             panes: &panes,
             mode: &mode,
             config: &config,
             notifications: &notifications,
+            command_results: &cmd,
+            pipe_data: &pipe,
         };
         let widget_config = BTreeMap::from([
             ("notification_format".to_string(), "({count})".to_string()),

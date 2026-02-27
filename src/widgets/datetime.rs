@@ -100,12 +100,16 @@ mod tests {
                 crate::config::PluginConfig::from_configuration(std::collections::BTreeMap::new())
                     .unwrap();
             let notifications = crate::notify::tracker::NotificationTracker::default();
+            let command_results = std::collections::BTreeMap::new();
+            let pipe_data = std::collections::BTreeMap::new();
             let state = crate::widgets::PluginState {
                 tabs: &tabs,
                 panes: &panes,
                 mode: &mode,
                 config: &config_parsed,
                 notifications: &notifications,
+                command_results: &command_results,
+                pipe_data: &pipe_data,
             };
             w.process("datetime", &state)
         };
