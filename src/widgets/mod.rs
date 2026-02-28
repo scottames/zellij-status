@@ -5,6 +5,7 @@ use zellij_tile::prelude::{ModeInfo, PaneManifest, TabInfo};
 
 use crate::config::PluginConfig;
 use crate::notify::tracker::NotificationTracker;
+use crate::render::format::FormattedPart;
 
 pub mod command;
 pub mod datetime;
@@ -35,6 +36,11 @@ pub trait Widget: Send + Sync {
 
     /// Handle a click at `col` offset (horizontal position within the widget).
     fn process_click(&self, name: &str, state: &PluginState<'_>, col: usize);
+
+    /// Optional fill style used by row-level alignment padding.
+    fn fill_part(&self, _name: &str, _state: &PluginState<'_>) -> Option<FormattedPart> {
+        None
+    }
 }
 
 /// Register all built-in widgets, returning them keyed by name.

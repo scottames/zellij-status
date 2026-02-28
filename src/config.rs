@@ -23,6 +23,31 @@ pub enum SectionZone {
     End,
 }
 
+/// Horizontal alignment of rendered text within a section row.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TextAlign {
+    Left,
+    Center,
+    Right,
+}
+
+impl Default for TextAlign {
+    fn default() -> Self {
+        Self::Left
+    }
+}
+
+impl TextAlign {
+    fn parse(s: &str) -> Option<Self> {
+        match s.to_ascii_lowercase().as_str() {
+            "left" => Some(Self::Left),
+            "center" | "middle" => Some(Self::Center),
+            "right" => Some(Self::Right),
+            _ => None,
+        }
+    }
+}
+
 impl SectionZone {
     fn parse(s: &str) -> Option<Self> {
         match s.to_ascii_lowercase().as_str() {
@@ -42,12 +67,22 @@ impl SectionZone {
     }
 }
 
-/// Parsed section definition from `format_<index>_<zone>` config keys.
+/// Parsed section definition from `format_<index>_<zone>[_<align>]` and
+/// paired split keys `format_<index>_<zone>_left` + `format_<index>_<zone>_right`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FormatSection {
     pub index: usize,
     pub zone: SectionZone,
+    pub align: TextAlign,
     pub format: String,
+    pub split_left: Option<String>,
+    pub split_right: Option<String>,
+}
+
+impl FormatSection {
+    pub fn split_pair(&self) -> Option<(&str, &str)> {
+        Some((self.split_left.as_deref()?, self.split_right.as_deref()?))
+    }
 }
 
 impl LayoutMode {
@@ -188,7 +223,8 @@ pub struct PluginConfig {
     /// Referenced in format strings as `$name`.
     pub color_aliases: BTreeMap<String, String>,
 
-    /// Universal section format strings parsed from `format_<index>_<zone>` keys.
+    /// Universal section format strings parsed from `format_<index>_<zone>[_<align>]`
+    /// and split pairs `format_<index>_<zone>_left` + `format_<index>_<zone>_right`.
     pub sections: Vec<FormatSection>,
 
     /// Spacer styling for horizontal mode.
@@ -226,10 +262,7 @@ impl PluginConfig {
             })
             .collect();
 
-        let mut sections: Vec<FormatSection> = config
-            .iter()
-            .filter_map(|(k, v)| parse_format_section(k, v))
-            .collect();
+        let mut sections = parse_format_sections(&config);
         sections.sort_by_key(|s| (s.index, s.zone));
 
         let format_space = config.get("format_space").cloned().unwrap_or_default();
@@ -258,19 +291,123 @@ impl PluginConfig {
     }
 }
 
-fn parse_format_section(key: &str, value: &str) -> Option<FormatSection> {
-    let rest = key.strip_prefix("format_")?;
-    let (index, zone) = rest.split_once('_')?;
-    let index = index.parse::<usize>().ok()?;
-    if index == 0 {
-        return None;
+fn parse_format_sections(config: &BTreeMap<String, String>) -> Vec<FormatSection> {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    enum SinglePriority {
+        Base,
+        Align,
     }
-    let zone = SectionZone::parse(zone)?;
-    Some(FormatSection {
-        index,
-        zone,
-        format: value.to_string(),
-    })
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum SplitSide {
+        Left,
+        Right,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    struct ParsedFormatKey {
+        index: usize,
+        zone: SectionZone,
+        align: TextAlign,
+        split_side: Option<SplitSide>,
+        priority: SinglePriority,
+    }
+
+    fn parse_format_key(key: &str) -> Option<ParsedFormatKey> {
+        let rest = key.strip_prefix("format_")?;
+        let mut parts = rest.split('_');
+        let index = parts.next()?.parse::<usize>().ok()?;
+        if index == 0 {
+            return None;
+        }
+
+        let zone = SectionZone::parse(parts.next()?)?;
+        let suffix = parts.next();
+        if parts.next().is_some() {
+            return None;
+        }
+
+        let (align, split_side, priority) = match suffix {
+            None => (TextAlign::Left, None, SinglePriority::Base),
+            Some("left") => (
+                TextAlign::Left,
+                Some(SplitSide::Left),
+                SinglePriority::Align,
+            ),
+            Some("right") => (
+                TextAlign::Right,
+                Some(SplitSide::Right),
+                SinglePriority::Align,
+            ),
+            Some(raw) => (TextAlign::parse(raw)?, None, SinglePriority::Align),
+        };
+
+        Some(ParsedFormatKey {
+            index,
+            zone,
+            align,
+            split_side,
+            priority,
+        })
+    }
+
+    let mut singles: BTreeMap<(usize, SectionZone), (SinglePriority, FormatSection)> =
+        BTreeMap::new();
+    let mut split_candidates: BTreeMap<(usize, SectionZone), (Option<String>, Option<String>)> =
+        BTreeMap::new();
+
+    for (key, value) in config {
+        let Some(parsed) = parse_format_key(key) else {
+            continue;
+        };
+
+        let section = FormatSection {
+            index: parsed.index,
+            zone: parsed.zone,
+            align: parsed.align,
+            format: value.clone(),
+            split_left: None,
+            split_right: None,
+        };
+
+        let entry = singles
+            .entry((parsed.index, parsed.zone))
+            .or_insert((parsed.priority, section.clone()));
+        if parsed.priority > entry.0 {
+            *entry = (parsed.priority, section);
+        }
+
+        if let Some(side) = parsed.split_side {
+            let sides = split_candidates
+                .entry((parsed.index, parsed.zone))
+                .or_insert((None, None));
+            match side {
+                SplitSide::Left => sides.0 = Some(value.clone()),
+                SplitSide::Right => sides.1 = Some(value.clone()),
+            }
+        }
+    }
+
+    for ((index, zone), (left, right)) in split_candidates {
+        if let (Some(left), Some(right)) = (left, right) {
+            singles.insert(
+                (index, zone),
+                (
+                    SinglePriority::Align,
+                    FormatSection {
+                        index,
+                        zone,
+                        align: TextAlign::Left,
+                        format: left.clone(),
+                        split_left: Some(left),
+                        split_right: Some(right),
+                    },
+                ),
+            );
+        }
+    }
+
+    singles.into_values().map(|(_, section)| section).collect()
 }
 
 #[cfg(test)]
@@ -315,10 +452,13 @@ mod tests {
         assert_eq!(parsed.sections.len(), 3);
         assert_eq!(parsed.sections[0].index, 1);
         assert_eq!(parsed.sections[0].zone, SectionZone::Start);
+        assert_eq!(parsed.sections[0].align, TextAlign::Left);
         assert_eq!(parsed.sections[1].index, 2);
         assert_eq!(parsed.sections[1].zone, SectionZone::Middle);
+        assert_eq!(parsed.sections[1].align, TextAlign::Left);
         assert_eq!(parsed.sections[2].index, 3);
         assert_eq!(parsed.sections[2].zone, SectionZone::End);
+        assert_eq!(parsed.sections[2].align, TextAlign::Left);
     }
 
     #[test]
@@ -357,6 +497,54 @@ mod tests {
             parsed.sections.iter().map(|s| s.index).collect::<Vec<_>>(),
             vec![2, 4, 9]
         );
+    }
+
+    #[test]
+    fn parse_format_sections_with_alignment_suffix() {
+        let config = BTreeMap::from([
+            ("format_1_top_right".to_string(), "A".to_string()),
+            ("format_2_middle_center".to_string(), "B".to_string()),
+            ("format_3_bottom_left".to_string(), "C".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.sections[0].align, TextAlign::Right);
+        assert_eq!(parsed.sections[1].align, TextAlign::Center);
+        assert_eq!(parsed.sections[2].align, TextAlign::Left);
+    }
+
+    #[test]
+    fn parse_format_sections_invalid_alignment_is_ignored() {
+        let config = BTreeMap::from([
+            ("format_1_top_sideways".to_string(), "A".to_string()),
+            ("format_2_middle".to_string(), "B".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.sections.len(), 1);
+        assert_eq!(parsed.sections[0].zone, SectionZone::Middle);
+        assert_eq!(parsed.sections[0].align, TextAlign::Left);
+    }
+
+    #[test]
+    fn parse_split_section_pair_for_same_index_and_zone() {
+        let config = BTreeMap::from([
+            ("format_2_bottom_left".to_string(), "LEFT".to_string()),
+            ("format_2_bottom_right".to_string(), "RIGHT".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.sections.len(), 1);
+        assert_eq!(parsed.sections[0].zone, SectionZone::End);
+        assert_eq!(parsed.sections[0].split_left.as_deref(), Some("LEFT"));
+        assert_eq!(parsed.sections[0].split_right.as_deref(), Some("RIGHT"));
+    }
+
+    #[test]
+    fn parse_single_right_suffix_stays_alignment_when_pair_missing() {
+        let config = BTreeMap::from([("format_2_bottom_right".to_string(), "X".to_string())]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.sections.len(), 1);
+        assert_eq!(parsed.sections[0].align, TextAlign::Right);
+        assert!(parsed.sections[0].split_left.is_none());
+        assert!(parsed.sections[0].split_right.is_none());
     }
 
     #[test]

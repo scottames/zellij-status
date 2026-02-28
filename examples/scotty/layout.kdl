@@ -45,10 +45,11 @@ layout {
                     // start = top in vertical mode
                     // middle = vertical middle
                     // end = bottom in vertical mode
-                    format_1_middle         "{tabs}"
-                    format_3_bottom         "#[fg=$overlay0] {session}"
-                    format_2_bottom         "{mode}"
-                    format_4_bottom         "#[fg=$subtext0]{datetime} "
+                    format_1_middle_right         "{tabs}"
+                    format_3_bottom_center  "#[fg=$overlay0] {session}"
+                    format_2_bottom_left    "{mode}"
+                    format_2_bottom_right   "#[bg=$base,fg=$blue]"
+                    format_4_bottom_right   "#[fg=$subtext0]{datetime} "
 
                     // Tab format strings - powerline-inspired, stacked vertically
                     tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification}"
@@ -74,20 +75,20 @@ layout {
                     notification_completed_icon ""
 
                     // Mode widget (global zjstatus-inspired powerline)
-                    mode_normal       "#[bg=$blue,fg=$base,bold] NORMAL #[bg=$base,fg=$blue]"
-                    mode_locked       "#[bg=$red,fg=$base,bold] LOCKED #[bg=$base,fg=$red]"
-                    mode_pane         "#[bg=$peach,fg=$base,bold] PANE #[bg=$base,fg=$peach]"
-                    mode_rename_pane  "#[bg=$peach,fg=$base,bold] RENAMEPANE #[bg=$base,fg=$peach]"
-                    mode_tab          "#[bg=$green,fg=$base,bold] TAB #[bg=$base,fg=$green]"
-                    mode_rename_tab   "#[bg=$green,fg=$base,bold] RENAMETAB #[bg=$base,fg=$green]"
-                    mode_scroll       "#[bg=$peach,fg=$base,bold] SCROLL #[bg=$base,fg=$peach]"
-                    mode_enter_search "#[bg=$yellow,fg=$base,bold] ENT-SEARCH #[bg=$base,fg=$yellow]"
-                    mode_search       "#[bg=$yellow,fg=$base,bold] SEARCH #[bg=$base,fg=$yellow]"
-                    mode_resize       "#[bg=$teal,fg=$base,bold] RESIZE #[bg=$base,fg=$teal]"
-                    mode_move         "#[bg=$teal,fg=$base,bold] MOVE #[bg=$base,fg=$teal]"
-                    mode_session      "#[bg=$mauve,fg=$base,bold] SESSION #[bg=$base,fg=$mauve]"
-                    mode_tmux         "#[bg=$flamingo,fg=$base,bold] TMUX #[bg=$base,fg=$flamingo]"
-                    mode_prompt       "#[bg=$red,fg=$peach,bold] PROMPT #[bg=$base,fg=$red]"
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
                     //TODO: mode_alignment | left (default, or right)
 
                     // DateTime widget
@@ -152,9 +153,11 @@ layout {
                     // start = top in vertical mode
                     // middle = vertical middle
                     // end = bottom in vertical mode
-                    format_1_top            "{mode}"
-                    format_2_middle         "{tabs}"
-                    format_3_bottom         "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+                    format_1_middle_right   "{tabs}"
+                    format_3_bottom_center  "#[fg=$overlay0] {session}"
+                    format_2_bottom_left    "{mode}"
+                    format_2_bottom_right   "#[bg=$base,fg=$blue]"
+                    format_4_bottom_right   "#[fg=$subtext0]{datetime} "
 
                     // Tab format strings - powerline-inspired, stacked vertically
                     tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification}"
@@ -180,20 +183,20 @@ layout {
                     notification_completed_icon ""
 
                     // Mode widget (global zjstatus-inspired powerline)
-                    mode_normal       "#[bg=$blue,fg=$base,bold] NORMAL #[bg=$base,fg=$blue]"
-                    mode_locked       "#[bg=$red,fg=$base,bold] LOCKED #[bg=$base,fg=$red]"
-                    mode_pane         "#[bg=$peach,fg=$base,bold] PANE #[bg=$base,fg=$peach]"
-                    mode_rename_pane  "#[bg=$peach,fg=$base,bold] RENAMEPANE #[bg=$base,fg=$peach]"
-                    mode_tab          "#[bg=$green,fg=$base,bold] TAB #[bg=$base,fg=$green]"
-                    mode_rename_tab   "#[bg=$green,fg=$base,bold] RENAMETAB #[bg=$base,fg=$green]"
-                    mode_scroll       "#[bg=$peach,fg=$base,bold] SCROLL #[bg=$base,fg=$peach]"
-                    mode_enter_search "#[bg=$yellow,fg=$base,bold] ENT-SEARCH #[bg=$base,fg=$yellow]"
-                    mode_search       "#[bg=$yellow,fg=$base,bold] SEARCH #[bg=$base,fg=$yellow]"
-                    mode_resize       "#[bg=$teal,fg=$base,bold] RESIZE #[bg=$base,fg=$teal]"
-                    mode_move         "#[bg=$teal,fg=$base,bold] MOVE #[bg=$base,fg=$teal]"
-                    mode_session      "#[bg=$mauve,fg=$base,bold] SESSION #[bg=$base,fg=$mauve]"
-                    mode_tmux         "#[bg=$flamingo,fg=$base,bold] TMUX #[bg=$base,fg=$flamingo]"
-                    mode_prompt       "#[bg=$red,fg=$peach,bold] PROMPT #[bg=$base,fg=$red]"
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
 
                     // DateTime widget
                     datetime_format   "%H:%M"

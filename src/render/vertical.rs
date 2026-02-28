@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use unicode_width::UnicodeWidthStr;
 
-use crate::config::{FormatSection, SectionZone};
-use crate::render::bar::render_section;
+use crate::config::{FormatSection, SectionZone, TextAlign};
+use crate::render::bar::{expand_widgets, render_section};
 use crate::render::format::{parse_format_string, FormattedPart};
 use crate::widgets::{tabs::TabsWidget, PluginState, Widget};
 
@@ -125,7 +125,7 @@ pub fn render_vertical(
     let tab_count = state.tabs.len();
     let padding_top = config.tabs.padding_top;
 
-    let tabs_anchor = first_tabs_anchor_zone(&state.config.sections);
+    let tabs_anchor = first_tabs_anchor(&state.config.sections);
     let mut anchor_seen = false;
 
     let mut start_before = Vec::new();
@@ -136,17 +136,22 @@ pub fn render_vertical(
     let mut end_after = Vec::new();
 
     for section in &state.config.sections {
-        if !anchor_seen && section_has_tabs_marker(&section.format) {
+        if !anchor_seen && section_has_tabs_marker(section) {
             anchor_seen = true;
             continue;
         }
 
-        let Some(line) = render_section_line(&section.format, widgets, state, cols, border_fmt)
-        else {
+        let line = if let Some((left, right)) = section.split_pair() {
+            render_split_section_line(left, right, widgets, state, cols, border_fmt)
+        } else {
+            render_section_line(section, &section.format, widgets, state, cols, border_fmt)
+        };
+
+        let Some(line) = line else {
             continue;
         };
 
-        match (section.zone, tabs_anchor, anchor_seen) {
+        match (section.zone, tabs_anchor.zone, anchor_seen) {
             (SectionZone::Start, SectionZone::Start, true) => start_after.push(line),
             (SectionZone::Start, _, _) => start_before.push(line),
             (SectionZone::Middle, SectionZone::Middle, true) => middle_after.push(line),
@@ -159,7 +164,7 @@ pub fn render_vertical(
     let active_index = state.tabs.iter().position(|t| t.active).unwrap_or(0);
     let mut lines: Vec<String> = Vec::with_capacity(rows);
 
-    if tabs_anchor == SectionZone::End {
+    if tabs_anchor.zone == SectionZone::End {
         let bottom_non_tab_len = end_before.len() + end_after.len();
         let non_tab_bottom_reserved = bottom_non_tab_len.min(rows);
         let top_budget = rows.saturating_sub(non_tab_bottom_reserved);
@@ -197,6 +202,7 @@ pub fn render_vertical(
             cols,
             border_fmt,
             aliases,
+            tabs_anchor.align,
         );
 
         let mut bottom_block = Vec::new();
@@ -223,7 +229,7 @@ pub fn render_vertical(
         let bottom_reserved = end_lines.len().min(rows);
         let top_budget = rows.saturating_sub(bottom_reserved);
 
-        let (fixed_before, fixed_after) = match tabs_anchor {
+        let (fixed_before, fixed_after) = match tabs_anchor.zone {
             SectionZone::Start => (
                 start_before.len(),
                 start_after.len() + middle_before.len() + middle_after.len(),
@@ -248,9 +254,10 @@ pub fn render_vertical(
             cols,
             border_fmt,
             aliases,
+            tabs_anchor.align,
         );
 
-        match tabs_anchor {
+        match tabs_anchor.zone {
             SectionZone::Start => {
                 for line in start_before {
                     if lines.len() >= top_budget {
@@ -347,6 +354,7 @@ pub fn render_vertical(
 }
 
 fn render_section_line(
+    section: &FormatSection,
     format_str: &str,
     widgets: &BTreeMap<String, Arc<dyn Widget>>,
     state: &PluginState<'_>,
@@ -356,7 +364,15 @@ fn render_section_line(
     if format_str.is_empty() {
         return None;
     }
-    let rendered = render_section(format_str, widgets, state, &state.config.color_aliases);
+    let fill_part = first_fill_part_for_section(format_str, widgets, state)
+        .or_else(|| {
+            parse_format_string(format_str, &state.config.color_aliases)
+                .into_iter()
+                .find(|part| part.fill)
+        });
+    let expanded = expand_widgets(format_str, widgets, state);
+    let parts = parse_format_string(&expanded, &state.config.color_aliases);
+    let rendered: String = parts.iter().map(|part| part.render_content()).collect();
     if rendered.is_empty() {
         return None;
     }
@@ -365,19 +381,129 @@ fn render_section_line(
         cols,
         border_fmt,
         &state.config.color_aliases,
+        section.align,
+        fill_part.as_ref(),
     ))
 }
 
-fn section_has_tabs_marker(format_str: &str) -> bool {
-    format_str.contains("{tabs}")
+fn render_split_section_line(
+    left_format: &str,
+    right_format: &str,
+    widgets: &BTreeMap<String, Arc<dyn Widget>>,
+    state: &PluginState<'_>,
+    cols: usize,
+    border_fmt: &str,
+) -> Option<String> {
+    let aliases = &state.config.color_aliases;
+    let rendered_left = render_section(left_format, widgets, state, aliases);
+    let rendered_right = render_section(right_format, widgets, state, aliases);
+    if rendered_left.is_empty() && rendered_right.is_empty() {
+        return None;
+    }
+
+    let border = render_border(border_fmt, aliases);
+    let border_width = strip_ansi_width(&border);
+    let content_cols = cols.saturating_sub(border_width);
+
+    let clipped_right = truncate_ansi_to_width(&rendered_right, content_cols);
+    let right_width = strip_ansi_width(&clipped_right);
+    let clipped_left = truncate_ansi_to_width(&rendered_left, content_cols.saturating_sub(right_width));
+    let left_width = strip_ansi_width(&clipped_left);
+    let gap = content_cols.saturating_sub(left_width + right_width);
+
+    let gap_fill = first_fill_part_for_section(left_format, widgets, state)
+        .or_else(|| {
+            parse_format_string(left_format, aliases)
+                .into_iter()
+                .find(|part| part.fill)
+        })
+        .or_else(|| first_fill_part_for_section(right_format, widgets, state))
+        .or_else(|| {
+            parse_format_string(right_format, aliases)
+                .into_iter()
+                .find(|part| part.fill)
+        });
+
+    let mut line = String::new();
+    line.push_str(&clipped_left);
+    if gap > 0 {
+        if let Some(fill) = gap_fill.as_ref() {
+            line.push_str(&fill.render(&" ".repeat(gap)));
+        } else {
+            line.push_str(&" ".repeat(gap));
+        }
+    }
+    line.push_str(&clipped_right);
+    line.push_str(&border);
+
+    Some(line)
 }
 
-fn first_tabs_anchor_zone(sections: &[FormatSection]) -> SectionZone {
+fn first_fill_part_for_section(
+    format_str: &str,
+    widgets: &BTreeMap<String, Arc<dyn Widget>>,
+    state: &PluginState<'_>,
+) -> Option<FormattedPart> {
+    let mut chars = format_str.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        if ch != '{' {
+            continue;
+        }
+
+        let mut name = String::new();
+        while let Some(&next) = chars.peek() {
+            chars.next();
+            if next == '}' {
+                break;
+            }
+            name.push(next);
+        }
+
+        if name.is_empty() {
+            continue;
+        }
+
+        if let Some(widget) = widgets.get(&name)
+            && let Some(fill) = widget.fill_part(&name, state)
+        {
+            return Some(fill);
+        }
+    }
+
+    None
+}
+
+fn section_has_tabs_marker(section: &FormatSection) -> bool {
+    section.format.contains("{tabs}")
+        || section
+            .split_left
+            .as_ref()
+            .is_some_and(|left| left.contains("{tabs}"))
+        || section
+            .split_right
+            .as_ref()
+            .is_some_and(|right| right.contains("{tabs}"))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct TabsAnchor {
+    zone: SectionZone,
+    align: TextAlign,
+}
+
+fn first_tabs_anchor(sections: &[FormatSection]) -> TabsAnchor {
     sections
         .iter()
-        .find(|section| section_has_tabs_marker(&section.format))
-        .map(|section| section.zone)
-        .unwrap_or(SectionZone::Middle)
+        .find(|section| section_has_tabs_marker(section))
+        .map(|section| TabsAnchor {
+            zone: section.zone,
+            align: section.align,
+        })
+        .unwrap_or(TabsAnchor {
+            zone: SectionZone::Middle,
+            align: TextAlign::Left,
+        })
 }
 
 fn render_tabs_block(
@@ -389,6 +515,7 @@ fn render_tabs_block(
     cols: usize,
     border_fmt: &str,
     aliases: &std::collections::BTreeMap<String, String>,
+    align: TextAlign,
 ) -> Vec<String> {
     if tab_count == 0 || available_rows == 0 {
         return Vec::new();
@@ -405,7 +532,9 @@ fn render_tabs_block(
             .tabs
             .overflow_above
             .replace("{count}", &tabs_above.to_string());
-        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
+        lines.push(build_plain_line(
+            &text, cols, border_fmt, aliases, align, None,
+        ));
     }
 
     for i in start..end {
@@ -425,6 +554,7 @@ fn render_tabs_block(
                 fill_part.as_ref(),
                 border_fmt,
                 aliases,
+                align,
             ));
         }
     }
@@ -435,7 +565,9 @@ fn render_tabs_block(
             .tabs
             .overflow_below
             .replace("{count}", &tabs_below.to_string());
-        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
+        lines.push(build_plain_line(
+            &text, cols, border_fmt, aliases, align, None,
+        ));
     }
 
     lines
@@ -452,6 +584,7 @@ fn build_tab_line(
     fill_style: Option<&FormattedPart>,
     border_fmt: &str,
     aliases: &std::collections::BTreeMap<String, String>,
+    align: TextAlign,
 ) -> String {
     let border = render_border(border_fmt, aliases);
     let border_width = strip_ansi_width(&border);
@@ -459,17 +592,25 @@ fn build_tab_line(
 
     let clipped = truncate_ansi_to_width(rendered, content_cols);
     let visible = crate::widgets::tabs::strip_ansi_width(&clipped);
-    let pad = content_cols.saturating_sub(visible);
+    let (left_pad, right_pad) = align_padding(content_cols.saturating_sub(visible), align);
 
     let mut line = String::new();
 
-    line.push_str(&clipped);
     if let Some(fill_part) = fill_style {
-        if pad > 0 {
-            line.push_str(&fill_part.render(&" ".repeat(pad)));
+        if left_pad > 0 {
+            line.push_str(&fill_part.render(&" ".repeat(left_pad)));
         }
     } else {
-        line.push_str(&" ".repeat(pad));
+        line.push_str(&" ".repeat(left_pad));
+    }
+
+    line.push_str(&clipped);
+    if let Some(fill_part) = fill_style {
+        if right_pad > 0 {
+            line.push_str(&fill_part.render(&" ".repeat(right_pad)));
+        }
+    } else {
+        line.push_str(&" ".repeat(right_pad));
     }
     line.push_str("\x1b[0m");
 
@@ -483,6 +624,8 @@ fn build_plain_line(
     cols: usize,
     border_fmt: &str,
     aliases: &std::collections::BTreeMap<String, String>,
+    align: TextAlign,
+    fill_style: Option<&FormattedPart>,
 ) -> String {
     let border = render_border(border_fmt, aliases);
     let border_width = strip_ansi_width(&border);
@@ -490,11 +633,37 @@ fn build_plain_line(
 
     let clipped = truncate_ansi_to_width(text, content_cols);
     let visible = strip_ansi_width(&clipped);
-    let pad = content_cols.saturating_sub(visible);
-    let mut line = clipped;
-    line.push_str(&" ".repeat(pad));
+    let (left_pad, right_pad) = align_padding(content_cols.saturating_sub(visible), align);
+    let mut line = String::new();
+    if let Some(fill_part) = fill_style {
+        if left_pad > 0 {
+            line.push_str(&fill_part.render(&" ".repeat(left_pad)));
+        }
+    } else {
+        line.push_str(&" ".repeat(left_pad));
+    }
+    line.push_str(&clipped);
+    if let Some(fill_part) = fill_style {
+        if right_pad > 0 {
+            line.push_str(&fill_part.render(&" ".repeat(right_pad)));
+        }
+    } else {
+        line.push_str(&" ".repeat(right_pad));
+    }
     line.push_str(&border);
     line
+}
+
+fn align_padding(space: usize, align: TextAlign) -> (usize, usize) {
+    match align {
+        TextAlign::Left => (0, space),
+        TextAlign::Right => (space, 0),
+        TextAlign::Center => {
+            let left = space / 2;
+            let right = space.saturating_sub(left);
+            (left, right)
+        }
+    }
 }
 
 /// Build an empty row (all spaces + border).
@@ -674,14 +843,21 @@ mod tests {
 
     #[test]
     fn plain_line_clips_long_text_to_width() {
-        let line = build_plain_line("abcdefghijklmnopqrstuvwxyz", 10, "", &BTreeMap::new());
+        let line = build_plain_line(
+            "abcdefghijklmnopqrstuvwxyz",
+            10,
+            "",
+            &BTreeMap::new(),
+            TextAlign::Left,
+            None,
+        );
         assert_eq!(strip_ansi_width(&line), 10);
     }
 
     #[test]
     fn plain_line_clips_long_ansi_text_to_width() {
         let text = "\x1b[31mabcdefghijklmnopqrstuvwxyz\x1b[0m";
-        let line = build_plain_line(text, 12, "", &BTreeMap::new());
+        let line = build_plain_line(text, 12, "", &BTreeMap::new(), TextAlign::Left, None);
         assert_eq!(strip_ansi_width(&line), 12);
     }
 
@@ -689,7 +865,7 @@ mod tests {
     fn tab_line_fill_avoids_reverse_video() {
         let aliases = BTreeMap::from([("base".to_string(), "#1e1e2e".to_string())]);
         let parts = parse_format_string("#[bg=$base,fg=#ffffff,fill]X", &aliases);
-        let line = build_tab_line("X", 8, Some(&parts[0]), "", &aliases);
+        let line = build_tab_line("X", 8, Some(&parts[0]), "", &aliases, TextAlign::Left);
         assert!(!line.contains("\x1b[7m"));
     }
 
@@ -698,9 +874,18 @@ mod tests {
         let sections = vec![FormatSection {
             index: 1,
             zone: SectionZone::Start,
+            align: TextAlign::Left,
             format: "{mode}".to_string(),
+            split_left: None,
+            split_right: None,
         }];
-        assert_eq!(first_tabs_anchor_zone(&sections), SectionZone::Middle);
+        assert_eq!(
+            first_tabs_anchor(&sections),
+            TabsAnchor {
+                zone: SectionZone::Middle,
+                align: TextAlign::Left,
+            }
+        );
     }
 
     #[test]
@@ -709,14 +894,68 @@ mod tests {
             FormatSection {
                 index: 1,
                 zone: SectionZone::Start,
+                align: TextAlign::Right,
                 format: "{tabs}".to_string(),
+                split_left: None,
+                split_right: None,
             },
             FormatSection {
                 index: 2,
                 zone: SectionZone::End,
+                align: TextAlign::Left,
                 format: "{tabs}".to_string(),
+                split_left: None,
+                split_right: None,
             },
         ];
-        assert_eq!(first_tabs_anchor_zone(&sections), SectionZone::Start);
+        assert_eq!(
+            first_tabs_anchor(&sections),
+            TabsAnchor {
+                zone: SectionZone::Start,
+                align: TextAlign::Right,
+            }
+        );
+    }
+
+    #[test]
+    fn tabs_anchor_detects_tabs_marker_in_split_section() {
+        let sections = vec![FormatSection {
+            index: 2,
+            zone: SectionZone::End,
+            align: TextAlign::Left,
+            format: String::new(),
+            split_left: Some("{mode}".to_string()),
+            split_right: Some("{tabs}".to_string()),
+        }];
+        assert_eq!(
+            first_tabs_anchor(&sections),
+            TabsAnchor {
+                zone: SectionZone::End,
+                align: TextAlign::Left,
+            }
+        );
+    }
+
+    #[test]
+    fn plain_line_right_align_adds_left_padding() {
+        let line = build_plain_line("abc", 8, "", &BTreeMap::new(), TextAlign::Right, None);
+        assert_eq!(strip_ansi_width(&line), 8);
+        assert!(line.starts_with("     abc"));
+    }
+
+    #[test]
+    fn plain_line_center_align_balances_padding() {
+        let line = build_plain_line("abc", 8, "", &BTreeMap::new(), TextAlign::Center, None);
+        assert_eq!(strip_ansi_width(&line), 8);
+        assert!(line.starts_with("  abc"));
+    }
+
+    #[test]
+    fn plain_line_right_align_fill_colors_left_padding() {
+        let aliases = BTreeMap::from([("base".to_string(), "#1e1e2e".to_string())]);
+        let parts = parse_format_string("#[bg=$base,fill]X", &aliases);
+        let line = build_plain_line("X", 8, "", &aliases, TextAlign::Right, Some(&parts[0]));
+        assert!(line.contains('\x1b'));
+        assert_eq!(strip_ansi_width(&line), 8);
     }
 }

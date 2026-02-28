@@ -49,6 +49,18 @@ impl Widget for ModeWidget {
     fn process_click(&self, _name: &str, _state: &PluginState<'_>, _col: usize) {
         // No click action for mode widget.
     }
+
+    fn fill_part(
+        &self,
+        _name: &str,
+        state: &PluginState<'_>,
+    ) -> Option<crate::render::format::FormattedPart> {
+        let format_str = self.format_for_mode(&state.mode.mode);
+        let aliases = &state.config.color_aliases;
+        parse_format_string(&format_str, aliases)
+            .into_iter()
+            .find(|part| part.fill)
+    }
 }
 
 /// Map an `InputMode` to its config key suffix (e.g., `Normal` → `"normal"`).
