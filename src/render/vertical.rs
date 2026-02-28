@@ -4,6 +4,7 @@ use std::sync::Arc;
 use unicode_width::UnicodeWidthStr;
 
 use crate::render::bar::render_section;
+use crate::render::format::{parse_format_string, FormattedPart};
 use crate::widgets::{tabs::TabsWidget, PluginState, Widget};
 
 /// Calculate the visible tab window for a vertical list.
@@ -165,11 +166,15 @@ pub fn render_vertical(
         if let Some(tab) = state.tabs.get(i) {
             let rendered = tabs_widget.render_tab(tab, state, i + start_index);
             let is_active = tab.active;
-            let has_fill = has_fill_attribute(tabs_widget.select_format(tab, &state.mode.mode));
+            let fill_part = if is_active {
+                fill_part_for_format(tabs_widget.select_format(tab, &state.mode.mode), aliases)
+            } else {
+                None
+            };
             lines.push(build_tab_line(
                 &rendered,
                 cols,
-                is_active && has_fill,
+                fill_part.as_ref(),
                 border_fmt,
                 aliases,
             ));
@@ -239,7 +244,7 @@ fn render_section_line(
 fn build_tab_line(
     rendered: &str,
     cols: usize,
-    fill: bool,
+    fill_style: Option<&FormattedPart>,
     border_fmt: &str,
     aliases: &std::collections::BTreeMap<String, String>,
 ) -> String {
@@ -247,25 +252,21 @@ fn build_tab_line(
     let border_width = strip_ansi_width(&border);
     let content_cols = cols.saturating_sub(border_width);
 
-    let visible = crate::widgets::tabs::strip_ansi_width(rendered);
+    let clipped = truncate_ansi_to_width(rendered, content_cols);
+    let visible = crate::widgets::tabs::strip_ansi_width(&clipped);
     let pad = content_cols.saturating_sub(visible);
 
     let mut line = String::new();
 
-    if fill && pad > 0 {
-        // Extend the last active-row background across padding.
-        // We re-use the rendered content then append spaces with bg preserved.
-        // The simplest correct approach: wrap in reverse-video so the terminal
-        // background fills. (Matches zellij-vertical-tabs behaviour.)
-        line.push_str("\x1b[7m"); // reverse video on
-        line.push_str(rendered);
-        line.push_str(&" ".repeat(pad));
-        line.push_str("\x1b[0m"); // reset
+    line.push_str(&clipped);
+    if let Some(fill_part) = fill_style {
+        if pad > 0 {
+            line.push_str(&fill_part.render(&" ".repeat(pad)));
+        }
     } else {
-        line.push_str(rendered);
         line.push_str(&" ".repeat(pad));
-        line.push_str("\x1b[0m");
     }
+    line.push_str("\x1b[0m");
 
     line.push_str(&border);
     line
@@ -282,9 +283,10 @@ fn build_plain_line(
     let border_width = strip_ansi_width(&border);
     let content_cols = cols.saturating_sub(border_width);
 
-    let visible = text.width();
+    let clipped = truncate_ansi_to_width(text, content_cols);
+    let visible = strip_ansi_width(&clipped);
     let pad = content_cols.saturating_sub(visible);
-    let mut line = text.to_string();
+    let mut line = clipped;
     line.push_str(&" ".repeat(pad));
     line.push_str(&border);
     line
@@ -313,25 +315,13 @@ fn render_border(border_fmt: &str, aliases: &std::collections::BTreeMap<String, 
     parts.iter().map(|p| p.render_content()).collect()
 }
 
-/// Check whether a format string contains the `fill` attribute.
-///
-/// A quick scan — we just look for the word "fill" inside a `#[...]` directive.
-fn has_fill_attribute(format_str: &str) -> bool {
-    // Walk through `#[...]` directives looking for "fill" as a token.
-    let mut rest = format_str;
-    while let Some(start) = rest.find("#[") {
-        rest = &rest[start + 2..];
-        if let Some(end) = rest.find(']') {
-            let directive = &rest[..end];
-            if directive.split(',').any(|t| t.trim() == "fill") {
-                return true;
-            }
-            rest = &rest[end + 1..];
-        } else {
-            break;
-        }
-    }
-    false
+fn fill_part_for_format(
+    format_str: &str,
+    aliases: &std::collections::BTreeMap<String, String>,
+) -> Option<FormattedPart> {
+    parse_format_string(format_str, aliases)
+        .into_iter()
+        .find(|part| part.fill)
 }
 
 /// Strip ANSI escape sequences and return the display width of visible text.
@@ -339,9 +329,50 @@ fn strip_ansi_width(s: &str) -> usize {
     crate::widgets::tabs::strip_ansi_width(s)
 }
 
+fn truncate_ansi_to_width(s: &str, max_width: usize) -> String {
+    if max_width == 0 {
+        return String::new();
+    }
+
+    let mut out = String::new();
+    let mut width = 0;
+    let mut in_escape = false;
+
+    for ch in s.chars() {
+        if ch == '\x1b' {
+            in_escape = true;
+            out.push(ch);
+            continue;
+        }
+
+        if in_escape {
+            out.push(ch);
+            if ch.is_ascii_alphabetic() {
+                in_escape = false;
+            }
+            continue;
+        }
+
+        let ch_width = ch.to_string().width();
+        if width + ch_width > max_width {
+            break;
+        }
+
+        out.push(ch);
+        width += ch_width;
+    }
+
+    if width == max_width {
+        out.push_str("\x1b[0m");
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::render::format::parse_format_string;
 
     // ---- calculate_visible_range ----
 
@@ -436,20 +467,24 @@ mod tests {
         assert_eq!(tab_at_row(0, 0, 10, 0), None);
     }
 
-    // ---- has_fill_attribute ----
-
     #[test]
-    fn has_fill_true() {
-        assert!(has_fill_attribute("#[fg=red,fill]text"));
+    fn plain_line_clips_long_text_to_width() {
+        let line = build_plain_line("abcdefghijklmnopqrstuvwxyz", 10, "", &BTreeMap::new());
+        assert_eq!(strip_ansi_width(&line), 10);
     }
 
     #[test]
-    fn has_fill_false() {
-        assert!(!has_fill_attribute("#[fg=red,bold]text"));
+    fn plain_line_clips_long_ansi_text_to_width() {
+        let text = "\x1b[31mabcdefghijklmnopqrstuvwxyz\x1b[0m";
+        let line = build_plain_line(text, 12, "", &BTreeMap::new());
+        assert_eq!(strip_ansi_width(&line), 12);
     }
 
     #[test]
-    fn has_fill_plain_text() {
-        assert!(!has_fill_attribute("plain text"));
+    fn tab_line_fill_avoids_reverse_video() {
+        let aliases = BTreeMap::from([("base".to_string(), "#1e1e2e".to_string())]);
+        let parts = parse_format_string("#[bg=$base,fg=#ffffff,fill]X", &aliases);
+        let line = build_tab_line("X", 8, Some(&parts[0]), "", &aliases);
+        assert!(!line.contains("\x1b[7m"));
     }
 }
