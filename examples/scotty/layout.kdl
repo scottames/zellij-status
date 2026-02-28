@@ -9,7 +9,7 @@
 layout {
     default_tab_template {
         pane split_direction="vertical" {
-            pane size=24 borderless=true {
+            pane size=28 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
 
@@ -42,18 +42,20 @@ layout {
                     color_crust     "#11111b"
 
                     // Universal sections (vertical: top / middle / bottom)
-                    format_1                "#[fg=$base,bg=$green,bold] {mode} "
+                    // TODO: support moving mode to bottom
+                    // TODO: support more "formats", possibly an array of them
+                    format_1                "{mode}"
                     format_2                "{tabs}"
-                    format_3                "#[fg=$overlay0] {session} {command_git}{swap_layout}{pipe_status}#[fg=$subtext0]{datetime} "
+                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
 
-                    // Tab format strings — layered Catppuccin surfaces for depth
-                    tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
-                    tab_active              "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification}"
-                    tab_normal_fullscreen   "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} 󰊓 {notification}"
-                    tab_active_fullscreen   "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification}"
-                    tab_normal_sync         "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name}  {notification}"
-                    tab_active_sync         "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification}"
-                    tab_rename              "#[fg=$green,bg=$mantle,italic] {index} {name} "
+                    // Tab format strings - powerline-inspired, stacked vertically
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification}"
+                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {notification}"
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰊓 {notification}"
+                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰊓 {notification}"
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name}  {notification}"
+                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name}  {notification}"
+                    tab_rename              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold] RENAME #[bg=$mantle,fg=$green]"
                     tab_separator           "#[fg=$surface1,bg=$mantle]─"
 
                     overflow_above          "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
@@ -69,20 +71,22 @@ layout {
                     notification_waiting_icon   ""
                     notification_completed_icon ""
 
-                    // Mode widget (Catppuccin colours per mode)
-                    mode_normal       "#[fg=$green]NORMAL"
-                    mode_locked       "#[fg=$red,bold]LOCKED"
-                    mode_pane         "#[fg=$blue]PANE"
-                    mode_tab          "#[fg=$peach]TAB"
-                    mode_resize       "#[fg=$yellow]RESIZE"
-                    mode_move         "#[fg=$mauve]MOVE"
-                    mode_scroll       "#[fg=$teal]SCROLL"
-                    mode_session      "#[fg=$pink]SESSION"
-                    mode_tmux         "#[fg=$flamingo]TMUX"
-                    mode_enter_search "#[fg=$sky]SEARCH"
-                    mode_search       "#[fg=$sky]SEARCH"
-                    mode_rename_tab   "#[fg=$peach,italic]RENAME"
-                    mode_rename_pane  "#[fg=$blue,italic]RENAME"
+                    // Mode widget (global zjstatus-inspired powerline)
+                    mode_normal       "#[bg=$blue,fg=$base,bold] NORMAL #[bg=$base,fg=$blue]"
+                    mode_locked       "#[bg=$red,fg=$base,bold] LOCKED #[bg=$base,fg=$red]"
+                    mode_pane         "#[bg=$peach,fg=$base,bold] PANE #[bg=$base,fg=$peach]"
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold] RENAMEPANE #[bg=$base,fg=$peach]"
+                    mode_tab          "#[bg=$green,fg=$base,bold] TAB #[bg=$base,fg=$green]"
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold] RENAMETAB #[bg=$base,fg=$green]"
+                    mode_scroll       "#[bg=$peach,fg=$base,bold] SCROLL #[bg=$base,fg=$peach]"
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold] ENT-SEARCH #[bg=$base,fg=$yellow]"
+                    mode_search       "#[bg=$yellow,fg=$base,bold] SEARCH #[bg=$base,fg=$yellow]"
+                    mode_resize       "#[bg=$teal,fg=$base,bold] RESIZE #[bg=$base,fg=$teal]"
+                    mode_move         "#[bg=$teal,fg=$base,bold] MOVE #[bg=$base,fg=$teal]"
+                    mode_session      "#[bg=$mauve,fg=$base,bold] SESSION #[bg=$base,fg=$mauve]"
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold] TMUX #[bg=$base,fg=$flamingo]"
+                    mode_prompt       "#[bg=$red,fg=$peach,bold] PROMPT #[bg=$base,fg=$red]"
+                    //TODO: mode_alignment | left (default, or right)
 
                     // DateTime widget
                     datetime_format   "%H:%M"
@@ -110,7 +114,7 @@ layout {
     // Runtime-created tabs (eg. NewTab) use this template.
     new_tab_template {
         pane split_direction="vertical" {
-            pane size=24 borderless=true {
+            pane size=28 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
 
@@ -143,18 +147,18 @@ layout {
                     color_crust     "#11111b"
 
                     // Universal sections (vertical: top / middle / bottom)
-                    format_1                "#[fg=$base,bg=$green,bold] {mode} "
+                    format_1                "{mode}"
                     format_2                "{tabs}"
-                    format_3                "#[fg=$overlay0] {session} {command_git}{swap_layout}{pipe_status}#[fg=$subtext0]{datetime} "
+                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
 
-                    // Tab format strings — layered Catppuccin surfaces for depth
-                    tab_normal              "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} {notification}"
-                    tab_active              "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification}"
-                    tab_normal_fullscreen   "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name} 󰊓 {notification}"
-                    tab_active_fullscreen   "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification}"
-                    tab_normal_sync         "#[fg=$overlay0,bg=$mantle] {index} #[fg=$subtext0,bg=$mantle]{name}  {notification}"
-                    tab_active_sync         "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification}"
-                    tab_rename              "#[fg=$green,bg=$mantle,italic] {index} {name} "
+                    // Tab format strings - powerline-inspired, stacked vertically
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification}"
+                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {notification}"
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰊓 {notification}"
+                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰊓 {notification}"
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name}  {notification}"
+                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name}  {notification}"
+                    tab_rename              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold] RENAME #[bg=$mantle,fg=$green]"
                     tab_separator           "#[fg=$surface1,bg=$mantle]─"
 
                     overflow_above          "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
@@ -170,20 +174,21 @@ layout {
                     notification_waiting_icon   ""
                     notification_completed_icon ""
 
-                    // Mode widget (Catppuccin colours per mode)
-                    mode_normal       "#[fg=$green]NORMAL"
-                    mode_locked       "#[fg=$red,bold]LOCKED"
-                    mode_pane         "#[fg=$blue]PANE"
-                    mode_tab          "#[fg=$peach]TAB"
-                    mode_resize       "#[fg=$yellow]RESIZE"
-                    mode_move         "#[fg=$mauve]MOVE"
-                    mode_scroll       "#[fg=$teal]SCROLL"
-                    mode_session      "#[fg=$pink]SESSION"
-                    mode_tmux         "#[fg=$flamingo]TMUX"
-                    mode_enter_search "#[fg=$sky]SEARCH"
-                    mode_search       "#[fg=$sky]SEARCH"
-                    mode_rename_tab   "#[fg=$peach,italic]RENAME"
-                    mode_rename_pane  "#[fg=$blue,italic]RENAME"
+                    // Mode widget (global zjstatus-inspired powerline)
+                    mode_normal       "#[bg=$blue,fg=$base,bold] NORMAL #[bg=$base,fg=$blue]"
+                    mode_locked       "#[bg=$red,fg=$base,bold] LOCKED #[bg=$base,fg=$red]"
+                    mode_pane         "#[bg=$peach,fg=$base,bold] PANE #[bg=$base,fg=$peach]"
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold] RENAMEPANE #[bg=$base,fg=$peach]"
+                    mode_tab          "#[bg=$green,fg=$base,bold] TAB #[bg=$base,fg=$green]"
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold] RENAMETAB #[bg=$base,fg=$green]"
+                    mode_scroll       "#[bg=$peach,fg=$base,bold] SCROLL #[bg=$base,fg=$peach]"
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold] ENT-SEARCH #[bg=$base,fg=$yellow]"
+                    mode_search       "#[bg=$yellow,fg=$base,bold] SEARCH #[bg=$base,fg=$yellow]"
+                    mode_resize       "#[bg=$teal,fg=$base,bold] RESIZE #[bg=$base,fg=$teal]"
+                    mode_move         "#[bg=$teal,fg=$base,bold] MOVE #[bg=$base,fg=$teal]"
+                    mode_session      "#[bg=$mauve,fg=$base,bold] SESSION #[bg=$base,fg=$mauve]"
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold] TMUX #[bg=$base,fg=$flamingo]"
+                    mode_prompt       "#[bg=$red,fg=$peach,bold] PROMPT #[bg=$base,fg=$red]"
 
                     // DateTime widget
                     datetime_format   "%H:%M"
