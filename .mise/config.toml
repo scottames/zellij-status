@@ -1,3 +1,7 @@
+[settings]
+[settings.task]
+show_full_cmd = true
+
 [tools]
 "npm:fission-ai/openspec" = "latest"
 rust = "latest"
@@ -20,7 +24,7 @@ arg "[profile]" help="Config profile to use" default="default" {
 '''
 run = """
 #!/usr/bin/env bash
-profile="${1:-default}"
+profile="${usage_profile?}"
 config_dir="./examples/$profile"
 if [[ ! -d "$config_dir" ]]; then
   echo "error: unknown profile '$profile' (no directory at $config_dir)" >&2
