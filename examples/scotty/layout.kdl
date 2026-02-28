@@ -45,9 +45,9 @@ layout {
                     // start = top in vertical mode
                     // middle = vertical middle
                     // end = bottom in vertical mode
-                    format_1_top            "{mode}"
-                    format_2_middle         "{tabs}"
+                    format_1_middle         "{tabs}"
                     format_3_bottom         "#[fg=$overlay0] {session}"
+                    format_2_bottom         "{mode}"
                     format_4_bottom         "#[fg=$subtext0]{datetime} "
 
                     // Tab format strings - powerline-inspired, stacked vertically

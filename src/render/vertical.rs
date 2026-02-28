@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use unicode_width::UnicodeWidthStr;
 
-use crate::config::SectionZone;
+use crate::config::{FormatSection, SectionZone};
 use crate::render::bar::render_section;
 use crate::render::format::{parse_format_string, FormattedPart};
 use crate::widgets::{tabs::TabsWidget, PluginState, Widget};
@@ -125,101 +125,209 @@ pub fn render_vertical(
     let tab_count = state.tabs.len();
     let padding_top = config.tabs.padding_top;
 
-    let (start_formats, middle_formats, end_formats) = split_sections_by_zone(state);
+    let tabs_anchor = first_tabs_anchor_zone(&state.config.sections);
+    let mut anchor_seen = false;
 
-    let start_lines = render_section_lines(&start_formats, widgets, state, cols, border_fmt);
-    let middle_lines = render_section_lines(&middle_formats, widgets, state, cols, border_fmt);
-    let end_lines = render_section_lines(&end_formats, widgets, state, cols, border_fmt);
+    let mut start_before = Vec::new();
+    let mut start_after = Vec::new();
+    let mut middle_before = Vec::new();
+    let mut middle_after = Vec::new();
+    let mut end_before = Vec::new();
+    let mut end_after = Vec::new();
 
-    // Keep bottom anchored first, then fit top + padding in remaining rows.
-    let bottom_reserved = end_lines.len().min(rows);
-    let top_budget = rows.saturating_sub(bottom_reserved);
-    let mut start_and_padding: Vec<String> = Vec::with_capacity(top_budget);
-    for line in start_lines {
-        if start_and_padding.len() >= top_budget {
-            break;
+    for section in &state.config.sections {
+        if !anchor_seen && section_has_tabs_marker(&section.format) {
+            anchor_seen = true;
+            continue;
         }
-        start_and_padding.push(line);
-    }
-    for _ in 0..padding_top {
-        if start_and_padding.len() >= top_budget {
-            break;
-        }
-        start_and_padding.push(build_empty_line(border_fmt, cols, aliases));
-    }
 
-    let available = rows
-        .saturating_sub(start_and_padding.len())
-        .saturating_sub(bottom_reserved)
-        .saturating_sub(middle_lines.len());
+        let Some(line) = render_section_line(&section.format, widgets, state, cols, border_fmt)
+        else {
+            continue;
+        };
+
+        match (section.zone, tabs_anchor, anchor_seen) {
+            (SectionZone::Start, SectionZone::Start, true) => start_after.push(line),
+            (SectionZone::Start, _, _) => start_before.push(line),
+            (SectionZone::Middle, SectionZone::Middle, true) => middle_after.push(line),
+            (SectionZone::Middle, _, _) => middle_before.push(line),
+            (SectionZone::End, SectionZone::End, true) => end_after.push(line),
+            (SectionZone::End, _, _) => end_before.push(line),
+        }
+    }
 
     let active_index = state.tabs.iter().position(|t| t.active).unwrap_or(0);
-    let (start, end, tabs_above, tabs_below) =
-        calculate_visible_range(tab_count, available, active_index);
-
-    let start_index = config.tabs.start_index;
     let mut lines: Vec<String> = Vec::with_capacity(rows);
 
-    // Start zone + top padding.
-    lines.extend(start_and_padding);
+    if tabs_anchor == SectionZone::End {
+        let bottom_non_tab_len = end_before.len() + end_after.len();
+        let non_tab_bottom_reserved = bottom_non_tab_len.min(rows);
+        let top_budget = rows.saturating_sub(non_tab_bottom_reserved);
 
-    // Middle-zone lines.
-    lines.extend(middle_lines);
-
-    // Overflow-above indicator.
-    if tabs_above > 0 {
-        let text = config
-            .tabs
-            .overflow_above
-            .replace("{count}", &tabs_above.to_string());
-        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
-    }
-
-    // Visible tabs.
-    for i in start..end {
-        if let Some(tab) = state.tabs.get(i) {
-            let rendered = tabs_widget.render_tab(tab, state, i + start_index);
-            let is_active = tab.active;
-            let fill_part = if is_active {
-                fill_part_for_format(tabs_widget.select_format(tab, &state.mode.mode), aliases)
-            } else {
-                None
-            };
-            lines.push(build_tab_line(
-                &rendered,
-                cols,
-                fill_part.as_ref(),
-                border_fmt,
-                aliases,
-            ));
+        for line in start_before
+            .into_iter()
+            .chain(start_after)
+            .chain(middle_before)
+            .chain(middle_after)
+        {
+            if lines.len() >= top_budget {
+                break;
+            }
+            lines.push(line);
         }
-    }
 
-    // Overflow-below indicator.
-    if tabs_below > 0 {
-        let text = config
-            .tabs
-            .overflow_below
-            .replace("{count}", &tabs_below.to_string());
-        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
-    }
+        while lines.len() < top_budget {
+            lines.push(build_empty_line(border_fmt, cols, aliases));
+        }
 
-    // Fill remaining rows (reserving space for end zone at bottom).
-    let target_before_bottom = rows.saturating_sub(bottom_reserved);
-    while lines.len() < target_before_bottom {
-        lines.push(build_empty_line(border_fmt, cols, aliases));
-    }
+        let padding_rows = padding_top.min(
+            rows.saturating_sub(lines.len())
+                .saturating_sub(non_tab_bottom_reserved),
+        );
+        let available_tabs = rows
+            .saturating_sub(lines.len())
+            .saturating_sub(non_tab_bottom_reserved)
+            .saturating_sub(padding_rows);
+        let tabs_lines = render_tabs_block(
+            tabs_widget,
+            state,
+            active_index,
+            tab_count,
+            available_tabs,
+            cols,
+            border_fmt,
+            aliases,
+        );
 
-    // End zone lines (bottom).
-    for line in end_lines
-        .into_iter()
-        .rev()
-        .take(bottom_reserved)
-        .collect::<Vec<_>>()
-        .into_iter()
-        .rev()
-    {
-        lines.push(line);
+        let mut bottom_block = Vec::new();
+        bottom_block.extend(end_before);
+        for _ in 0..padding_rows {
+            bottom_block.push(build_empty_line(border_fmt, cols, aliases));
+        }
+        bottom_block.extend(tabs_lines);
+        bottom_block.extend(end_after);
+
+        let remaining = rows.saturating_sub(lines.len());
+        for line in bottom_block
+            .into_iter()
+            .rev()
+            .take(remaining)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+        {
+            lines.push(line);
+        }
+    } else {
+        let end_lines: Vec<String> = end_before.into_iter().chain(end_after).collect();
+        let bottom_reserved = end_lines.len().min(rows);
+        let top_budget = rows.saturating_sub(bottom_reserved);
+
+        let (fixed_before, fixed_after) = match tabs_anchor {
+            SectionZone::Start => (
+                start_before.len(),
+                start_after.len() + middle_before.len() + middle_after.len(),
+            ),
+            SectionZone::Middle => (
+                start_before.len() + start_after.len() + middle_before.len(),
+                middle_after.len(),
+            ),
+            SectionZone::End => (0, 0),
+        };
+        let padding_rows = padding_top.min(top_budget.saturating_sub(fixed_before + fixed_after));
+        let available_tabs = top_budget
+            .saturating_sub(fixed_before)
+            .saturating_sub(padding_rows)
+            .saturating_sub(fixed_after);
+        let tabs_lines = render_tabs_block(
+            tabs_widget,
+            state,
+            active_index,
+            tab_count,
+            available_tabs,
+            cols,
+            border_fmt,
+            aliases,
+        );
+
+        match tabs_anchor {
+            SectionZone::Start => {
+                for line in start_before {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(line);
+                }
+                for _ in 0..padding_rows {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(build_empty_line(border_fmt, cols, aliases));
+                }
+                for line in tabs_lines {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(line);
+                }
+                for line in start_after
+                    .into_iter()
+                    .chain(middle_before)
+                    .chain(middle_after)
+                {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(line);
+                }
+            }
+            SectionZone::Middle => {
+                for line in start_before
+                    .into_iter()
+                    .chain(start_after)
+                    .chain(middle_before)
+                {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(line);
+                }
+                for _ in 0..padding_rows {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(build_empty_line(border_fmt, cols, aliases));
+                }
+                for line in tabs_lines {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(line);
+                }
+                for line in middle_after {
+                    if lines.len() >= top_budget {
+                        break;
+                    }
+                    lines.push(line);
+                }
+            }
+            SectionZone::End => {}
+        }
+
+        while lines.len() < top_budget {
+            lines.push(build_empty_line(border_fmt, cols, aliases));
+        }
+
+        for line in end_lines
+            .into_iter()
+            .rev()
+            .take(bottom_reserved)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+        {
+            lines.push(line);
+        }
     }
 
     // Safety: pad to exactly `rows` if needed.
@@ -238,43 +346,99 @@ pub fn render_vertical(
     }
 }
 
-/// Render format sections as full-width lines with border.
-fn render_section_lines(
-    formats: &[String],
+fn render_section_line(
+    format_str: &str,
     widgets: &BTreeMap<String, Arc<dyn Widget>>,
     state: &PluginState<'_>,
     cols: usize,
     border_fmt: &str,
-) -> Vec<String> {
-    let aliases = &state.config.color_aliases;
-    let mut lines = Vec::new();
-    for format_str in formats {
-        if format_str.is_empty() {
-            continue;
-        }
-        let rendered = render_section(format_str, widgets, state, aliases);
-        if rendered.is_empty() {
-            continue;
-        }
-        lines.push(build_plain_line(&rendered, cols, border_fmt, aliases));
+) -> Option<String> {
+    if format_str.is_empty() {
+        return None;
     }
-    lines
+    let rendered = render_section(format_str, widgets, state, &state.config.color_aliases);
+    if rendered.is_empty() {
+        return None;
+    }
+    Some(build_plain_line(
+        &rendered,
+        cols,
+        border_fmt,
+        &state.config.color_aliases,
+    ))
 }
 
-fn split_sections_by_zone(state: &PluginState<'_>) -> (Vec<String>, Vec<String>, Vec<String>) {
-    let mut start = Vec::new();
-    let mut middle = Vec::new();
-    let mut end = Vec::new();
+fn section_has_tabs_marker(format_str: &str) -> bool {
+    format_str.contains("{tabs}")
+}
 
-    for section in &state.config.sections {
-        match section.zone {
-            SectionZone::Start => start.push(section.format.clone()),
-            SectionZone::Middle => middle.push(section.format.clone()),
-            SectionZone::End => end.push(section.format.clone()),
+fn first_tabs_anchor_zone(sections: &[FormatSection]) -> SectionZone {
+    sections
+        .iter()
+        .find(|section| section_has_tabs_marker(&section.format))
+        .map(|section| section.zone)
+        .unwrap_or(SectionZone::Middle)
+}
+
+fn render_tabs_block(
+    tabs_widget: &TabsWidget,
+    state: &PluginState<'_>,
+    active_index: usize,
+    tab_count: usize,
+    available_rows: usize,
+    cols: usize,
+    border_fmt: &str,
+    aliases: &std::collections::BTreeMap<String, String>,
+) -> Vec<String> {
+    if tab_count == 0 || available_rows == 0 {
+        return Vec::new();
+    }
+
+    let (start, end, tabs_above, tabs_below) =
+        calculate_visible_range(tab_count, available_rows, active_index);
+    let mut lines = Vec::with_capacity(available_rows);
+    let start_index = state.config.tabs.start_index;
+
+    if tabs_above > 0 && lines.len() < available_rows {
+        let text = state
+            .config
+            .tabs
+            .overflow_above
+            .replace("{count}", &tabs_above.to_string());
+        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
+    }
+
+    for i in start..end {
+        if lines.len() >= available_rows {
+            break;
+        }
+        if let Some(tab) = state.tabs.get(i) {
+            let rendered = tabs_widget.render_tab(tab, state, i + start_index);
+            let fill_part = if tab.active {
+                fill_part_for_format(tabs_widget.select_format(tab, &state.mode.mode), aliases)
+            } else {
+                None
+            };
+            lines.push(build_tab_line(
+                &rendered,
+                cols,
+                fill_part.as_ref(),
+                border_fmt,
+                aliases,
+            ));
         }
     }
 
-    (start, middle, end)
+    if tabs_below > 0 && lines.len() < available_rows {
+        let text = state
+            .config
+            .tabs
+            .overflow_below
+            .replace("{count}", &tabs_below.to_string());
+        lines.push(build_plain_line(&text, cols, border_fmt, aliases));
+    }
+
+    lines
 }
 
 /// Build a tab row: content padded/filled to `cols`, with optional right border.
@@ -527,5 +691,32 @@ mod tests {
         let parts = parse_format_string("#[bg=$base,fg=#ffffff,fill]X", &aliases);
         let line = build_tab_line("X", 8, Some(&parts[0]), "", &aliases);
         assert!(!line.contains("\x1b[7m"));
+    }
+
+    #[test]
+    fn tabs_anchor_defaults_to_middle_when_missing() {
+        let sections = vec![FormatSection {
+            index: 1,
+            zone: SectionZone::Start,
+            format: "{mode}".to_string(),
+        }];
+        assert_eq!(first_tabs_anchor_zone(&sections), SectionZone::Middle);
+    }
+
+    #[test]
+    fn tabs_anchor_uses_first_tabs_section() {
+        let sections = vec![
+            FormatSection {
+                index: 1,
+                zone: SectionZone::Start,
+                format: "{tabs}".to_string(),
+            },
+            FormatSection {
+                index: 2,
+                zone: SectionZone::End,
+                format: "{tabs}".to_string(),
+            },
+        ];
+        assert_eq!(first_tabs_anchor_zone(&sections), SectionZone::Start);
     }
 }

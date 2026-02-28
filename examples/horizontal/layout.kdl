@@ -41,7 +41,8 @@ layout {
                 // (aliases left/center/right also work)
                 format_1_start   "#[bg=$base,fg=$overlay2]{mode}#[bg=$mantle]{tabs}"
                 format_2_middle  "{notifications}"
-                format_3_end     "#[bg=$mantle,fg=$base]#[bg=$base,fg=$subtext0] {session} #[bg=$base,fg=$overlay2]#[bg=$overlay2,fg=$mantle] {datetime} "
+                format_3_end     "#[bg=$mantle,fg=$base]#[bg=$base,fg=$subtext0] {session} "
+                format_4_end     "#[bg=$base,fg=$overlay2]#[bg=$overlay2,fg=$mantle] {datetime} "
                 format_space  "#[bg=$mantle,fg=$overlay0]"
                 format_precedence       "132"
                 format_hide_on_overlength "true"
