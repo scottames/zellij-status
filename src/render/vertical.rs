@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use unicode_width::UnicodeWidthStr;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 use crate::config::{FormatSection, SectionZone, TextAlign};
 use crate::render::bar::{expand_widgets, render_section};
@@ -594,17 +594,37 @@ fn build_tab_line(
     let visible = crate::widgets::tabs::strip_ansi_width(&clipped);
     let (left_pad, right_pad) = align_padding(content_cols.saturating_sub(visible), align);
 
+    let moved_cap = if align == TextAlign::Right {
+        take_leading_cap_segment(&clipped)
+    } else {
+        None
+    };
+
     let mut line = String::new();
 
-    if let Some(fill_part) = fill_style {
-        if left_pad > 0 {
-            line.push_str(&fill_part.render(&" ".repeat(left_pad)));
+    if let Some((cap, rest, cap_width)) = moved_cap {
+        line.push_str(&cap);
+        let adjusted_left_pad = left_pad.saturating_sub(cap_width);
+        if let Some(fill_part) = fill_style {
+            if adjusted_left_pad > 0 {
+                line.push_str(&fill_part.render(&" ".repeat(adjusted_left_pad)));
+            }
+        } else {
+            line.push_str(&" ".repeat(adjusted_left_pad));
         }
+        line.push_str(&rest);
     } else {
-        line.push_str(&" ".repeat(left_pad));
+        if let Some(fill_part) = fill_style {
+            if left_pad > 0 {
+                line.push_str(&fill_part.render(&" ".repeat(left_pad)));
+            }
+        } else {
+            line.push_str(&" ".repeat(left_pad));
+        }
+
+        line.push_str(&clipped);
     }
 
-    line.push_str(&clipped);
     if let Some(fill_part) = fill_style {
         if right_pad > 0 {
             line.push_str(&fill_part.render(&" ".repeat(right_pad)));
@@ -616,6 +636,43 @@ fn build_tab_line(
 
     line.push_str(&border);
     line
+}
+
+fn take_leading_cap_segment(s: &str) -> Option<(String, String, usize)> {
+    let mut in_escape = false;
+    let mut cap_end = None;
+    let mut cap_char = None;
+
+    for (idx, ch) in s.char_indices() {
+        if ch == '\x1b' {
+            in_escape = true;
+            continue;
+        }
+        if in_escape {
+            if ch.is_ascii_alphabetic() {
+                in_escape = false;
+            }
+            continue;
+        }
+        cap_end = Some(idx + ch.len_utf8());
+        cap_char = Some(ch);
+        break;
+    }
+
+    let cap = cap_char?;
+    if cap != '' && cap != '' {
+        return None;
+    }
+
+    // Split immediately after the cap glyph. We intentionally keep any
+    // following ANSI transitions with the rest so subsequent text preserves
+    // its original colors/styles.
+    let split_at = cap_end?;
+
+    let cap_segment = s[..split_at].to_string();
+    let rest = s[split_at..].to_string();
+    let cap_width = UnicodeWidthChar::width(cap).unwrap_or(1);
+    Some((cap_segment, rest, cap_width))
 }
 
 /// Build a plain (unstyled content) row, e.g. for overflow indicators.
@@ -870,6 +927,28 @@ mod tests {
     }
 
     #[test]
+    fn tab_line_right_align_pins_leading_cap_to_left_edge() {
+        let aliases = BTreeMap::from([
+            ("base".to_string(), "#1e1e2e".to_string()),
+            ("green".to_string(), "#a6e3a1".to_string()),
+        ]);
+        let parts = parse_format_string(
+            "#[bg=$green,fg=$base]#[bg=$green,fg=$base,bold,fill] 1 split ",
+            &aliases,
+        );
+        let rendered: String = parts.iter().map(|p| p.render_content()).collect();
+        let fill = parts
+            .iter()
+            .find(|part| part.fill)
+            .expect("expected fill style");
+
+        let line = build_tab_line(&rendered, 24, Some(fill), "", &aliases, TextAlign::Right);
+        let first_visible = first_visible_char(&line).expect("line should have visible chars");
+        assert_eq!(first_visible, '');
+        assert_eq!(strip_ansi_width(&line), 24);
+    }
+
+    #[test]
     fn tabs_anchor_defaults_to_middle_when_missing() {
         let sections = vec![FormatSection {
             index: 1,
@@ -957,5 +1036,23 @@ mod tests {
         let line = build_plain_line("X", 8, "", &aliases, TextAlign::Right, Some(&parts[0]));
         assert!(line.contains('\x1b'));
         assert_eq!(strip_ansi_width(&line), 8);
+    }
+
+    fn first_visible_char(s: &str) -> Option<char> {
+        let mut in_escape = false;
+        for ch in s.chars() {
+            if ch == '\x1b' {
+                in_escape = true;
+                continue;
+            }
+            if in_escape {
+                if ch.is_ascii_alphabetic() {
+                    in_escape = false;
+                }
+                continue;
+            }
+            return Some(ch);
+        }
+        None
     }
 }

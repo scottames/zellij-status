@@ -57,6 +57,16 @@ impl Widget for SwapLayoutWidget {
         #[cfg(not(test))]
         next_swap_layout();
     }
+
+    fn fill_part(
+        &self,
+        _name: &str,
+        state: &PluginState<'_>,
+    ) -> Option<crate::render::format::FormattedPart> {
+        crate::render::format::parse_format_string(&self.format, &state.config.color_aliases)
+            .into_iter()
+            .find(|part| part.fill)
+    }
 }
 
 #[cfg(test)]

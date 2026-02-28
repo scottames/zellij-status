@@ -66,6 +66,17 @@ impl Widget for PipeWidget {
     fn process_click(&self, _name: &str, _state: &PluginState<'_>, _col: usize) {
         // No click action for pipe widgets.
     }
+
+    fn fill_part(
+        &self,
+        name: &str,
+        state: &PluginState<'_>,
+    ) -> Option<crate::render::format::FormattedPart> {
+        let pipe_config = self.configs.get(name)?;
+        crate::render::format::parse_format_string(&pipe_config.format, &state.config.color_aliases)
+            .into_iter()
+            .find(|part| part.fill)
+    }
 }
 
 #[cfg(test)]

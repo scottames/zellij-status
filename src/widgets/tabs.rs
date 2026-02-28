@@ -198,6 +198,18 @@ impl Widget for TabsWidget {
             }
         }
     }
+
+    fn fill_part(
+        &self,
+        _name: &str,
+        state: &PluginState<'_>,
+    ) -> Option<crate::render::format::FormattedPart> {
+        let active = state.tabs.iter().find(|tab| tab.active)?;
+        let fmt = self.select_format(active, &state.mode.mode);
+        parse_format_string(fmt, &state.config.color_aliases)
+            .into_iter()
+            .find(|part| part.fill)
+    }
 }
 
 /// Resolve the notification icon for a tab based on tracker state and config.

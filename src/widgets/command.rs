@@ -210,6 +210,30 @@ impl Widget for CommandWidget {
             }
         }
     }
+
+    fn fill_part(
+        &self,
+        name: &str,
+        state: &PluginState<'_>,
+    ) -> Option<crate::render::format::FormattedPart> {
+        let cmd_config = self.configs.get(name)?;
+        let aliases = &state.config.color_aliases;
+
+        match cmd_config.render_mode {
+            RenderMode::Static => {
+                crate::render::format::parse_format_string(&cmd_config.format, aliases)
+                    .into_iter()
+                    .find(|part| part.fill)
+            }
+            RenderMode::Dynamic | RenderMode::Raw => {
+                let result = state.command_results.get(name)?;
+                let stdout = result.stdout.trim_end_matches('\n');
+                crate::render::format::parse_format_string(stdout, aliases)
+                    .into_iter()
+                    .find(|part| part.fill)
+            }
+        }
+    }
 }
 
 /// Parse a command string into arguments, respecting quoted strings.

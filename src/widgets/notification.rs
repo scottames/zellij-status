@@ -53,6 +53,16 @@ impl Widget for NotificationWidget {
     fn process_click(&self, _name: &str, _state: &PluginState<'_>, _col: usize) {
         // No click action for notification widget.
     }
+
+    fn fill_part(
+        &self,
+        _name: &str,
+        state: &PluginState<'_>,
+    ) -> Option<crate::render::format::FormattedPart> {
+        crate::render::format::parse_format_string(&self.format, &state.config.color_aliases)
+            .into_iter()
+            .find(|part| part.fill)
+    }
 }
 
 #[cfg(test)]

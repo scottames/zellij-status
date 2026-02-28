@@ -7,6 +7,7 @@ use crate::config::PluginConfig;
 use crate::notify::tracker::NotificationTracker;
 use crate::render::format::FormattedPart;
 
+pub mod cap;
 pub mod command;
 pub mod datetime;
 pub mod mode;
@@ -83,5 +84,77 @@ pub fn register_widgets(config: &PluginConfig) -> BTreeMap<String, Arc<dyn Widge
         map.insert(name, Arc::clone(&pipe_widget) as Arc<dyn Widget>);
     }
 
+    let cap_widget = Arc::new(cap::CapWidget::new(map.clone()));
+    for name in cap_widget.names() {
+        map.insert(name, Arc::clone(&cap_widget) as Arc<dyn Widget>);
+    }
+
     map
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::notify::tracker::NotificationTracker;
+    use zellij_tile::prelude::{ModeInfo, PaneManifest};
+
+    fn make_state_with_config(
+        raw: BTreeMap<String, String>,
+    ) -> (
+        PluginConfig,
+        ModeInfo,
+        PaneManifest,
+        NotificationTracker,
+        BTreeMap<String, command::CommandResult>,
+        BTreeMap<String, String>,
+        Vec<TabInfo>,
+    ) {
+        let config = PluginConfig::from_configuration(raw).unwrap();
+        let mode = ModeInfo::default();
+        let panes = PaneManifest::default();
+        let notifications = NotificationTracker::default();
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        let tabs = Vec::new();
+        (
+            config,
+            mode,
+            panes,
+            notifications,
+            command_results,
+            pipe_data,
+            tabs,
+        )
+    }
+
+    #[test]
+    fn register_widgets_includes_mode_cap_widget() {
+        let raw = BTreeMap::from([
+            (
+                "mode_normal".to_string(),
+                "#[bg=blue,fg=black,bold,fill] NORMAL ".to_string(),
+            ),
+            ("cap_bg".to_string(), "black".to_string()),
+        ]);
+        let (config, mode, panes, notifications, command_results, pipe_data, tabs) =
+            make_state_with_config(raw);
+        let widgets = register_widgets(&config);
+        let state = PluginState {
+            tabs: &tabs,
+            panes: &panes,
+            mode: &mode,
+            config: &config,
+            notifications: &notifications,
+            command_results: &command_results,
+            pipe_data: &pipe_data,
+        };
+
+        let cap = widgets
+            .get("mode_cap")
+            .expect("mode_cap should be registered");
+        let rendered = cap.process("mode_cap", &state);
+        assert!(!rendered.is_empty());
+        assert!(rendered.contains(""));
+        assert!(rendered.contains('\x1b'));
+    }
 }
