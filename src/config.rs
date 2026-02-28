@@ -12,6 +12,44 @@ pub enum LayoutMode {
     Horizontal,
 }
 
+/// Primary section zone used across layout modes.
+///
+/// - Horizontal: start/middle/end map to left/center/right.
+/// - Vertical: start/middle/end map to top/middle/bottom.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SectionZone {
+    Start,
+    Middle,
+    End,
+}
+
+impl SectionZone {
+    fn parse(s: &str) -> Option<Self> {
+        match s.to_ascii_lowercase().as_str() {
+            "start" | "left" | "top" => Some(Self::Start),
+            "middle" | "center" => Some(Self::Middle),
+            "end" | "right" | "bottom" => Some(Self::End),
+            _ => None,
+        }
+    }
+
+    pub fn precedence_index(self) -> usize {
+        match self {
+            Self::Start => 0,
+            Self::Middle => 1,
+            Self::End => 2,
+        }
+    }
+}
+
+/// Parsed section definition from `format_<index>_<zone>` config keys.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FormatSection {
+    pub index: usize,
+    pub zone: SectionZone,
+    pub format: String,
+}
+
 impl LayoutMode {
     fn parse(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
@@ -150,10 +188,8 @@ pub struct PluginConfig {
     /// Referenced in format strings as `$name`.
     pub color_aliases: BTreeMap<String, String>,
 
-    /// Universal section format strings.
-    pub format_1: String,
-    pub format_2: String,
-    pub format_3: String,
+    /// Universal section format strings parsed from `format_<index>_<zone>` keys.
+    pub sections: Vec<FormatSection>,
 
     /// Spacer styling for horizontal mode.
     pub format_space: String,
@@ -190,9 +226,12 @@ impl PluginConfig {
             })
             .collect();
 
-        let format_1 = config.get("format_1").cloned().unwrap_or_default();
-        let format_2 = config.get("format_2").cloned().unwrap_or_default();
-        let format_3 = config.get("format_3").cloned().unwrap_or_default();
+        let mut sections: Vec<FormatSection> = config
+            .iter()
+            .filter_map(|(k, v)| parse_format_section(k, v))
+            .collect();
+        sections.sort_by_key(|s| (s.index, s.zone));
+
         let format_space = config.get("format_space").cloned().unwrap_or_default();
         let format_precedence = config
             .get("format_precedence")
@@ -208,9 +247,7 @@ impl PluginConfig {
         Ok(Self {
             layout_mode,
             color_aliases,
-            format_1,
-            format_2,
-            format_3,
+            sections,
             format_space,
             format_precedence,
             hide_on_overlength,
@@ -219,6 +256,21 @@ impl PluginConfig {
             raw: config,
         })
     }
+}
+
+fn parse_format_section(key: &str, value: &str) -> Option<FormatSection> {
+    let rest = key.strip_prefix("format_")?;
+    let (index, zone) = rest.split_once('_')?;
+    let index = index.parse::<usize>().ok()?;
+    if index == 0 {
+        return None;
+    }
+    let zone = SectionZone::parse(zone)?;
+    Some(FormatSection {
+        index,
+        zone,
+        format: value.to_string(),
+    })
 }
 
 #[cfg(test)]
@@ -255,14 +307,56 @@ mod tests {
     #[test]
     fn parse_format_sections() {
         let config = BTreeMap::from([
+            ("format_1_left".to_string(), "{mode}".to_string()),
+            ("format_2_center".to_string(), "{tabs}".to_string()),
+            ("format_3_right".to_string(), "{datetime}".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.sections.len(), 3);
+        assert_eq!(parsed.sections[0].index, 1);
+        assert_eq!(parsed.sections[0].zone, SectionZone::Start);
+        assert_eq!(parsed.sections[1].index, 2);
+        assert_eq!(parsed.sections[1].zone, SectionZone::Middle);
+        assert_eq!(parsed.sections[2].index, 3);
+        assert_eq!(parsed.sections[2].zone, SectionZone::End);
+    }
+
+    #[test]
+    fn parse_format_section_aliases() {
+        let config = BTreeMap::from([
+            ("format_1_top".to_string(), "A".to_string()),
+            ("format_2_middle".to_string(), "B".to_string()),
+            ("format_3_bottom".to_string(), "C".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.sections[0].zone, SectionZone::Start);
+        assert_eq!(parsed.sections[1].zone, SectionZone::Middle);
+        assert_eq!(parsed.sections[2].zone, SectionZone::End);
+    }
+
+    #[test]
+    fn parse_format_sections_ignores_legacy_format_keys() {
+        let config = BTreeMap::from([
             ("format_1".to_string(), "{mode}".to_string()),
             ("format_2".to_string(), "{tabs}".to_string()),
             ("format_3".to_string(), "{datetime}".to_string()),
         ]);
         let parsed = PluginConfig::from_configuration(config).unwrap();
-        assert_eq!(parsed.format_1, "{mode}");
-        assert_eq!(parsed.format_2, "{tabs}");
-        assert_eq!(parsed.format_3, "{datetime}");
+        assert!(parsed.sections.is_empty());
+    }
+
+    #[test]
+    fn parse_format_sections_sorted_by_index() {
+        let config = BTreeMap::from([
+            ("format_9_end".to_string(), "Z".to_string()),
+            ("format_2_start".to_string(), "A".to_string()),
+            ("format_4_middle".to_string(), "M".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(
+            parsed.sections.iter().map(|s| s.index).collect::<Vec<_>>(),
+            vec![2, 4, 9]
+        );
     }
 
     #[test]

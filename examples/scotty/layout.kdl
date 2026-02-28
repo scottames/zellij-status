@@ -41,12 +41,14 @@ layout {
                     color_mantle    "#181825"
                     color_crust     "#11111b"
 
-                    // Universal sections (vertical: top / middle / bottom)
-                    // TODO: support moving mode to bottom
-                    // TODO: support more "formats", possibly an array of them
-                    format_1                "{mode}"
-                    format_2                "{tabs}"
-                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+                    // Universal sections (zone semantics)
+                    // start = top in vertical mode
+                    // middle = vertical middle
+                    // end = bottom in vertical mode
+                    format_1_top            "{mode}"
+                    format_2_middle         "{tabs}"
+                    format_3_bottom         "#[fg=$overlay0] {session}"
+                    format_4_bottom         "#[fg=$subtext0]{datetime} "
 
                     // Tab format strings - powerline-inspired, stacked vertically
                     tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification}"
@@ -146,10 +148,13 @@ layout {
                     color_mantle    "#181825"
                     color_crust     "#11111b"
 
-                    // Universal sections (vertical: top / middle / bottom)
-                    format_1                "{mode}"
-                    format_2                "{tabs}"
-                    format_3                "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
+                    // Universal sections (zone semantics)
+                    // start = top in vertical mode
+                    // middle = vertical middle
+                    // end = bottom in vertical mode
+                    format_1_top            "{mode}"
+                    format_2_middle         "{tabs}"
+                    format_3_bottom         "#[fg=$overlay0] {session} #[fg=$subtext0]{datetime} "
 
                     // Tab format strings - powerline-inspired, stacked vertically
                     tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification}"

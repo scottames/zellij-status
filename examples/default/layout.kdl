@@ -20,10 +20,13 @@ layout {
                     color_muted   "#6c7086"
                     color_blue    "#89b4fa"
 
-                    // Universal sections (vertical: top / middle / bottom)
-                    format_1      "#[fg=$accent,bold] {mode} "
-                    format_2      "{tabs}"
-                    format_3      "#[fg=$muted] {session} {command_git}{swap_layout}{datetime} "
+                    // Universal sections (zone semantics)
+                    // start = top in vertical mode
+                    // middle = vertical middle
+                    // end = bottom in vertical mode
+                    format_1_top     "#[fg=$accent,bold] {mode} "
+                    format_2_middle  "{tabs}"
+                    format_3_bottom  "#[fg=$muted] {session} {command_git}{swap_layout}{datetime} "
 
                     // Tab format strings — clean and simple
                     tab_normal          " {index} {name} {notification}"
@@ -85,10 +88,13 @@ layout {
                     color_muted   "#6c7086"
                     color_blue    "#89b4fa"
 
-                    // Universal sections (vertical: top / middle / bottom)
-                    format_1      "#[fg=$accent,bold] {mode} "
-                    format_2      "{tabs}"
-                    format_3      "#[fg=$muted] {session} {command_git}{swap_layout}{datetime} "
+                    // Universal sections (zone semantics)
+                    // start = top in vertical mode
+                    // middle = vertical middle
+                    // end = bottom in vertical mode
+                    format_1_top     "#[fg=$accent,bold] {mode} "
+                    format_2_middle  "{tabs}"
+                    format_3_bottom  "#[fg=$muted] {session} {command_git}{swap_layout}{datetime} "
 
                     // Tab format strings — clean and simple
                     tab_normal          " {index} {name} {notification}"

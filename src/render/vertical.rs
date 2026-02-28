@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use unicode_width::UnicodeWidthStr;
 
+use crate::config::SectionZone;
 use crate::render::bar::render_section;
 use crate::render::format::{parse_format_string, FormattedPart};
 use crate::widgets::{tabs::TabsWidget, PluginState, Widget};
@@ -107,7 +108,7 @@ pub fn tab_at_row(
 
 /// Render the vertical tab list to stdout.
 ///
-/// Layout: `format_1` (top) → padding → overflow/tabs/overflow → `format_3` (bottom).
+/// Layout: start-zone (top) → middle-zone/tabs block → end-zone (bottom).
 ///
 /// Outputs exactly `rows` lines (using `println!` for all but the last, which
 /// uses `print!` to avoid a trailing newline that Zellij would render as blank).
@@ -124,16 +125,33 @@ pub fn render_vertical(
     let tab_count = state.tabs.len();
     let padding_top = config.tabs.padding_top;
 
-    // Render section lines (format_1 at top, format_3 at bottom).
-    let section_top = render_section_line(&config.format_1, widgets, state, cols, border_fmt);
-    let section_bot = render_section_line(&config.format_3, widgets, state, cols, border_fmt);
+    let (start_formats, middle_formats, end_formats) = split_sections_by_zone(state);
 
-    let top_rows = usize::from(section_top.is_some());
-    let bot_rows = usize::from(section_bot.is_some());
+    let start_lines = render_section_lines(&start_formats, widgets, state, cols, border_fmt);
+    let middle_lines = render_section_lines(&middle_formats, widgets, state, cols, border_fmt);
+    let end_lines = render_section_lines(&end_formats, widgets, state, cols, border_fmt);
+
+    // Keep bottom anchored first, then fit top + padding in remaining rows.
+    let bottom_reserved = end_lines.len().min(rows);
+    let top_budget = rows.saturating_sub(bottom_reserved);
+    let mut start_and_padding: Vec<String> = Vec::with_capacity(top_budget);
+    for line in start_lines {
+        if start_and_padding.len() >= top_budget {
+            break;
+        }
+        start_and_padding.push(line);
+    }
+    for _ in 0..padding_top {
+        if start_and_padding.len() >= top_budget {
+            break;
+        }
+        start_and_padding.push(build_empty_line(border_fmt, cols, aliases));
+    }
+
     let available = rows
-        .saturating_sub(padding_top)
-        .saturating_sub(top_rows)
-        .saturating_sub(bot_rows);
+        .saturating_sub(start_and_padding.len())
+        .saturating_sub(bottom_reserved)
+        .saturating_sub(middle_lines.len());
 
     let active_index = state.tabs.iter().position(|t| t.active).unwrap_or(0);
     let (start, end, tabs_above, tabs_below) =
@@ -142,15 +160,11 @@ pub fn render_vertical(
     let start_index = config.tabs.start_index;
     let mut lines: Vec<String> = Vec::with_capacity(rows);
 
-    // format_1 section (top).
-    if let Some(line) = section_top {
-        lines.push(line);
-    }
+    // Start zone + top padding.
+    lines.extend(start_and_padding);
 
-    // Top padding rows.
-    for _ in 0..padding_top {
-        lines.push(build_empty_line(border_fmt, cols, aliases));
-    }
+    // Middle-zone lines.
+    lines.extend(middle_lines);
 
     // Overflow-above indicator.
     if tabs_above > 0 {
@@ -190,14 +204,21 @@ pub fn render_vertical(
         lines.push(build_plain_line(&text, cols, border_fmt, aliases));
     }
 
-    // Fill remaining rows (reserving space for format_3 at bottom).
-    let target_before_bottom = rows.saturating_sub(bot_rows);
+    // Fill remaining rows (reserving space for end zone at bottom).
+    let target_before_bottom = rows.saturating_sub(bottom_reserved);
     while lines.len() < target_before_bottom {
         lines.push(build_empty_line(border_fmt, cols, aliases));
     }
 
-    // format_3 section (bottom).
-    if let Some(line) = section_bot {
+    // End zone lines (bottom).
+    for line in end_lines
+        .into_iter()
+        .rev()
+        .take(bottom_reserved)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+    {
         lines.push(line);
     }
 
@@ -217,23 +238,43 @@ pub fn render_vertical(
     }
 }
 
-/// Render a format section as a full-width line with border, or None if empty.
-fn render_section_line(
-    format_str: &str,
+/// Render format sections as full-width lines with border.
+fn render_section_lines(
+    formats: &[String],
     widgets: &BTreeMap<String, Arc<dyn Widget>>,
     state: &PluginState<'_>,
     cols: usize,
     border_fmt: &str,
-) -> Option<String> {
-    if format_str.is_empty() {
-        return None;
-    }
+) -> Vec<String> {
     let aliases = &state.config.color_aliases;
-    let rendered = render_section(format_str, widgets, state, aliases);
-    if rendered.is_empty() {
-        return None;
+    let mut lines = Vec::new();
+    for format_str in formats {
+        if format_str.is_empty() {
+            continue;
+        }
+        let rendered = render_section(format_str, widgets, state, aliases);
+        if rendered.is_empty() {
+            continue;
+        }
+        lines.push(build_plain_line(&rendered, cols, border_fmt, aliases));
     }
-    Some(build_plain_line(&rendered, cols, border_fmt, aliases))
+    lines
+}
+
+fn split_sections_by_zone(state: &PluginState<'_>) -> (Vec<String>, Vec<String>, Vec<String>) {
+    let mut start = Vec::new();
+    let mut middle = Vec::new();
+    let mut end = Vec::new();
+
+    for section in &state.config.sections {
+        match section.zone {
+            SectionZone::Start => start.push(section.format.clone()),
+            SectionZone::Middle => middle.push(section.format.clone()),
+            SectionZone::End => end.push(section.format.clone()),
+        }
+    }
+
+    (start, middle, end)
 }
 
 /// Build a tab row: content padded/filled to `cols`, with optional right border.

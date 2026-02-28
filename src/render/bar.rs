@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use crate::config::SectionZone;
 use crate::render::format::parse_format_string;
 use crate::widgets::{PluginState, Widget};
 
@@ -26,8 +27,7 @@ pub fn expand_widgets(
 
 /// Render a format section: expand widgets, parse format string, render to ANSI.
 ///
-/// Used by both horizontal (`render_bar`) and vertical (format_1/format_3)
-/// renderers.
+/// Used by both horizontal and vertical renderers.
 pub fn render_section(
     format_str: &str,
     widgets: &BTreeMap<String, Arc<dyn Widget>>,
@@ -46,11 +46,11 @@ pub fn render_section(
 ///
 /// Layout: `[left][spacer][center][spacer][right]`
 ///
-/// - `format_1` → left (flush left)
-/// - `format_2` → center (centered in remaining space)
-/// - `format_3` → right (flush right)
+/// - `format_<n>_start|left|top` → left zone
+/// - `format_<n>_middle|center` → center zone
+/// - `format_<n>_end|right|bottom` → right zone
 /// - `format_space` → style for spacer fill
-/// - `format_precedence` → priority order for overlength hiding (e.g., "132")
+/// - `format_precedence` → priority order for zone overlength hiding (e.g., "132")
 /// - `format_hide_on_overlength` → whether to hide low-priority sections
 pub fn render_bar(
     widgets: &BTreeMap<String, Arc<dyn Widget>>,
@@ -61,11 +61,20 @@ pub fn render_bar(
     let config = state.config;
     let aliases = &config.color_aliases;
 
-    // Render each section
+    // Render all sections into zone buckets (start/middle/end).
+    let mut zone_chunks = [Vec::new(), Vec::new(), Vec::new()];
+    for section in &config.sections {
+        let rendered = render_section(&section.format, widgets, state, aliases);
+        if rendered.is_empty() {
+            continue;
+        }
+        zone_chunks[section.zone.precedence_index()].push(rendered);
+    }
+
     let mut sections = [
-        render_section(&config.format_1, widgets, state, aliases),
-        render_section(&config.format_2, widgets, state, aliases),
-        render_section(&config.format_3, widgets, state, aliases),
+        zone_chunks[SectionZone::Start.precedence_index()].join(""),
+        zone_chunks[SectionZone::Middle.precedence_index()].join(""),
+        zone_chunks[SectionZone::End.precedence_index()].join(""),
     ];
     let mut widths: Vec<usize> = sections.iter().map(|s| strip_ansi_width(s)).collect();
 
@@ -127,7 +136,7 @@ fn render_spacer(format_space: &str, width: usize, aliases: &BTreeMap<String, St
 
 /// Parse `format_precedence` (e.g., "132") into a hide order (lowest priority first).
 ///
-/// Returns 0-based indices in reverse priority order (the section to hide first
+/// Returns 0-based zone indices in reverse priority order (the zone to hide first
 /// is last in precedence).
 fn reverse_precedence(precedence: &str) -> Vec<usize> {
     // Parse each char as a 1-based section index, convert to 0-based.
