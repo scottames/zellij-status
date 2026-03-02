@@ -594,15 +594,23 @@ fn build_tab_line(
     let visible = crate::widgets::tabs::strip_ansi_width(&clipped);
     let (left_pad, right_pad) = align_padding(content_cols.saturating_sub(visible), align);
 
-    let moved_cap = if align == TextAlign::Right {
+    let leading_cap = if align == TextAlign::Right {
         take_leading_cap_segment(&clipped)
     } else {
         None
     };
 
-    let mut line = String::new();
+    let trailing_cap = if align == TextAlign::Left {
+        take_trailing_cap_segment(&clipped)
+    } else {
+        None
+    };
 
-    if let Some((cap, rest, cap_width)) = moved_cap {
+    let mut line = String::new();
+    let mut has_trailing_cap = false;
+
+    if let Some((cap, rest, cap_width)) = leading_cap {
+        // Right-aligned: pin leading cap to left edge, fill between cap and content.
         line.push_str(&cap);
         let adjusted_left_pad = left_pad.saturating_sub(cap_width);
         if let Some(fill_part) = fill_style {
@@ -613,6 +621,19 @@ fn build_tab_line(
             line.push_str(&" ".repeat(adjusted_left_pad));
         }
         line.push_str(&rest);
+    } else if let Some((rest, cap, cap_width)) = trailing_cap {
+        // Left-aligned: pin trailing cap to right edge, fill between content and cap.
+        has_trailing_cap = true;
+        line.push_str(&rest);
+        let adjusted_right_pad = right_pad.saturating_sub(cap_width);
+        if let Some(fill_part) = fill_style {
+            if adjusted_right_pad > 0 {
+                line.push_str(&fill_part.render(&" ".repeat(adjusted_right_pad)));
+            }
+        } else {
+            line.push_str(&" ".repeat(adjusted_right_pad));
+        }
+        line.push_str(&cap);
     } else {
         if let Some(fill_part) = fill_style {
             if left_pad > 0 {
@@ -625,12 +646,15 @@ fn build_tab_line(
         line.push_str(&clipped);
     }
 
-    if let Some(fill_part) = fill_style {
-        if right_pad > 0 {
-            line.push_str(&fill_part.render(&" ".repeat(right_pad)));
+    // Only emit right padding if not already handled by trailing cap branch.
+    if !has_trailing_cap {
+        if let Some(fill_part) = fill_style {
+            if right_pad > 0 {
+                line.push_str(&fill_part.render(&" ".repeat(right_pad)));
+            }
+        } else {
+            line.push_str(&" ".repeat(right_pad));
         }
-    } else {
-        line.push_str(&" ".repeat(right_pad));
     }
     line.push_str("\x1b[0m");
 
@@ -673,6 +697,101 @@ fn take_leading_cap_segment(s: &str) -> Option<(String, String, usize)> {
     let rest = s[split_at..].to_string();
     let cap_width = UnicodeWidthChar::width(cap).unwrap_or(1);
     Some((cap_segment, rest, cap_width))
+}
+
+/// Mirror of [`take_leading_cap_segment`] for left-aligned tabs: extract a
+/// trailing powerline cap glyph so it can be pinned to the right edge of the
+/// row while fill padding stretches between the content and the cap.
+///
+/// Returns `(rest, cap_segment, cap_visible_width)`.
+fn take_trailing_cap_segment(s: &str) -> Option<(String, String, usize)> {
+    // Walk backward through the string to find the last visible character.
+    // We need to skip over any trailing ANSI escape sequences to find the
+    // actual cap glyph, then split just before its preceding ANSI codes.
+
+    // Strategy: find the last powerline glyph in the string. Everything from
+    // the start of its preceding ANSI sequence to end-of-string is the cap
+    // segment; everything before that is the rest.
+    let mut last_cap_char: Option<(usize, char)> = None;
+    let mut in_escape = false;
+
+    for (idx, ch) in s.char_indices() {
+        if ch == '\x1b' {
+            in_escape = true;
+            continue;
+        }
+        if in_escape {
+            if ch.is_ascii_alphabetic() {
+                in_escape = false;
+            }
+            continue;
+        }
+        if ch == '\u{e0b0}' || ch == '\u{e0b2}' {
+            last_cap_char = Some((idx, ch));
+        }
+    }
+
+    let (cap_glyph_idx, cap_char) = last_cap_char?;
+
+    // Walk backward from the cap glyph to find the start of its ANSI prefix.
+    // The cap segment starts at the first '\x1b' in the contiguous run of
+    // escape sequences immediately before the glyph.
+    let before_glyph = &s[..cap_glyph_idx];
+    let mut split_at = cap_glyph_idx;
+
+    // Scan backward: we want to include all consecutive ANSI sequences that
+    // precede the cap glyph (e.g. "#[bg=...,fg=...]").
+    let bytes = before_glyph.as_bytes();
+    let mut pos = bytes.len();
+    loop {
+        // Try to find an ESC that starts a sequence ending right at `pos`.
+        // ANSI sequences: ESC [ ... <letter>
+        if pos == 0 {
+            break;
+        }
+        // Walk back to find the ESC
+        let mut esc_start = None;
+        let mut j = pos;
+        while j > 0 {
+            j -= 1;
+            if bytes[j] == b'\x1b' {
+                esc_start = Some(j);
+                break;
+            }
+            // If we hit a non-escape visible char, stop
+            if !bytes[j].is_ascii() || (bytes[j] >= b' ' && bytes[j] != b'[' && bytes[j] != b';'
+                && !bytes[j].is_ascii_digit() && bytes[j] != b'\x1b')
+            {
+                // Check if this is part of an ANSI sequence parameter
+                // (digits, semicolons, '[' are ok). Letters terminate sequences.
+                if bytes[j].is_ascii_alphabetic() {
+                    // This is the terminator of a previous ANSI sequence.
+                    // Check if the ESC for this sequence is even further back.
+                    continue;
+                }
+                break;
+            }
+        }
+        if let Some(esc) = esc_start {
+            // Verify this looks like a complete ANSI sequence from esc..pos
+            split_at = esc;
+            pos = esc;
+        } else {
+            break;
+        }
+    }
+
+    let cap_segment = s[split_at..].to_string();
+    let rest = s[..split_at].to_string();
+    let cap_width = UnicodeWidthChar::width(cap_char).unwrap_or(1);
+
+    // Only return if we actually found a cap that's separate from content
+    // (i.e., there is content before the cap segment).
+    if rest.is_empty() {
+        return None;
+    }
+
+    Some((rest, cap_segment, cap_width))
 }
 
 /// Build a plain (unstyled content) row, e.g. for overflow indicators.
