@@ -542,20 +542,34 @@ fn render_tabs_block(
             break;
         }
         if let Some(tab) = state.tabs.get(i) {
-            let rendered = tabs_widget.render_tab(tab, state, i + start_index);
-            let fill_part = if tab.active {
-                fill_part_for_format(tabs_widget.select_format(tab, &state.mode.mode), aliases)
+            let display_idx = i + start_index;
+            // Try split rendering (fill segment between content on both sides).
+            if let Some((left, right, fill_part)) =
+                tabs_widget.render_tab_halves(tab, state, display_idx)
+            {
+                lines.push(build_split_tab_line(
+                    &left, &right, &fill_part, cols, border_fmt, aliases,
+                ));
             } else {
-                None
-            };
-            lines.push(build_tab_line(
-                &rendered,
-                cols,
-                fill_part.as_ref(),
-                border_fmt,
-                aliases,
-                align,
-            ));
+                // Fall back to single-block alignment.
+                let rendered = tabs_widget.render_tab(tab, state, display_idx);
+                let fill_part = if tab.active {
+                    fill_part_for_format(
+                        tabs_widget.select_format(tab, &state.mode.mode),
+                        aliases,
+                    )
+                } else {
+                    None
+                };
+                lines.push(build_tab_line(
+                    &rendered,
+                    cols,
+                    fill_part.as_ref(),
+                    border_fmt,
+                    aliases,
+                    align,
+                ));
+            }
         }
     }
 
@@ -658,6 +672,42 @@ fn build_tab_line(
     }
     line.push_str("\x1b[0m");
 
+    line.push_str(&border);
+    line
+}
+
+/// Build a split tab row: left content pinned left, right content pinned right,
+/// fill-styled gap in between.
+///
+/// Used when a tab format string has a `fill` segment between content on both
+/// sides (e.g. `◀ {index} ◁ #[fill] {name} ◀`).
+fn build_split_tab_line(
+    left: &str,
+    right: &str,
+    fill_part: &FormattedPart,
+    cols: usize,
+    border_fmt: &str,
+    aliases: &std::collections::BTreeMap<String, String>,
+) -> String {
+    let border = render_border(border_fmt, aliases);
+    let border_width = strip_ansi_width(&border);
+    let content_cols = cols.saturating_sub(border_width);
+
+    // Truncate right first (name), then left (index) — keep index visible.
+    let clipped_right = truncate_ansi_to_width(right, content_cols);
+    let right_width = strip_ansi_width(&clipped_right);
+    let clipped_left =
+        truncate_ansi_to_width(left, content_cols.saturating_sub(right_width));
+    let left_width = strip_ansi_width(&clipped_left);
+    let gap = content_cols.saturating_sub(left_width + right_width);
+
+    let mut line = String::new();
+    line.push_str(&clipped_left);
+    if gap > 0 {
+        line.push_str(&fill_part.render(&" ".repeat(gap)));
+    }
+    line.push_str(&clipped_right);
+    line.push_str("\x1b[0m");
     line.push_str(&border);
     line
 }
@@ -1173,5 +1223,102 @@ mod tests {
             return Some(ch);
         }
         None
+    }
+
+    fn last_visible_char(s: &str) -> Option<char> {
+        let mut in_escape = false;
+        let mut last = None;
+        for ch in s.chars() {
+            if ch == '\x1b' {
+                in_escape = true;
+                continue;
+            }
+            if in_escape {
+                if ch.is_ascii_alphabetic() {
+                    in_escape = false;
+                }
+                continue;
+            }
+            last = Some(ch);
+        }
+        last
+    }
+
+    #[test]
+    fn split_tab_line_pins_left_and_right() {
+        let aliases = BTreeMap::from([
+            ("base".to_string(), "#1e1e2e".to_string()),
+            ("green".to_string(), "#a6e3a1".to_string()),
+        ]);
+
+        // Left half: cap + index + thin arrow
+        let left_parts = parse_format_string(
+            "#[bg=$base,fg=$green]\u{e0b2}#[bg=$green,fg=$base,bold] 1 #[bg=$green,fg=$base]\u{e0b3}",
+            &aliases,
+        );
+        let left: String = left_parts.iter().map(|p| p.render_content()).collect();
+
+        // Right half: name + trailing cap
+        let right_parts = parse_format_string(
+            "#[bg=$green,fg=$base,bold]Tab-1 #[fg=$base,bg=$green]\u{e0b2}",
+            &aliases,
+        );
+        let right: String = right_parts.iter().map(|p| p.render_content()).collect();
+
+        // Fill part for gap styling
+        let fill = parse_format_string("#[bg=$green,fill] ", &aliases)
+            .into_iter()
+            .find(|p| p.fill)
+            .unwrap();
+
+        let line = build_split_tab_line(&left, &right, &fill, 24, "", &aliases);
+
+        // First visible char should be the leading cap (left-pinned).
+        assert_eq!(
+            first_visible_char(&line),
+            Some('\u{e0b2}'),
+            "leading cap should be at left edge"
+        );
+        // Last visible char should be the trailing cap (right-pinned).
+        assert_eq!(
+            last_visible_char(&line),
+            Some('\u{e0b2}'),
+            "trailing cap should be at right edge"
+        );
+        // Total width should fill the column.
+        assert_eq!(strip_ansi_width(&line), 24);
+    }
+
+    #[test]
+    fn split_tab_line_truncates_long_name() {
+        let aliases = BTreeMap::new();
+
+        let left = "IDX";
+        let right = "This-Name-Is-Way-Too-Long-For-The-Column";
+        let fill = parse_format_string("#[fill] ", &aliases)
+            .into_iter()
+            .find(|p| p.fill)
+            .unwrap();
+
+        let line = build_split_tab_line(left, right, &fill, 15, "", &aliases);
+        assert_eq!(strip_ansi_width(&line), 15);
+        // Left content (IDX) should be fully visible.
+        assert!(line.starts_with("IDX"));
+    }
+
+    #[test]
+    fn split_tab_line_with_border() {
+        let aliases = BTreeMap::from([("surface1".to_string(), "#3b4261".to_string())]);
+
+        let left = "L";
+        let right = "R";
+        let fill = parse_format_string("#[fill] ", &aliases)
+            .into_iter()
+            .find(|p| p.fill)
+            .unwrap();
+
+        // Border takes 1 column
+        let line = build_split_tab_line(left, right, &fill, 10, "#[fg=$surface1]|", &aliases);
+        assert_eq!(strip_ansi_width(&line), 10);
     }
 }

@@ -5,7 +5,7 @@ use zellij_tile::prelude::{InputMode, PaneInfo, TabInfo};
 use zellij_tile::shim::switch_tab_to;
 
 use crate::notify::NotificationType;
-use crate::render::format::parse_format_string;
+use crate::render::format::{parse_format_string, FormattedPart};
 
 use super::{PluginState, Widget};
 
@@ -146,6 +146,70 @@ impl TabsWidget {
         }
 
         out
+    }
+
+    /// Try to split a tab's format string at the fill segment.
+    ///
+    /// When a `fill` segment sits between rendered content on both sides, this
+    /// returns the left half, right half, and the fill part (for gap styling).
+    /// Returns `None` when fill is absent or at an edge — caller should fall
+    /// back to `render_tab()` + single-block alignment.
+    pub fn render_tab_halves(
+        &self,
+        tab: &TabInfo,
+        state: &PluginState<'_>,
+        display_index: usize,
+    ) -> Option<(String, String, FormattedPart)> {
+        let format_str = self.select_format(tab, &state.mode.mode);
+        let max_name = state.config.tabs.max_name_length;
+        let name = resolve_tab_name(tab, &state.mode.mode);
+        let name_truncated = truncate_str(&name, max_name);
+        let notification_icon = resolve_notification_icon(tab, state);
+
+        let parts = parse_format_string(format_str, &state.config.color_aliases);
+        let fill_idx = parts.iter().position(|p| p.fill)?;
+
+        // A fill part with substantive content (variables like {name}) is a
+        // "fill this segment's background" directive, not a split marker.
+        // Only treat it as a split point when its content is empty/whitespace.
+        let fill_content = &parts[fill_idx].content;
+        if !fill_content.trim().is_empty() {
+            return None;
+        }
+
+        // Fill must sit between content on both sides to act as a split point.
+        let has_left = parts[..fill_idx]
+            .iter()
+            .any(|p| !p.content.is_empty());
+        let has_right = parts[fill_idx + 1..]
+            .iter()
+            .any(|p| !p.content.is_empty());
+        if !has_left || !has_right {
+            return None;
+        }
+
+        let render_half = |range: &[FormattedPart]| -> String {
+            let mut out = String::new();
+            for part in range {
+                let mut content = part.content.clone();
+                if content.contains("{index}") {
+                    content = content.replace("{index}", &display_index.to_string());
+                }
+                if content.contains("{name}") {
+                    content = content.replace("{name}", &name_truncated);
+                }
+                if content.contains("{notification}") {
+                    content = content.replace("{notification}", &notification_icon);
+                }
+                out.push_str(&part.render(&content));
+            }
+            out
+        };
+
+        let left = render_half(&parts[..fill_idx]);
+        let right = render_half(&parts[fill_idx + 1..]);
+
+        Some((left, right, parts[fill_idx].clone()))
     }
 
     /// Horizontal-mode rendering: all tabs joined with separator.
