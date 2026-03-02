@@ -1,0 +1,240 @@
+// Vertical example — full-featured left sidebar.
+//
+// Demonstrates:
+//   - layout_mode "vertical" with left sidebar pane
+//   - Tab anchor in middle zone with right alignment
+//   - fill directive extending active tab bg across full row width
+//   - Powerline caps ({mode_cap}, {tabs_cap}, {datetime_cap})
+//   - Split section rows: left + right content in one row
+//   - overflow_above / overflow_below with {count}
+//   - padding_top, border (right-side separator)
+//   - Per-tab {notification} icons + global {notifications}
+//   - new_tab_template synced with default_tab_template
+
+layout {
+    default_tab_template {
+        pane split_direction="vertical" {
+            pane size=26 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // -- Catppuccin Mocha palette --
+                    color_rosewater "#f5e0dc"
+                    color_flamingo  "#f2cdcd"
+                    color_pink      "#f5c2e7"
+                    color_mauve     "#cba6f7"
+                    color_red       "#f38ba8"
+                    color_maroon    "#eba0ac"
+                    color_peach     "#fab387"
+                    color_yellow    "#f9e2af"
+                    color_green     "#a6e3a1"
+                    color_teal      "#94e2d5"
+                    color_sky       "#89dceb"
+                    color_sapphire  "#74c7ec"
+                    color_blue      "#89b4fa"
+                    color_lavender  "#b4befe"
+                    color_text      "#cdd6f4"
+                    color_subtext1  "#bac2de"
+                    color_subtext0  "#a6adc8"
+                    color_overlay2  "#9399b2"
+                    color_overlay1  "#7f849c"
+                    color_overlay0  "#6c7086"
+                    color_surface2  "#585b70"
+                    color_surface1  "#45475a"
+                    color_surface0  "#313244"
+                    color_base      "#1e1e2e"
+                    color_mantle    "#181825"
+                    color_crust     "#11111b"
+
+                    // --- Sections ---
+                    // Vertical zones: start=top, middle=center, end=bottom.
+                    // The {tabs} anchor goes in the middle zone — the tab list
+                    // fills the remaining space between top and bottom sections.
+
+                    // Top: session name
+                    format_1_top "#[fg=$overlay0] {session}"
+
+                    // Middle: tabs with right alignment.
+                    // _right suffix right-aligns tab text within each row.
+                    // The active tab's fill bg extends across the full row width.
+                    format_1_middle_right "{tabs}"
+
+                    // Bottom row 1: cap for the tab section boundary
+                    format_1_bottom_left  "{tabs_cap}"
+                    format_1_bottom_right "#[fg=$overlay1] active tab"
+
+                    // Bottom row 2: split pair — mode on the left, cap on the right.
+                    // Split pairs use the same index+zone with _left and _right suffixes.
+                    // The gap between them fills with the mode's fill colour.
+                    format_2_bottom_left  "{mode}"
+                    format_2_bottom_right "{mode_cap}"
+
+                    // Bottom row 3: session name centered
+                    format_3_bottom_center "#[fg=$overlay0] {notifications} {session}"
+
+                    // Bottom row 4: datetime with a left-pointing cap
+                    format_4_bottom_left  "{datetime_cap}"
+                    format_4_bottom_right "#[bg=$surface1,fg=$base,bold,fill] {datetime} "
+
+                    // --- Cap config ---
+                    // cap_bg: the "outside" colour behind cap arrows.
+                    // datetime_cap_fg/symbol: per-widget overrides.
+                    cap_bg              "$base"
+                    datetime_cap_fg     "$surface1"
+                    datetime_cap_symbol ""
+
+                    // --- Tab format strings ---
+                    // Vertical: one tab per row.  at the left edge creates
+                    // a powerline cap. fill on the active tab extends its bg
+                    // across the full row width for a highlighted stripe effect.
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}"
+                    tab_active              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} "
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}"
+                    tab_active_fullscreen   "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} "
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}"
+                    tab_active_sync         "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} "
+                    tab_rename              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] RENAME "
+
+                    // Overflow indicators when tabs exceed available rows.
+                    // {count} shows how many tabs are hidden above/below.
+                    overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
+
+                    max_name_length 20
+                    start_index     1
+
+                    // Blank rows above the tab list for breathing room.
+                    padding_top 0
+
+                    // Right border: a subtle separator between sidebar and content.
+                    border "#[fg=$surface1]│"
+
+                    // --- Notifications ---
+                    notification_enabled        "true"
+                    notification_waiting_icon   ""
+                    notification_completed_icon ""
+
+                    // --- Mode widget ---
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+
+                    // --- DateTime ---
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
+                }
+            }
+            children
+        }
+    }
+
+    // new_tab_template must mirror default_tab_template — Zellij creates a
+    // separate plugin instance per template so all config must be duplicated.
+    new_tab_template {
+        pane split_direction="vertical" {
+            pane size=26 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+                    color_rosewater "#f5e0dc"
+                    color_flamingo  "#f2cdcd"
+                    color_pink      "#f5c2e7"
+                    color_mauve     "#cba6f7"
+                    color_red       "#f38ba8"
+                    color_maroon    "#eba0ac"
+                    color_peach     "#fab387"
+                    color_yellow    "#f9e2af"
+                    color_green     "#a6e3a1"
+                    color_teal      "#94e2d5"
+                    color_sky       "#89dceb"
+                    color_sapphire  "#74c7ec"
+                    color_blue      "#89b4fa"
+                    color_lavender  "#b4befe"
+                    color_text      "#cdd6f4"
+                    color_subtext1  "#bac2de"
+                    color_subtext0  "#a6adc8"
+                    color_overlay2  "#9399b2"
+                    color_overlay1  "#7f849c"
+                    color_overlay0  "#6c7086"
+                    color_surface2  "#585b70"
+                    color_surface1  "#45475a"
+                    color_surface0  "#313244"
+                    color_base      "#1e1e2e"
+                    color_mantle    "#181825"
+                    color_crust     "#11111b"
+                    format_1_top "#[fg=$overlay0] {session}"
+                    format_1_middle_right "{tabs}"
+                    format_1_bottom_left  "{tabs_cap}"
+                    format_1_bottom_right "#[fg=$overlay1] active tab"
+                    format_2_bottom_left  "{mode}"
+                    format_2_bottom_right "{mode_cap}"
+                    format_3_bottom_center "#[fg=$overlay0] {notifications} {session}"
+                    format_4_bottom_left  "{datetime_cap}"
+                    format_4_bottom_right "#[bg=$surface1,fg=$base,bold,fill] {datetime} "
+                    cap_bg              "$base"
+                    datetime_cap_fg     "$surface1"
+                    datetime_cap_symbol ""
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}"
+                    tab_active              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} "
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}"
+                    tab_active_fullscreen   "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} "
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}"
+                    tab_active_sync         "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} "
+                    tab_rename              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] RENAME "
+                    overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
+                    max_name_length 20
+                    start_index     1
+                    padding_top 0
+                    border "#[fg=$surface1]│"
+                    notification_enabled        "true"
+                    notification_waiting_icon   ""
+                    notification_completed_icon ""
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
+                }
+            }
+            children
+        }
+    }
+
+    tab name="tab-1" {
+        pane
+    }
+
+    tab name="tab-2" {
+        pane
+        pane
+    }
+
+    tab name="tab-3" {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}

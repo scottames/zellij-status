@@ -1,4 +1,4 @@
-// zellij-status example: default
+// zellij-status example: powerline
 // See layout.kdl for plugin configuration.
 ui {
     pane_frames {

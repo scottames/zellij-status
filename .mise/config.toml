@@ -14,12 +14,12 @@ run = "cargo build"
 description = "Build the plugin in release mode"
 run = "cargo build --release"
 
-[tasks.dev]
-description = "Build and launch a Zellij dev session with a config profile"
+[tasks.example]
+description = "Build and launch a Zellij dev session with an example profile"
 depends = ["build"]
 usage = '''
 arg "[profile]" help="Config profile to use" default="default" {
-    choices "default" "scotty" "horizontal"
+    choices "default" "minimal" "powerline" "vertical" "vertical-right" "gallery-vertical" "gallery-horizontal"
 }
 '''
 run = """
@@ -28,7 +28,7 @@ profile="${usage_profile?}"
 config_dir="./examples/$profile"
 if [[ ! -d "$config_dir" ]]; then
   echo "error: unknown profile '$profile' (no directory at $config_dir)" >&2
-  echo "available profiles: default, scotty, horizontal" >&2
+  echo "available profiles: default, minimal, powerline, vertical, vertical-right, gallery-vertical, gallery-horizontal" >&2
   exit 1
 fi
 zellij \

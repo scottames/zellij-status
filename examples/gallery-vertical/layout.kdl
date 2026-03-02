@@ -1,0 +1,213 @@
+// Gallery: Vertical — side-by-side comparison of vertical styling options.
+//
+// Each bottom section row demonstrates a different approach to alignment,
+// fill, caps, and split pairs. Compare them visually and copy the style
+// you prefer into your own config.
+//
+// Demonstrates:
+//   - Left-aligned row (no fill, plain text)
+//   - Center-aligned row (with fill extending bg)
+//   - Right-aligned row (with left-anchored cap)
+//   - Split pair row (left + right content in one row)
+//   - Per-widget cap overrides (custom symbol, custom colours)
+//   - fill vs no-fill on active/inactive tabs
+//   - Gruvbox Dark colour scheme
+
+layout {
+    default_tab_template {
+        pane split_direction="vertical" {
+            pane size=30 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // -- Gruvbox Dark palette --
+                    color_bg0     "#282828"
+                    color_bg1     "#3c3836"
+                    color_bg2     "#504945"
+                    color_bg3     "#665c54"
+                    color_fg0     "#fbf1c7"
+                    color_fg1     "#ebdbb2"
+                    color_fg2     "#d5c4a1"
+                    color_fg3     "#bdae93"
+                    color_fg4     "#a89984"
+                    color_red     "#fb4934"
+                    color_green   "#b8bb26"
+                    color_yellow  "#fabd2f"
+                    color_blue    "#83a598"
+                    color_purple  "#d3869b"
+                    color_aqua    "#8ec07c"
+                    color_orange  "#fe8019"
+                    color_gray    "#928374"
+
+                    // --- Tabs in the middle zone ---
+                    // Active tab uses fill — its bg extends to full row width.
+                    // Normal tabs have no fill — only the text is styled.
+                    format_1_middle_right "{tabs}"
+
+                    // ┌─────────────────────────────────────────────────┐
+                    // │  GALLERY: Each row below shows a different style │
+                    // └─────────────────────────────────────────────────┘
+
+                    // Row 1: LEFT-ALIGNED, NO FILL — plain text, simplest style.
+                    // No alignment suffix = left-aligned by default.
+                    format_1_bottom "#[fg=$fg4] {session}"
+
+                    // Row 2: CENTER-ALIGNED WITH FILL — bg extends across row.
+                    // _center suffix centers the content. fill extends bg.
+                    format_2_bottom_center "#[bg=$bg2,fg=$fg1,fill] {datetime} "
+
+                    // Row 3: RIGHT-ALIGNED WITH CAP — cap anchored to left edge.
+                    // _right suffix right-aligns text. The leading  glyph
+                    // gets pinned to the left edge of the row automatically.
+                    format_3_bottom_right "#[bg=$bg1,fg=$blue]#[bg=$blue,fg=$bg0,bold,fill] {mode} "
+
+                    // Row 4: SPLIT PAIR — left + right content with fill gap.
+                    // Same index+zone with _left and _right suffixes.
+                    format_4_bottom_left  "#[fg=$fg4] {notifications}"
+                    format_4_bottom_right "#[fg=$fg4] {datetime} "
+
+                    // Row 5: CAP WITH CUSTOM SYMBOL — per-widget override.
+                    // datetime_cap uses  instead of the default .
+                    format_5_bottom_left  "{datetime_cap}"
+                    format_5_bottom_right "#[bg=$bg2,fg=$fg1,bold,fill] {datetime} "
+
+                    // --- Cap config ---
+                    cap_bg               "$bg0"
+                    // Per-widget: datetime cap uses a different symbol and colour.
+                    datetime_cap_fg      "$bg2"
+                    datetime_cap_symbol  ""
+
+                    // --- Tab format strings ---
+                    tab_normal            "#[bg=$bg0,fg=$bg1]#[bg=$bg0,fg=$fg4] {index} {name} "
+                    tab_active            "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] {index} {name} "
+                    tab_normal_fullscreen "#[bg=$bg0,fg=$bg1]#[bg=$bg0,fg=$fg4] {index} {name} 󰊓 "
+                    tab_active_fullscreen "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] {index} {name} 󰊓 "
+                    tab_normal_sync       "#[bg=$bg0,fg=$bg1]#[bg=$bg0,fg=$fg4] {index} {name}  "
+                    tab_active_sync       "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] {index} {name}  "
+                    tab_rename            "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] RENAME "
+
+                    overflow_above "#[fg=$gray]  ^ +{count}"
+                    overflow_below "#[fg=$gray]  v +{count}"
+
+                    max_name_length 22
+                    start_index     1
+                    padding_top     0
+                    border          "#[fg=$bg2]│"
+
+                    // --- Mode widget ---
+                    mode_normal       "#[bg=$blue,fg=$bg0,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$bg0,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$orange,fg=$bg0,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$orange,fg=$bg0,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$bg0,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$bg0,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$orange,fg=$bg0,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$bg0,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$bg0,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$aqua,fg=$bg0,bold,fill] RESIZE "
+                    mode_move         "#[bg=$aqua,fg=$bg0,bold,fill] MOVE "
+                    mode_session      "#[bg=$purple,fg=$bg0,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$red,fg=$bg0,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+
+                    // --- Notifications ---
+                    notification_enabled        "true"
+                    notification_waiting_icon   "⏳"
+                    notification_completed_icon "✅"
+
+                    // --- DateTime ---
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
+                }
+            }
+            children
+        }
+    }
+
+    new_tab_template {
+        pane split_direction="vertical" {
+            pane size=30 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+                    color_bg0     "#282828"
+                    color_bg1     "#3c3836"
+                    color_bg2     "#504945"
+                    color_bg3     "#665c54"
+                    color_fg0     "#fbf1c7"
+                    color_fg1     "#ebdbb2"
+                    color_fg2     "#d5c4a1"
+                    color_fg3     "#bdae93"
+                    color_fg4     "#a89984"
+                    color_red     "#fb4934"
+                    color_green   "#b8bb26"
+                    color_yellow  "#fabd2f"
+                    color_blue    "#83a598"
+                    color_purple  "#d3869b"
+                    color_aqua    "#8ec07c"
+                    color_orange  "#fe8019"
+                    color_gray    "#928374"
+                    format_1_middle_right "{tabs}"
+                    format_1_bottom "#[fg=$fg4] {session}"
+                    format_2_bottom_center "#[bg=$bg2,fg=$fg1,fill] {datetime} "
+                    format_3_bottom_right "#[bg=$bg1,fg=$blue]#[bg=$blue,fg=$bg0,bold,fill] {mode} "
+                    format_4_bottom_left  "#[fg=$fg4] {notifications}"
+                    format_4_bottom_right "#[fg=$fg4] {datetime} "
+                    format_5_bottom_left  "{datetime_cap}"
+                    format_5_bottom_right "#[bg=$bg2,fg=$fg1,bold,fill] {datetime} "
+                    cap_bg               "$bg0"
+                    datetime_cap_fg      "$bg2"
+                    datetime_cap_symbol  ""
+                    tab_normal            "#[bg=$bg0,fg=$bg1]#[bg=$bg0,fg=$fg4] {index} {name} "
+                    tab_active            "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] {index} {name} "
+                    tab_normal_fullscreen "#[bg=$bg0,fg=$bg1]#[bg=$bg0,fg=$fg4] {index} {name} 󰊓 "
+                    tab_active_fullscreen "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] {index} {name} 󰊓 "
+                    tab_normal_sync       "#[bg=$bg0,fg=$bg1]#[bg=$bg0,fg=$fg4] {index} {name}  "
+                    tab_active_sync       "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] {index} {name}  "
+                    tab_rename            "#[bg=$bg0,fg=$green]#[bg=$green,fg=$bg0,bold,fill] RENAME "
+                    overflow_above "#[fg=$gray]  ^ +{count}"
+                    overflow_below "#[fg=$gray]  v +{count}"
+                    max_name_length 22
+                    start_index     1
+                    padding_top     0
+                    border          "#[fg=$bg2]│"
+                    mode_normal       "#[bg=$blue,fg=$bg0,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$bg0,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$orange,fg=$bg0,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$orange,fg=$bg0,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$bg0,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$bg0,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$orange,fg=$bg0,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$bg0,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$bg0,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$aqua,fg=$bg0,bold,fill] RESIZE "
+                    mode_move         "#[bg=$aqua,fg=$bg0,bold,fill] MOVE "
+                    mode_session      "#[bg=$purple,fg=$bg0,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$red,fg=$bg0,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+                    notification_enabled        "true"
+                    notification_waiting_icon   "⏳"
+                    notification_completed_icon "✅"
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
+                }
+            }
+            children
+        }
+    }
+
+    tab name="tab-1" {
+        pane
+    }
+
+    tab name="tab-2" {
+        pane
+        pane
+    }
+
+    tab name="tab-3" {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}

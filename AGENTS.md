@@ -28,7 +28,7 @@ src/
 ## build & test
 
 - `mise run build` — compile to wasm32-wasip1
-- `mise run dev` — launch Zellij dev session (or `mise run dev scotty`)
+- `mise run example` — launch Zellij dev session (e.g. `mise run example powerline`)
 - `cargo test --target x86_64-unknown-linux-gnu` — tests require native target
 - `mise run check` — trunk check (clippy, formatting)
 
@@ -86,8 +86,8 @@ zellij delete-session zellij-status-default --force
 
 ### notes
 
-- `mise run dev` launches the default profile interactively
-- `mise run dev scotty` launches with Scotty's keybindings and styling
+- `mise run example` launches the default profile interactively
+- `mise run example powerline` launches the powerline profile
 - Available profiles live in `examples/<profile>/` (each has config.kdl +
   layout.kdl)
 - `--config-dir ./examples/<profile>` isolates the session from your user config

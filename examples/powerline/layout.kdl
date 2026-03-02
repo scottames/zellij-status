@@ -1,13 +1,14 @@
-// Default example — full-featured horizontal status bar.
+// Powerline example — styled horizontal bar with caps in both directions.
 //
 // Demonstrates:
-//   - All widgets: tabs, mode, session, datetime, notifications,
-//     swap layout, command (git branch), pipe, cap
-//   - Split section pair (left + right in one zone)
-//   - Cap widget with auto-colour from fill
-//   - format_precedence + format_hide_on_overlength
-//   - All tab state variants (normal, active, fullscreen, sync, rename)
-//   - Notification system (per-tab icons + global count)
+//   - Powerline glyphs: left zone caps point right (), right zone caps
+//     point left () — arrows flow "into" the bar from each edge
+//   - {widget_cap} with auto-colour derived from fill directive
+//   - cap_bg (global) and per-widget cap overrides
+//   - fill directive on mode + active tab for row background extension
+//   - Full 14-mode per-mode colours
+//   - Notifications with styled powerline pill
+//   - format_precedence + overlength hiding
 
 layout {
     default_tab_template {
@@ -44,65 +45,59 @@ layout {
                 color_mantle    "#181825"
                 color_crust     "#11111b"
 
-                // --- Sections ---
-                // format_<index>_<zone> where zone is start/middle/end
-                // (aliases: left/center/right also work)
-                //
-                // Multiple sections in the same zone stack by index order.
+                // --- Left zone: mode pill + cap pointing right, then tabs ---
+                // The  glyph points right — caps on the left edge flow INTO the bar.
+                // {mode_cap} auto-derives its fg from mode's fill bg colour.
+                format_1_left "{mode}{mode_cap}{tabs}"
 
-                // Left: mode indicator with cap, then tabs
-                // The cap widget ({mode_cap}) renders a powerline arrow whose
-                // foreground colour is automatically derived from the mode
-                // widget's fill background. The cap_bg sets what's "behind" it.
-                format_1_left  "{mode}{mode_cap}{tabs}"
-                cap_bg         "$mantle"
-
-                // Center: notification count badge
+                // --- Center zone: notification count ---
                 format_2_center "{notifications}"
 
-                // Right: uses a split section pair — left and right content
-                // share the same zone row with a gap between them.
-                // Split pairs are defined by giving the same index+zone two
-                // keys with _left and _right suffixes.
-                format_3_right_left  "#[fg=$subtext0] {session} {command_git}"
-                format_3_right_right "#[fg=$subtext0]{swap_layout} {datetime} "
+                // --- Right zone: caps pointing left, then widgets ---
+                // The  glyph points left — caps on the right edge flow INTO the bar.
+                // Stacking two sections in the right zone (index 3 and 4)
+                // renders them in order: session first, datetime after.
+                format_3_right "#[bg=$mantle,fg=$base]#[bg=$base,fg=$subtext0] {session} "
+                format_4_right "#[bg=$base,fg=$surface1]#[bg=$surface1,fg=$text] {datetime} "
 
-                // Spacer between zones (the background fill colour).
+                // Cap config: background behind all cap arrows.
+                cap_bg "$mantle"
+
+                // Spacer fill between zones.
                 format_space "#[bg=$mantle]"
 
-                // When the terminal is too narrow, hide lower-priority zones.
-                // Digits are zone indices: 1=left, 2=center, 3=right.
-                // "132" means: keep left (1) longest, then right (3), drop center (2) first.
+                // Zone priority for narrow terminals:
+                // 1=left (keep longest), 3=right, 2=center (drop first).
                 format_precedence         "132"
                 format_hide_on_overlength "true"
 
                 // --- Tab format strings ---
-                // Each variant handles a different tab state. Fallback chain:
-                //   fullscreen/sync -> active/normal -> tab_normal (hard default)
-                tab_normal            "#[fg=$overlay0] {index} {name} {notification}"
-                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 {notification}"
-                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification} #[bg=default]"
-                tab_normal_sync       "#[fg=$overlay0] {index} {name}  {notification}"
-                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification} #[bg=default]"
-                tab_rename            "#[fg=$green,italic] {index} {name} "
-                tab_separator         "#[fg=$surface1]|"
+                // Powerline arrows baked into tab format strings:
+                //  before the tab (left edge),  after (right edge).
+                // Active tab uses fill for powerline colour propagation.
+                tab_normal            "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}#[bg=$mantle,fg=$base]"
+                tab_active            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} #[bg=$mantle,fg=$green]"
+                tab_normal_fullscreen "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}#[bg=$mantle,fg=$base]"
+                tab_active_fullscreen "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} #[bg=$mantle,fg=$green]"
+                tab_normal_sync       "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}#[bg=$mantle,fg=$base]"
+                tab_active_sync       "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} #[bg=$mantle,fg=$green]"
+                tab_rename            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] RENAME #[bg=$mantle,fg=$green]"
+                tab_separator         ""
 
                 max_name_length 18
                 start_index     1
 
                 // --- Notifications ---
-                // Per-tab: {notification} in tab format strings shows an icon.
-                // Global: {notifications} widget shows aggregate count.
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_completed_icon "✅"
-                notification_format         "#[fg=$peach,bold] {count} "
+                notification_waiting_icon   ""
+                notification_completed_icon ""
+                // Styled as a powerline pill in the center zone.
+                notification_format         "#[bg=$peach,fg=$mantle]#[bg=$peach,fg=$mantle,bold] {count} #[bg=$mantle,fg=$peach]"
                 notification_show_if_empty  "false"
 
                 // --- Mode widget ---
-                // The fill directive on the active mode extends its background
-                // across the bar and tells the cap widget what colour to use.
+                // fill makes mode's bg extend and tells {mode_cap} what colour
+                // to use for its arrow glyph.
                 mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
                 mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
                 mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
@@ -122,27 +117,13 @@ layout {
                 datetime_format   "%H:%M"
                 datetime_timezone "America/Los_Angeles"
 
-                // --- Swap layout (click to cycle) ---
-                swap_layout_format        "#[fg=$overlay0] {name}"
+                // --- Swap layout ---
+                swap_layout_format        "#[fg=$overlay0]{name} "
                 swap_layout_hide_if_empty "true"
-
-                // --- Command widget: git branch (re-runs every 10s) ---
-                // rendermode "static" substitutes {stdout} into the format string.
-                // Try "dynamic" to let the command output contain #[style] directives.
-                command_git_command    "git branch --show-current"
-                command_git_format     "#[fg=$blue] {stdout} "
-                command_git_interval   "10"
-                command_git_rendermode "static"
-
-                // --- Pipe widget: arbitrary external data ---
-                // Send data: zellij pipe --name "zellij-status::pipe::status::ok"
-                pipe_status_format "#[fg=$green]{output}"
             }
         }
     }
 
-    // new_tab_template must mirror default_tab_template — Zellij creates a
-    // separate plugin instance for runtime tabs so the config must be repeated.
     new_tab_template {
         children
         pane size=1 borderless=true {
@@ -174,28 +155,28 @@ layout {
                 color_base      "#1e1e2e"
                 color_mantle    "#181825"
                 color_crust     "#11111b"
-                format_1_left  "{mode}{mode_cap}{tabs}"
-                cap_bg         "$mantle"
+                format_1_left "{mode}{mode_cap}{tabs}"
                 format_2_center "{notifications}"
-                format_3_right_left  "#[fg=$subtext0] {session} {command_git}"
-                format_3_right_right "#[fg=$subtext0]{swap_layout} {datetime} "
+                format_3_right "#[bg=$mantle,fg=$base]#[bg=$base,fg=$subtext0] {session} "
+                format_4_right "#[bg=$base,fg=$surface1]#[bg=$surface1,fg=$text] {datetime} "
+                cap_bg "$mantle"
                 format_space "#[bg=$mantle]"
                 format_precedence         "132"
                 format_hide_on_overlength "true"
-                tab_normal            "#[fg=$overlay0] {index} {name} {notification}"
-                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 {notification}"
-                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification} #[bg=default]"
-                tab_normal_sync       "#[fg=$overlay0] {index} {name}  {notification}"
-                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification} #[bg=default]"
-                tab_rename            "#[fg=$green,italic] {index} {name} "
-                tab_separator         "#[fg=$surface1]|"
+                tab_normal            "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}#[bg=$mantle,fg=$base]"
+                tab_active            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} #[bg=$mantle,fg=$green]"
+                tab_normal_fullscreen "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}#[bg=$mantle,fg=$base]"
+                tab_active_fullscreen "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} #[bg=$mantle,fg=$green]"
+                tab_normal_sync       "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}#[bg=$mantle,fg=$base]"
+                tab_active_sync       "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} #[bg=$mantle,fg=$green]"
+                tab_rename            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] RENAME #[bg=$mantle,fg=$green]"
+                tab_separator         ""
                 max_name_length 18
                 start_index     1
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_completed_icon "✅"
-                notification_format         "#[fg=$peach,bold] {count} "
+                notification_waiting_icon   ""
+                notification_completed_icon ""
+                notification_format         "#[bg=$peach,fg=$mantle]#[bg=$peach,fg=$mantle,bold] {count} #[bg=$mantle,fg=$peach]"
                 notification_show_if_empty  "false"
                 mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
                 mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
@@ -213,27 +194,22 @@ layout {
                 mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
                 datetime_format   "%H:%M"
                 datetime_timezone "America/Los_Angeles"
-                swap_layout_format        "#[fg=$overlay0] {name}"
+                swap_layout_format        "#[fg=$overlay0]{name} "
                 swap_layout_hide_if_empty "true"
-                command_git_command    "git branch --show-current"
-                command_git_format     "#[fg=$blue] {stdout} "
-                command_git_interval   "10"
-                command_git_rendermode "static"
-                pipe_status_format "#[fg=$green]{output}"
             }
         }
     }
 
-    tab name="default-1" {
+    tab name="powerline-1" {
         pane
     }
 
-    tab name="default-2" {
+    tab name="powerline-2" {
         pane
         pane
     }
 
-    tab name="default-3" {
+    tab name="powerline-3" {
         pane split_direction="vertical" {
             pane
             pane

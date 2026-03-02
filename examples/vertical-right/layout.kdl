@@ -1,0 +1,179 @@
+// Vertical-right example — right-side sidebar with Tokyo Night palette.
+//
+// Demonstrates:
+//   - Right sidebar placement: children first, plugin pane second
+//   - Right-aligned tabs with left-anchored caps — leading  glyphs
+//     are pinned to the left edge even when text is right-aligned
+//   - Tokyo Night colour scheme (cool tones, distinct from Catppuccin)
+//   - Split section row at the bottom
+//   - overflow, padding_top, border on the left (interior) edge
+
+layout {
+    default_tab_template {
+        pane split_direction="vertical" {
+            // children (main content) comes first = sidebar renders on the right.
+            children
+            pane size=26 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+
+                    // -- Tokyo Night palette --
+                    color_bg       "#1a1b26"
+                    color_bg_dark  "#16161e"
+                    color_fg       "#c0caf5"
+                    color_fg_dark  "#a9b1d6"
+                    color_comment  "#565f89"
+                    color_blue     "#7aa2f7"
+                    color_cyan     "#7dcfff"
+                    color_green    "#9ece6a"
+                    color_magenta  "#bb9af7"
+                    color_orange   "#ff9e64"
+                    color_red      "#f7768e"
+                    color_yellow   "#e0af68"
+                    color_border   "#3b4261"
+
+                    // --- Sections ---
+                    // Top: session name
+                    format_1_top "#[fg=$comment] {session}"
+
+                    // Middle: tabs with right alignment.
+                    // When tabs are right-aligned, leading  glyphs get
+                    // anchored to the left edge of the pane. This creates
+                    // the correct visual: cap flush left, text flush right.
+                    format_1_middle_right "{tabs}"
+
+                    // Bottom row 1: split pair — mode left, datetime right
+                    format_1_bottom_left  "{mode}"
+                    format_1_bottom_right "{mode_cap}"
+
+                    // Bottom row 2: datetime
+                    format_2_bottom_left  "{datetime_cap}"
+                    format_2_bottom_right "#[bg=$border,fg=$fg,bold,fill] {datetime} "
+
+                    // Cap config
+                    cap_bg              "$bg"
+                    datetime_cap_fg     "$border"
+                    datetime_cap_symbol ""
+
+                    // --- Tab format strings ---
+                    // Right-aligned vertical tabs.  at left edge is auto-anchored.
+                    tab_normal            "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} "
+                    tab_active            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} "
+                    tab_normal_fullscreen "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} 󰊓 "
+                    tab_active_fullscreen "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} 󰊓 "
+                    tab_normal_sync       "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name}  "
+                    tab_active_sync       "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name}  "
+                    tab_rename            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] RENAME "
+
+                    overflow_above "#[fg=$comment]  ^ +{count}"
+                    overflow_below "#[fg=$comment]  v +{count}"
+
+                    max_name_length 20
+                    start_index     1
+                    padding_top     0
+
+                    // Border on the left edge (interior side for a right sidebar).
+                    border "#[fg=$border]│"
+
+                    // --- Mode widget ---
+                    mode_normal       "#[bg=$blue,fg=$bg,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$bg,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$orange,fg=$bg,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$orange,fg=$bg,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$bg,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$bg,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$orange,fg=$bg,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$bg,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$bg,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$cyan,fg=$bg,bold,fill] RESIZE "
+                    mode_move         "#[bg=$cyan,fg=$bg,bold,fill] MOVE "
+                    mode_session      "#[bg=$magenta,fg=$bg,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$red,fg=$bg,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+
+                    // --- DateTime ---
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
+                }
+            }
+        }
+    }
+
+    new_tab_template {
+        pane split_direction="vertical" {
+            children
+            pane size=26 borderless=true {
+                plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+                    layout_mode "vertical"
+                    color_bg       "#1a1b26"
+                    color_bg_dark  "#16161e"
+                    color_fg       "#c0caf5"
+                    color_fg_dark  "#a9b1d6"
+                    color_comment  "#565f89"
+                    color_blue     "#7aa2f7"
+                    color_cyan     "#7dcfff"
+                    color_green    "#9ece6a"
+                    color_magenta  "#bb9af7"
+                    color_orange   "#ff9e64"
+                    color_red      "#f7768e"
+                    color_yellow   "#e0af68"
+                    color_border   "#3b4261"
+                    format_1_top "#[fg=$comment] {session}"
+                    format_1_middle_right "{tabs}"
+                    format_1_bottom_left  "{mode}"
+                    format_1_bottom_right "{mode_cap}"
+                    format_2_bottom_left  "{datetime_cap}"
+                    format_2_bottom_right "#[bg=$border,fg=$fg,bold,fill] {datetime} "
+                    cap_bg              "$bg"
+                    datetime_cap_fg     "$border"
+                    datetime_cap_symbol ""
+                    tab_normal            "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} "
+                    tab_active            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} "
+                    tab_normal_fullscreen "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} 󰊓 "
+                    tab_active_fullscreen "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} 󰊓 "
+                    tab_normal_sync       "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name}  "
+                    tab_active_sync       "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name}  "
+                    tab_rename            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] RENAME "
+                    overflow_above "#[fg=$comment]  ^ +{count}"
+                    overflow_below "#[fg=$comment]  v +{count}"
+                    max_name_length 20
+                    start_index     1
+                    padding_top     0
+                    border "#[fg=$border]│"
+                    mode_normal       "#[bg=$blue,fg=$bg,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$bg,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$orange,fg=$bg,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$orange,fg=$bg,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$bg,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$bg,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$orange,fg=$bg,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$bg,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$bg,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$cyan,fg=$bg,bold,fill] RESIZE "
+                    mode_move         "#[bg=$cyan,fg=$bg,bold,fill] MOVE "
+                    mode_session      "#[bg=$magenta,fg=$bg,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$red,fg=$bg,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+                    datetime_format   "%H:%M"
+                    datetime_timezone "America/Los_Angeles"
+                }
+            }
+        }
+    }
+
+    tab name="tab-1" {
+        pane
+    }
+
+    tab name="tab-2" {
+        pane
+        pane
+    }
+
+    tab name="tab-3" {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}
