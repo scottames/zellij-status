@@ -9,8 +9,8 @@
 // ROWS WITHIN A ZONE
 // Each zone can have multiple rows. The number prefix (format_1_, format_2_,
 // etc.) controls the row order within that zone. For example:
-//   format_1_top  → first row in the top zone  (session name)
-//   format_2_top  → second row in the top zone (datetime)
+//   format_1_top  → first row in the top zone  (datetime + notifications)
+//   format_2_top  → second row in the top zone (session name)
 //
 // SPLIT ROWS (LEFT / RIGHT)
 // Appending _left or _right to a format key splits that row into two halves.
@@ -84,14 +84,14 @@ layout {
 
                     // --- Zones ---
 
-                    // Top zone, row 1: session name with aggregate notification count.
-                    format_1_top_left  "#[fg=$overlay1] {session}"
-                    format_1_top_right "#[fg=$overlay1]{notifications}"
+                    // Top zone, row 1: datetime on the left and notifications on
+                    // the right in a shared bar. _right pins notifications to the
+                    // edge; fill stretches the $surface1 background across the row.
+                    format_1_top_left  "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+                    format_1_top_right "#[bg=$surface1] {notifications}"
 
-                    // Top zone, row 2: datetime as a solid bar. _right pins
-                    // the time to the right edge; fill stretches the $surface1
-                    // background across the full row width.
-                    format_2_top_right "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+                    // Top zone, row 2: session name.
+                    format_2_top_left  "#[fg=$overlay1] {session}"
 
                     // Middle zone: the {tabs} anchor. The tab list fills all
                     // vertical space between the top and bottom zones. _left
@@ -145,7 +145,7 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   "󰅐"
                     notification_completed_icon "󰅕"
-                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
                     notification_show_if_empty  "false"
 
                     // --- Mode widget ---
@@ -216,14 +216,14 @@ layout {
 
                     // --- Zones ---
 
-                    // Top zone, row 1: session name with aggregate notification count.
-                    format_1_top_left  "#[fg=$overlay1] {session}"
-                    format_1_top_right "#[fg=$overlay1]{notifications}"
+                    // Top zone, row 1: datetime on the left and notifications on
+                    // the right in a shared bar. _right pins notifications to the
+                    // edge; fill stretches the $surface1 background across the row.
+                    format_1_top_left  "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+                    format_1_top_right "#[bg=$surface1] {notifications}"
 
-                    // Top zone, row 2: datetime as a solid bar. _right pins
-                    // the time to the right edge; fill stretches the $surface1
-                    // background across the full row width.
-                    format_2_top_right "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+                    // Top zone, row 2: session name.
+                    format_2_top_left  "#[fg=$overlay1] {session}"
 
                     // Middle zone: the {tabs} anchor. The tab list fills all
                     // vertical space between the top and bottom zones. _left
@@ -277,7 +277,7 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   "󰅐"
                     notification_completed_icon "󰅕"
-                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
                     notification_show_if_empty  "false"
 
                     // --- Mode widget ---

@@ -12,9 +12,9 @@
 //   pane order: plugin, children    pane order: children, plugin
 //   tabs: _middle_left              tabs: _middle_right
 //   arrows:  right-pointing          arrows:  left-pointing
-//   tab order: index › name           tab order: index ‹ … name
-//   session: left-aligned           session: right-aligned (_top_right)
-//   datetime: right solid bar       datetime: left solid bar (_top_left)
+//   tab order: index › … name         tab order: index ‹ notif … name
+//   session: top row, left-aligned    session: second row, left-aligned
+//   top bar: date left, notif right   top bar: notif left, date right
 //   mode cap: right (_bottom_right) mode cap: left (_bottom_left)
 //   border: right edge              border: left edge
 //
@@ -67,15 +67,14 @@ layout {
 
                     // --- Zones (mirrored from "vertical" example) ---
 
-                    // Top zone, row 1: aggregate notification count on left,
-                    // session name pinned to the right.
-                    format_1_top_left  "#[fg=$overlay1]{notifications}"
-                    format_1_top_right "#[fg=$overlay1]{session} "
+                    // Top zone, row 1: notifications on the left and datetime on
+                    // the right in a shared bar. _right pins datetime to the edge;
+                    // the left segment's fill stretches $surface1 across the row.
+                    format_1_top_left  "#[bg=$surface1,fg=$text,bold,fill] {notifications}"
+                    format_1_top_right "#[bg=$surface1] {datetime} "
 
-                    // Top zone, row 2: datetime as a solid bar. _left pins the
-                    // time to the left edge; fill stretches $surface1 bg rightward.
-                    // (In the vertical example this is _right — pinned to the right.)
-                    format_2_top_left "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+                    // Top zone, row 2: session name.
+                    format_2_top_left  "#[fg=$overlay1] {session}"
 
                     // Middle zone: the {tabs} anchor. _right means tab text is
                     // right-aligned within each row. The renderer auto-pins any
@@ -99,14 +98,14 @@ layout {
                     // Right-aligned vertical tabs with LEFT-pointing arrows ().
                     // This is the mirror of the vertical example's right-pointing
                     // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
-                    // Content order: {index} left-aligned near the cap, then a
-                    // fill gap, then {name} right-aligned at the trailing edge.
-                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} {notification} #[fg=$mantle,bg=$base]"
-                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} {notification} #[fg=$mantle,bg=$green]"
-                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$base]"
-                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$green]"
-                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$base]"
-                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$green]"
+                    // Content order: {index}, then {notification}, then a fill
+                    // gap and {name} right-aligned at the trailing edge.
+                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
+                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
+                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
+                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
                     tab_separator           "#[bg=$mantle,fg=$overlay0]"
 
                     tab_sync_indicator       "󰻆"
@@ -129,7 +128,7 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   "󰅐"
                     notification_completed_icon "󰅕"
-                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
                     notification_show_if_empty  "false"
 
                     // --- Mode widget ---
@@ -198,15 +197,14 @@ layout {
 
                     // --- Zones (mirrored from "vertical" example) ---
 
-                    // Top zone, row 1: aggregate notification count on left,
-                    // session name pinned to the right.
-                    format_1_top_left  "#[fg=$overlay1]{notifications}"
-                    format_1_top_right "#[fg=$overlay1]{session} "
+                    // Top zone, row 1: notifications on the left and datetime on
+                    // the right in a shared bar. _right pins datetime to the edge;
+                    // the left segment's fill stretches $surface1 across the row.
+                    format_1_top_left  "#[bg=$surface1,fg=$text,bold,fill] {notifications}"
+                    format_1_top_right "#[bg=$surface1] {datetime} "
 
-                    // Top zone, row 2: datetime as a solid bar. _left pins the
-                    // time to the left edge; fill stretches $surface1 bg rightward.
-                    // (In the vertical example this is _right — pinned to the right.)
-                    format_2_top_left "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+                    // Top zone, row 2: session name.
+                    format_2_top_left  "#[fg=$overlay1] {session}"
 
                     // Middle zone: the {tabs} anchor. _right means tab text is
                     // right-aligned within each row. The renderer auto-pins any
@@ -230,14 +228,14 @@ layout {
                     // Right-aligned vertical tabs with LEFT-pointing arrows ().
                     // This is the mirror of the vertical example's right-pointing
                     // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
-                    // Content order: {index} left-aligned near the cap, then a
-                    // fill gap, then {name} right-aligned at the trailing edge.
-                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} {notification} #[fg=$mantle,bg=$base]"
-                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} {notification} #[fg=$mantle,bg=$green]"
-                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$base]"
-                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$green]"
-                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$base]"
-                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$green]"
+                    // Content order: {index}, then {notification}, then a fill
+                    // gap and {name} right-aligned at the trailing edge.
+                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
+                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
+                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
+                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
                     tab_separator           "#[bg=$mantle,fg=$overlay0]"
 
                     tab_sync_indicator       "󰻆"
@@ -260,7 +258,7 @@ layout {
                     notification_enabled        "true"
                     notification_waiting_icon   "󰅐"
                     notification_completed_icon "󰅕"
-                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
                     notification_show_if_empty  "false"
 
                     // --- Mode widget ---
