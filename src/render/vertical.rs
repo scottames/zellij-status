@@ -623,29 +623,27 @@ fn build_tab_line(
     let mut line = String::new();
     let mut has_trailing_cap = false;
 
-    if let Some((cap, rest, cap_width)) = leading_cap {
+    if let Some((cap, rest, _cap_width)) = leading_cap {
         // Right-aligned: pin leading cap to left edge, fill between cap and content.
         line.push_str(&cap);
-        let adjusted_left_pad = left_pad.saturating_sub(cap_width);
         if let Some(fill_part) = fill_style {
-            if adjusted_left_pad > 0 {
-                line.push_str(&fill_part.render(&" ".repeat(adjusted_left_pad)));
+            if left_pad > 0 {
+                line.push_str(&fill_part.render(&" ".repeat(left_pad)));
             }
         } else {
-            line.push_str(&" ".repeat(adjusted_left_pad));
+            line.push_str(&" ".repeat(left_pad));
         }
         line.push_str(&rest);
-    } else if let Some((rest, cap, cap_width)) = trailing_cap {
+    } else if let Some((rest, cap, _cap_width)) = trailing_cap {
         // Left-aligned: pin trailing cap to right edge, fill between content and cap.
         has_trailing_cap = true;
         line.push_str(&rest);
-        let adjusted_right_pad = right_pad.saturating_sub(cap_width);
         if let Some(fill_part) = fill_style {
-            if adjusted_right_pad > 0 {
-                line.push_str(&fill_part.render(&" ".repeat(adjusted_right_pad)));
+            if right_pad > 0 {
+                line.push_str(&fill_part.render(&" ".repeat(right_pad)));
             }
         } else {
-            line.push_str(&" ".repeat(adjusted_right_pad));
+            line.push_str(&" ".repeat(right_pad));
         }
         line.push_str(&cap);
     } else {
@@ -783,49 +781,16 @@ fn take_trailing_cap_segment(s: &str) -> Option<(String, String, usize)> {
 
     let (cap_glyph_idx, cap_char) = last_cap_char?;
 
-    // Walk backward from the cap glyph to find the start of its ANSI prefix.
-    // The cap segment starts at the first '\x1b' in the contiguous run of
-    // escape sequences immediately before the glyph.
+    // Walk backward from the cap glyph to include only the contiguous ANSI
+    // prefix that styles that cap glyph.
     let before_glyph = &s[..cap_glyph_idx];
     let mut split_at = cap_glyph_idx;
 
-    // Scan backward: we want to include all consecutive ANSI sequences that
-    // precede the cap glyph (e.g. "#[bg=...,fg=...]").
-    let bytes = before_glyph.as_bytes();
-    let mut pos = bytes.len();
-    loop {
-        // Try to find an ESC that starts a sequence ending right at `pos`.
-        // ANSI sequences: ESC [ ... <letter>
-        if pos == 0 {
-            break;
-        }
-        // Walk back to find the ESC
-        let mut esc_start = None;
-        let mut j = pos;
-        while j > 0 {
-            j -= 1;
-            if bytes[j] == b'\x1b' {
-                esc_start = Some(j);
-                break;
-            }
-            // If we hit a non-escape visible char, stop
-            if !bytes[j].is_ascii() || (bytes[j] >= b' ' && bytes[j] != b'[' && bytes[j] != b';'
-                && !bytes[j].is_ascii_digit() && bytes[j] != b'\x1b')
-            {
-                // Check if this is part of an ANSI sequence parameter
-                // (digits, semicolons, '[' are ok). Letters terminate sequences.
-                if bytes[j].is_ascii_alphabetic() {
-                    // This is the terminator of a previous ANSI sequence.
-                    // Check if the ESC for this sequence is even further back.
-                    continue;
-                }
-                break;
-            }
-        }
-        if let Some(esc) = esc_start {
-            // Verify this looks like a complete ANSI sequence from esc..pos
-            split_at = esc;
-            pos = esc;
+    // Keep extending left while the slice between candidate ESC and current
+    // split point contains only ANSI sequences (no visible chars).
+    while let Some(esc_idx) = before_glyph[..split_at].rfind('\x1b') {
+        if is_only_ansi_sequences(&before_glyph[esc_idx..split_at]) {
+            split_at = esc_idx;
         } else {
             break;
         }
@@ -842,6 +807,33 @@ fn take_trailing_cap_segment(s: &str) -> Option<(String, String, usize)> {
     }
 
     Some((rest, cap_segment, cap_width))
+}
+
+fn is_only_ansi_sequences(s: &str) -> bool {
+    if s.is_empty() {
+        return false;
+    }
+
+    let mut iter = s.chars().peekable();
+    while let Some(ch) = iter.next() {
+        if ch != '\x1b' {
+            return false;
+        }
+
+        let mut terminated = false;
+        for esc_ch in iter.by_ref() {
+            if esc_ch.is_ascii_alphabetic() {
+                terminated = true;
+                break;
+            }
+        }
+
+        if !terminated {
+            return false;
+        }
+    }
+
+    true
 }
 
 /// Build a plain (unstyled content) row, e.g. for overflow indicators.
@@ -1114,6 +1106,27 @@ mod tests {
         let line = build_tab_line(&rendered, 24, Some(fill), "", &aliases, TextAlign::Right);
         let first_visible = first_visible_char(&line).expect("line should have visible chars");
         assert_eq!(first_visible, '');
+        assert_eq!(strip_ansi_width(&line), 24);
+    }
+
+    #[test]
+    fn tab_line_left_align_pins_trailing_cap_to_right_edge() {
+        let aliases = BTreeMap::from([
+            ("base".to_string(), "#1e1e2e".to_string()),
+            ("green".to_string(), "#a6e3a1".to_string()),
+        ]);
+        let parts = parse_format_string(
+            "#[bg=$base,fg=$green] 1 #[bg=$green,fg=$base,bold,fill] tab #[bg=$base,fg=$green]",
+            &aliases,
+        );
+        let rendered: String = parts.iter().map(|p| p.render_content()).collect();
+        let fill = parts
+            .iter()
+            .find(|part| part.fill)
+            .expect("expected fill style");
+
+        let line = build_tab_line(&rendered, 24, Some(fill), "", &aliases, TextAlign::Left);
+        assert_eq!(last_visible_char(&line), Some(''));
         assert_eq!(strip_ansi_width(&line), 24);
     }
 
