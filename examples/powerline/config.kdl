@@ -1,7 +1,27 @@
 // zellij-status example: powerline
 // See layout.kdl for plugin configuration.
+default_shell "bash"
 ui {
     pane_frames {
         rounded_corners true
     }
 }
+
+// Nord theme — matches the status bar palette in layout.kdl.
+themes {
+    nord {
+        bg "#2e3440"
+        fg "#d8dee9"
+        black "#3b4252"
+        red "#bf616a"
+        green "#a3be8c"
+        yellow "#ebcb8b"
+        blue "#81a1c1"
+        magenta "#b48ead"
+        cyan "#88c0d0"
+        white "#e5e9f0"
+        orange "#d08770"
+    }
+}
+
+theme "nord"

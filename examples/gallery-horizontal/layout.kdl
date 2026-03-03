@@ -42,8 +42,8 @@ layout {
                 // --- Left zone: mode + tabs ---
                 format_1_left "#[bg=$blue,fg=$bg0,bold,fill]{mode}#[bg=$bg0,fg=$blue]#[bg=$bg0]{tabs}"
 
-                // --- Center zone: notifications ---
-                format_2_center "{notifications}"
+                // --- Right zone: notifications (first item) ---
+                format_2_right "{notifications}"
 
                 // --- Right zone: stacked sections ---
                 // Multiple sections in the same zone render in index order.
@@ -72,12 +72,12 @@ layout {
                 format_hide_on_overlength "true"
 
                 // --- Tab format strings ---
-                tab_normal          "#[fg=$fg4] {index}:{name} "
-                tab_active          "#[fg=$bg0,bg=$green,bold] {index}:{name} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$fg4] {index}:{name} 󰊓 "
-                tab_active_fullscreen "#[fg=$bg0,bg=$green,bold] {index}:{name} 󰊓 #[bg=default]"
-                tab_normal_sync     "#[fg=$fg4] {index}:{name}  "
-                tab_active_sync     "#[fg=$bg0,bg=$green,bold] {index}:{name}  #[bg=default]"
+                tab_normal          "#[fg=$fg4] {index}:{name} {notification}"
+                tab_active          "#[fg=$bg0,bg=$green,bold] {index}:{name} {notification} #[bg=default]"
+                tab_normal_fullscreen "#[fg=$fg4] {index}:{name} 󰊓 {notification}"
+                tab_active_fullscreen "#[fg=$bg0,bg=$green,bold] {index}:{name} 󰊓 {notification} #[bg=default]"
+                tab_normal_sync     "#[fg=$fg4] {index}:{name}  {notification}"
+                tab_active_sync     "#[fg=$bg0,bg=$green,bold] {index}:{name}  {notification} #[bg=default]"
                 tab_rename          "#[fg=$green,italic] {index}:{name} "
 
                 // tab_separator renders between each tab in horizontal mode.
@@ -137,7 +137,6 @@ layout {
     }
 
     new_tab_template {
-        children
         pane size=1 borderless=true {
             plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                 layout_mode "horizontal"
@@ -159,19 +158,19 @@ layout {
                 color_orange  "#fe8019"
                 color_gray    "#928374"
                 format_1_left "#[bg=$blue,fg=$bg0,bold,fill]{mode}#[bg=$bg0,fg=$blue]#[bg=$bg0]{tabs}"
-                format_2_center "{notifications}"
+                format_2_right "{notifications}"
                 format_3_right "#[fg=$fg4] {session} "
                 format_4_right "#[bg=$bg0,fg=$bg2]#[bg=$bg2,fg=$fg1] {command_git}"
                 format_5_right "#[bg=$bg2,fg=$fg4]#[bg=$fg4,fg=$bg0,bold] {datetime} "
                 format_space "#[bg=$bg0]"
                 format_precedence         "132"
                 format_hide_on_overlength "true"
-                tab_normal          "#[fg=$fg4] {index}:{name} "
-                tab_active          "#[fg=$bg0,bg=$green,bold] {index}:{name} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$fg4] {index}:{name} 󰊓 "
-                tab_active_fullscreen "#[fg=$bg0,bg=$green,bold] {index}:{name} 󰊓 #[bg=default]"
-                tab_normal_sync     "#[fg=$fg4] {index}:{name}  "
-                tab_active_sync     "#[fg=$bg0,bg=$green,bold] {index}:{name}  #[bg=default]"
+                tab_normal          "#[fg=$fg4] {index}:{name} {notification}"
+                tab_active          "#[fg=$bg0,bg=$green,bold] {index}:{name} {notification} #[bg=default]"
+                tab_normal_fullscreen "#[fg=$fg4] {index}:{name} 󰊓 {notification}"
+                tab_active_fullscreen "#[fg=$bg0,bg=$green,bold] {index}:{name} 󰊓 {notification} #[bg=default]"
+                tab_normal_sync     "#[fg=$fg4] {index}:{name}  {notification}"
+                tab_active_sync     "#[fg=$bg0,bg=$green,bold] {index}:{name}  {notification} #[bg=default]"
                 tab_rename          "#[fg=$green,italic] {index}:{name} "
                 tab_separator "#[fg=$bg2]│"
                 max_name_length 16

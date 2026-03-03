@@ -22,17 +22,24 @@ layout {
 
                 // One section on each side of the bar.
                 format_1_left  "#[fg=$accent,bold]{mode} {tabs}"
-                format_2_right "#[fg=$fg] {session} "
+                format_2_right "{notifications}"
+                format_3_right "#[fg=$fg] {session} "
 
                 // Plain tab styling — no powerline, no separators.
-                tab_normal "#[fg=$fg] {index}:{name} "
-                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} #[bg=default]"
+                tab_normal "#[fg=$fg] {index}:{name} {notification}"
+                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
+
+                // --- Notifications ---
+                notification_enabled        "true"
+                notification_waiting_icon   "⏳"
+                notification_completed_icon "✅"
+                notification_format         "#[fg=$accent,bold] {count} "
+                notification_show_if_empty  "false"
             }
         }
     }
 
     new_tab_template {
-        children
         pane size=1 borderless=true {
             plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                 layout_mode "horizontal"
@@ -40,9 +47,15 @@ layout {
                 color_fg     "#cdd6f4"
                 color_accent "#a6e3a1"
                 format_1_left  "#[fg=$accent,bold]{mode} {tabs}"
-                format_2_right "#[fg=$fg] {session} "
-                tab_normal "#[fg=$fg] {index}:{name} "
-                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} #[bg=default]"
+                format_2_right "{notifications}"
+                format_3_right "#[fg=$fg] {session} "
+                tab_normal "#[fg=$fg] {index}:{name} {notification}"
+                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
+                notification_enabled        "true"
+                notification_waiting_icon   "⏳"
+                notification_completed_icon "✅"
+                notification_format         "#[fg=$accent,bold] {count} "
+                notification_show_if_empty  "false"
             }
         }
     }

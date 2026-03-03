@@ -54,11 +54,11 @@ layout {
                 // The cap widget ({mode_cap}) renders a powerline arrow whose
                 // foreground colour is automatically derived from the mode
                 // widget's fill background. The cap_bg sets what's "behind" it.
-                format_1_left  "{mode}{mode_cap}{tabs}"
+                format_1_left  "{mode}#[fg=$surface1]|{tabs}"
                 cap_bg         "$mantle"
 
-                // Center: notification count badge
-                format_2_center "{notifications}"
+                // Right: notification count badge (before session/datetime)
+                format_2_right "{notifications}"
 
                 // Right: uses a split section pair — left and right content
                 // share the same zone row with a gap between them.
@@ -144,7 +144,6 @@ layout {
     // new_tab_template must mirror default_tab_template — Zellij creates a
     // separate plugin instance for runtime tabs so the config must be repeated.
     new_tab_template {
-        children
         pane size=1 borderless=true {
             plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                 layout_mode "horizontal"
@@ -174,9 +173,9 @@ layout {
                 color_base      "#1e1e2e"
                 color_mantle    "#181825"
                 color_crust     "#11111b"
-                format_1_left  "{mode}{mode_cap}{tabs}"
+                format_1_left  "{mode}#[fg=$surface1]|{tabs}"
                 cap_bg         "$mantle"
-                format_2_center "{notifications}"
+                format_2_right "{notifications}"
                 format_3_right_left  "#[fg=$subtext0] {session} {command_git}"
                 format_3_right_right "#[fg=$subtext0]{swap_layout} {datetime} "
                 format_space "#[bg=$mantle]"

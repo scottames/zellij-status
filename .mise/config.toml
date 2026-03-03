@@ -19,7 +19,7 @@ description = "Build and launch a Zellij dev session with an example profile"
 depends = ["build"]
 usage = '''
 arg "[profile]" help="Config profile to use" default="default" {
-    choices "default" "minimal" "powerline" "vertical" "vertical-right" "gallery-vertical" "gallery-horizontal"
+    choices "default" "minimal" "powerline" "vertical" "vertical-right" "gallery-vertical" "gallery-horizontal" "scotty"
 }
 '''
 run = """
@@ -31,6 +31,7 @@ if [[ ! -d "$config_dir" ]]; then
   echo "available profiles: default, minimal, powerline, vertical, vertical-right, gallery-vertical, gallery-horizontal" >&2
   exit 1
 fi
+zellij delete-session "zellij-status-$profile" >&2
 zellij \
   -s "zellij-status-$profile" \
   --config-dir "$config_dir" \

@@ -1,15 +1,51 @@
-// Vertical example — full-featured left sidebar.
+// Vertical example — full-featured left sidebar with Tokyo Night theme.
 //
-// Demonstrates:
-//   - layout_mode "vertical" with left sidebar pane
-//   - Tab anchor in middle zone with right alignment
-//   - fill directive extending active tab bg across full row width
-//   - Powerline caps ({mode_cap}, {tabs_cap}, {datetime_cap})
-//   - Split section rows: left + right content in one row
-//   - overflow_above / overflow_below with {count}
-//   - padding_top, border (right-side separator)
-//   - Per-tab {notification} icons + global {notifications}
-//   - new_tab_template synced with default_tab_template
+// LAYOUT ZONES
+// In vertical mode the sidebar is divided into three zones stacked top to
+// bottom: "top", "middle", and "bottom". The middle zone holds the {tabs}
+// widget and expands to fill all remaining vertical space between the top
+// and bottom zones.
+//
+// ROWS WITHIN A ZONE
+// Each zone can have multiple rows. The number prefix (format_1_, format_2_,
+// etc.) controls the row order within that zone. For example:
+//   format_1_top  → first row in the top zone  (session name)
+//   format_2_top  → second row in the top zone (datetime)
+//
+// SPLIT ROWS (LEFT / RIGHT)
+// Appending _left or _right to a format key splits that row into two halves.
+// Content in _left is pinned to the left edge; _right is pinned to the right.
+// The gap between them is filled by whichever side has `fill` set.
+//   format_1_bottom_left  "{mode}"       → mode label on the left
+//   format_1_bottom_right "{mode_cap}"   → powerline arrow pinned right
+//
+// FILL DIRECTIVE
+// Adding `fill` to a style directive (e.g. #[bg=$blue,fill]) tells the
+// renderer to stretch that segment's background colour across all remaining
+// space in the row. This is how the mode bar and active tab get a full-width
+// coloured stripe.
+//
+// CAPS ({widget}_cap)
+// A "cap" is an auto-generated powerline arrow that transitions between two
+// colours: the widget's fill background and `cap_bg`. For example,
+// {mode_cap} renders an arrow whose foreground is the mode's bg colour
+// (e.g. blue for NORMAL) and whose background is cap_bg ($base), creating
+// a smooth colour transition at the edge of the mode bar.
+//
+// COLOR ALIASES
+// The color_* keys define named aliases (Tokyo Night palette here). Use
+// $name in style directives to reference them, e.g. $blue → #7aa2f7.
+//
+// TAB FORMAT STRINGS
+// In vertical mode each tab is one row. The format string is a sequence of
+// styled segments. Powerline arrows (U+E0B0 ) at the start/end of a tab
+// row create the angled cap effect. The `fill` on the trailing segment
+// stretches the background between the tab content and the trailing arrow.
+//
+// WHY new_tab_template IS DUPLICATED
+// Zellij creates a separate plugin instance for each template, so
+// new_tab_template must carry the full config — it does not inherit from
+// default_tab_template.
 
 layout {
     default_tab_template {
@@ -18,103 +54,105 @@ layout {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
 
-                    // -- Catppuccin Mocha palette --
-                    color_rosewater "#f5e0dc"
-                    color_flamingo  "#f2cdcd"
-                    color_pink      "#f5c2e7"
-                    color_mauve     "#cba6f7"
-                    color_red       "#f38ba8"
-                    color_maroon    "#eba0ac"
-                    color_peach     "#fab387"
-                    color_yellow    "#f9e2af"
-                    color_green     "#a6e3a1"
-                    color_teal      "#94e2d5"
-                    color_sky       "#89dceb"
-                    color_sapphire  "#74c7ec"
-                    color_blue      "#89b4fa"
-                    color_lavender  "#b4befe"
-                    color_text      "#cdd6f4"
-                    color_subtext1  "#bac2de"
-                    color_subtext0  "#a6adc8"
-                    color_overlay2  "#9399b2"
-                    color_overlay1  "#7f849c"
-                    color_overlay0  "#6c7086"
-                    color_surface2  "#585b70"
-                    color_surface1  "#45475a"
-                    color_surface0  "#313244"
-                    color_base      "#1e1e2e"
-                    color_mantle    "#181825"
-                    color_crust     "#11111b"
+                    // -- Tokyo Night palette --
+                    color_rosewater "#89ddff"
+                    color_flamingo  "#ff007c"
+                    color_pink      "#9d7cd8"
+                    color_mauve     "#bb9af7"
+                    color_red       "#f7768e"
+                    color_maroon    "#db4b4b"
+                    color_peach     "#ff9e64"
+                    color_yellow    "#e0af68"
+                    color_green     "#9ece6a"
+                    color_teal      "#73daca"
+                    color_sky       "#7dcfff"
+                    color_sapphire  "#2ac3de"
+                    color_blue      "#7aa2f7"
+                    color_lavender  "#b4f9f8"
+                    color_text      "#c0caf5"
+                    color_subtext1  "#a9b1d6"
+                    color_subtext0  "#a9b1d6"
+                    color_overlay2  "#565f89"
+                    color_overlay1  "#737aa2"
+                    color_overlay0  "#545c7e"
+                    color_surface2  "#414868"
+                    color_surface1  "#3b4261"
+                    color_surface0  "#292e42"
+                    color_base      "#1a1b26"
+                    color_mantle    "#16161e"
+                    color_crust     "#13131a"
 
-                    // --- Sections ---
-                    // Vertical zones: start=top, middle=center, end=bottom.
-                    // The {tabs} anchor goes in the middle zone — the tab list
-                    // fills the remaining space between top and bottom sections.
+                    // --- Zones ---
 
-                    // Top: session name
-                    format_1_top "#[fg=$overlay0] {session}"
+                    // Top zone, row 1: session name with aggregate notification count.
+                    format_1_top_left  "#[fg=$overlay1] {session}"
+                    format_1_top_right "#[fg=$overlay1]{notifications}"
 
-                    // Middle: tabs with right alignment.
-                    // _right suffix right-aligns tab text within each row.
-                    // The active tab's fill bg extends across the full row width.
-                    format_1_middle_right "{tabs}"
+                    // Top zone, row 2: datetime as a solid bar. _right pins
+                    // the time to the right edge; fill stretches the $surface1
+                    // background across the full row width.
+                    format_2_top_right "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
 
-                    // Bottom row 1: cap for the tab section boundary
-                    format_1_bottom_left  "{tabs_cap}"
-                    format_1_bottom_right "#[fg=$overlay1] active tab"
+                    // Middle zone: the {tabs} anchor. The tab list fills all
+                    // vertical space between the top and bottom zones. _left
+                    // means tab text is left-aligned within each row.
+                    format_1_middle_left "{tabs}"
 
-                    // Bottom row 2: split pair — mode on the left, cap on the right.
-                    // Split pairs use the same index+zone with _left and _right suffixes.
-                    // The gap between them fills with the mode's fill colour.
-                    format_2_bottom_left  "{mode}"
-                    format_2_bottom_right "{mode_cap}"
+                    // Bottom zone: split row — mode label on the left, its
+                    // powerline cap arrow on the right. The mode widget has
+                    // fill set, so its bg stretches to meet the cap arrow.
+                    format_1_bottom_left  "{mode}"
+                    format_1_bottom_right "{mode_cap}"
 
-                    // Bottom row 3: session name centered
-                    format_3_bottom_center "#[fg=$overlay0] {notifications} {session}"
-
-                    // Bottom row 4: datetime with a left-pointing cap
-                    format_4_bottom_left  "{datetime_cap}"
-                    format_4_bottom_right "#[bg=$surface1,fg=$base,bold,fill] {datetime} "
-
-                    // --- Cap config ---
-                    // cap_bg: the "outside" colour behind cap arrows.
-                    // datetime_cap_fg/symbol: per-widget overrides.
-                    cap_bg              "$base"
-                    datetime_cap_fg     "$surface1"
-                    datetime_cap_symbol ""
+                    // Cap background: the colour "behind" powerline arrows.
+                    // The arrow's fg comes from the widget's fill bg, and its
+                    // bg is cap_bg — together they create the colour transition.
+                    cap_bg "$base"
 
                     // --- Tab format strings ---
-                    // Vertical: one tab per row.  at the left edge creates
-                    // a powerline cap. fill on the active tab extends its bg
-                    // across the full row width for a highlighted stripe effect.
-                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}"
-                    tab_active              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} "
-                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}"
-                    tab_active_fullscreen   "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} "
-                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}"
-                    tab_active_sync         "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} "
-                    tab_rename              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] RENAME "
+                    // Each tab is rendered as one row. The format is a chain
+                    // of styled segments:
+                    //   [leading arrow][index][thin divider][name][trailing arrow]
+                    // The leading  (U+E0B0) creates a left-edge powerline cap.
+                    // The trailing  pins to the right edge. `fill` on the
+                    // content segment stretches its bg to meet the trailing arrow.
+                    // Normal tabs use $base bg; active tabs use $green bg.
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification} #[fg=$base]"
+                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {notification} #[fg=$green]"
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰊓 {notification} #[fg=$base]"
+                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰊓 {notification} #[fg=$green]"
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰻆 {notification} #[fg=$base]"
+                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰻆 {notification} #[fg=$green]"
+                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
 
-                    // Overflow indicators when tabs exceed available rows.
-                    // {count} shows how many tabs are hidden above/below.
+                    tab_sync_indicator       "󰻆"
+                    tab_fullscreen_indicator "󰊓"
+                    tab_floating_indicator   "󰶙"
+
+                    // Shown when tabs overflow the available rows. {count}
+                    // is replaced with the number of hidden tabs.
                     overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
                     overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
 
                     max_name_length 20
                     start_index     1
-
-                    // Blank rows above the tab list for breathing room.
                     padding_top 0
 
-                    // Right border: a subtle separator between sidebar and content.
+                    // Right-edge separator between the sidebar and content pane.
                     border "#[fg=$surface1]│"
 
                     // --- Notifications ---
                     notification_enabled        "true"
-                    notification_waiting_icon   ""
-                    notification_completed_icon ""
+                    notification_waiting_icon   "󰅐"
+                    notification_completed_icon "󰅕"
+                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_show_if_empty  "false"
 
                     // --- Mode widget ---
+                    // Each Zellij mode gets its own accent colour. The `fill`
+                    // directive stretches the bg across the row, and {mode_cap}
+                    // (in the bottom zone) auto-derives its arrow colour from
+                    // whichever mode is active.
                     mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
                     mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
                     mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
@@ -139,67 +177,114 @@ layout {
         }
     }
 
-    // new_tab_template must mirror default_tab_template — Zellij creates a
-    // separate plugin instance per template so all config must be duplicated.
+    // Zellij requires new_tab_template to carry the full plugin config —
+    // it spawns a separate plugin instance, so nothing is inherited from
+    // default_tab_template above. Keep both blocks in sync.
     new_tab_template {
         pane split_direction="vertical" {
             pane size=26 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
-                    color_rosewater "#f5e0dc"
-                    color_flamingo  "#f2cdcd"
-                    color_pink      "#f5c2e7"
-                    color_mauve     "#cba6f7"
-                    color_red       "#f38ba8"
-                    color_maroon    "#eba0ac"
-                    color_peach     "#fab387"
-                    color_yellow    "#f9e2af"
-                    color_green     "#a6e3a1"
-                    color_teal      "#94e2d5"
-                    color_sky       "#89dceb"
-                    color_sapphire  "#74c7ec"
-                    color_blue      "#89b4fa"
-                    color_lavender  "#b4befe"
-                    color_text      "#cdd6f4"
-                    color_subtext1  "#bac2de"
-                    color_subtext0  "#a6adc8"
-                    color_overlay2  "#9399b2"
-                    color_overlay1  "#7f849c"
-                    color_overlay0  "#6c7086"
-                    color_surface2  "#585b70"
-                    color_surface1  "#45475a"
-                    color_surface0  "#313244"
-                    color_base      "#1e1e2e"
-                    color_mantle    "#181825"
-                    color_crust     "#11111b"
-                    format_1_top "#[fg=$overlay0] {session}"
-                    format_1_middle_right "{tabs}"
-                    format_1_bottom_left  "{tabs_cap}"
-                    format_1_bottom_right "#[fg=$overlay1] active tab"
-                    format_2_bottom_left  "{mode}"
-                    format_2_bottom_right "{mode_cap}"
-                    format_3_bottom_center "#[fg=$overlay0] {notifications} {session}"
-                    format_4_bottom_left  "{datetime_cap}"
-                    format_4_bottom_right "#[bg=$surface1,fg=$base,bold,fill] {datetime} "
-                    cap_bg              "$base"
-                    datetime_cap_fg     "$surface1"
-                    datetime_cap_symbol ""
-                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}"
-                    tab_active              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} "
-                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}"
-                    tab_active_fullscreen   "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} "
-                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}"
-                    tab_active_sync         "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} "
-                    tab_rename              "#[bg=$base,fg=$green]#[bg=$green,fg=$base,bold,fill] RENAME "
+
+                    // -- Tokyo Night palette --
+                    color_rosewater "#89ddff"
+                    color_flamingo  "#ff007c"
+                    color_pink      "#9d7cd8"
+                    color_mauve     "#bb9af7"
+                    color_red       "#f7768e"
+                    color_maroon    "#db4b4b"
+                    color_peach     "#ff9e64"
+                    color_yellow    "#e0af68"
+                    color_green     "#9ece6a"
+                    color_teal      "#73daca"
+                    color_sky       "#7dcfff"
+                    color_sapphire  "#2ac3de"
+                    color_blue      "#7aa2f7"
+                    color_lavender  "#b4f9f8"
+                    color_text      "#c0caf5"
+                    color_subtext1  "#a9b1d6"
+                    color_subtext0  "#a9b1d6"
+                    color_overlay2  "#565f89"
+                    color_overlay1  "#737aa2"
+                    color_overlay0  "#545c7e"
+                    color_surface2  "#414868"
+                    color_surface1  "#3b4261"
+                    color_surface0  "#292e42"
+                    color_base      "#1a1b26"
+                    color_mantle    "#16161e"
+                    color_crust     "#13131a"
+
+                    // --- Zones ---
+
+                    // Top zone, row 1: session name with aggregate notification count.
+                    format_1_top_left  "#[fg=$overlay1] {session}"
+                    format_1_top_right "#[fg=$overlay1]{notifications}"
+
+                    // Top zone, row 2: datetime as a solid bar. _right pins
+                    // the time to the right edge; fill stretches the $surface1
+                    // background across the full row width.
+                    format_2_top_right "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+
+                    // Middle zone: the {tabs} anchor. The tab list fills all
+                    // vertical space between the top and bottom zones. _left
+                    // means tab text is left-aligned within each row.
+                    format_1_middle_left "{tabs}"
+
+                    // Bottom zone: split row — mode label on the left, its
+                    // powerline cap arrow on the right. The mode widget has
+                    // fill set, so its bg stretches to meet the cap arrow.
+                    format_1_bottom_left  "{mode}"
+                    format_1_bottom_right "{mode_cap}"
+
+                    // Cap background: the colour "behind" powerline arrows.
+                    // The arrow's fg comes from the widget's fill bg, and its
+                    // bg is cap_bg — together they create the colour transition.
+                    cap_bg "$base"
+
+                    // --- Tab format strings ---
+                    // Each tab is rendered as one row. The format is a chain
+                    // of styled segments:
+                    //   [leading arrow][index][thin divider][name][trailing arrow]
+                    // The leading  (U+E0B0) creates a left-edge powerline cap.
+                    // The trailing  pins to the right edge. `fill` on the
+                    // content segment stretches its bg to meet the trailing arrow.
+                    // Normal tabs use $base bg; active tabs use $green bg.
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification} #[fg=$base]"
+                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {notification} #[fg=$green]"
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰊓 {notification} #[fg=$base]"
+                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰊓 {notification} #[fg=$green]"
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰻆 {notification} #[fg=$base]"
+                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰻆 {notification} #[fg=$green]"
+                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
+
+                    tab_sync_indicator       "󰻆"
+                    tab_fullscreen_indicator "󰊓"
+                    tab_floating_indicator   "󰶙"
+
+                    // Shown when tabs overflow the available rows. {count}
+                    // is replaced with the number of hidden tabs.
                     overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
                     overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
+
                     max_name_length 20
                     start_index     1
                     padding_top 0
+
+                    // Right-edge separator between the sidebar and content pane.
                     border "#[fg=$surface1]│"
+
+                    // --- Notifications ---
                     notification_enabled        "true"
-                    notification_waiting_icon   ""
-                    notification_completed_icon ""
+                    notification_waiting_icon   "󰅐"
+                    notification_completed_icon "󰅕"
+                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_show_if_empty  "false"
+
+                    // --- Mode widget ---
+                    // Each Zellij mode gets its own accent colour. The `fill`
+                    // directive stretches the bg across the row, and {mode_cap}
+                    // (in the bottom zone) auto-derives its arrow colour from
+                    // whichever mode is active.
                     mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
                     mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
                     mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
@@ -214,6 +299,8 @@ layout {
                     mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
                     mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
                     mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+
+                    // --- DateTime ---
                     datetime_format   "%H:%M"
                     datetime_timezone "America/Los_Angeles"
                 }

@@ -1,95 +1,155 @@
-// Vertical-right example — right-side sidebar with Tokyo Night palette.
+// Vertical-right example — right-side sidebar, mirror of "vertical".
 //
-// Demonstrates:
-//   - Right sidebar placement: children first, plugin pane second
-//   - Right-aligned tabs with left-anchored caps — leading  glyphs
-//     are pinned to the left edge even when text is right-aligned
-//   - Tokyo Night colour scheme (cool tones, distinct from Catppuccin)
-//   - Split section row at the bottom
-//   - overflow, padding_top, border on the left (interior) edge
+// This example is a mirror image of the "vertical" example. Compare them
+// side by side to see how the same plugin adapts to left vs right placement.
+//
+// WHAT MAKES THIS A MIRROR
+// The "vertical" example places the sidebar on the left with left-aligned
+// content and right-pointing arrows (). This example flips every axis:
+//
+//   vertical (left sidebar)         vertical-right (right sidebar)
+//   ─────────────────────────────   ───────────────────────────────
+//   pane order: plugin, children    pane order: children, plugin
+//   tabs: _middle_left              tabs: _middle_right
+//   arrows:  right-pointing          arrows:  left-pointing
+//   tab order: index › name           tab order: index ‹ … name
+//   session: left-aligned           session: right-aligned (_top_right)
+//   datetime: right solid bar       datetime: left solid bar (_top_left)
+//   mode cap: right (_bottom_right) mode cap: left (_bottom_left)
+//   border: right edge              border: left edge
+//
+// LEFT-POINTING ARROW COLOUR SEMANTICS
+// For  (U+E0B2) the bg colour fills the LEFT side and fg fills the RIGHT
+// side (the opposite of ). So #[bg=$mantle,fg=$green] creates a
+// mantle→green transition, matching #[bg=$green,fg=$mantle] visually.
+//
+// For the full explanation of zones, rows, fill, caps, and color aliases,
+// see the comments in the "vertical" example’s layout.kdl.
 
 layout {
     default_tab_template {
         pane split_direction="vertical" {
-            // children (main content) comes first = sidebar renders on the right.
+            // children (main content) comes FIRST so the plugin pane
+            // renders on the right side of the screen.
             children
             pane size=26 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
 
                     // -- Tokyo Night palette --
-                    color_bg       "#1a1b26"
-                    color_bg_dark  "#16161e"
-                    color_fg       "#c0caf5"
-                    color_fg_dark  "#a9b1d6"
-                    color_comment  "#565f89"
-                    color_blue     "#7aa2f7"
-                    color_cyan     "#7dcfff"
-                    color_green    "#9ece6a"
-                    color_magenta  "#bb9af7"
-                    color_orange   "#ff9e64"
-                    color_red      "#f7768e"
-                    color_yellow   "#e0af68"
-                    color_border   "#3b4261"
+                    // Same palette as the "vertical" example for easy comparison.
+                    color_rosewater "#89ddff"
+                    color_flamingo  "#ff007c"
+                    color_pink      "#9d7cd8"
+                    color_mauve     "#bb9af7"
+                    color_red       "#f7768e"
+                    color_maroon    "#db4b4b"
+                    color_peach     "#ff9e64"
+                    color_yellow    "#e0af68"
+                    color_green     "#9ece6a"
+                    color_teal      "#73daca"
+                    color_sky       "#7dcfff"
+                    color_sapphire  "#2ac3de"
+                    color_blue      "#7aa2f7"
+                    color_lavender  "#b4f9f8"
+                    color_text      "#c0caf5"
+                    color_subtext1  "#a9b1d6"
+                    color_subtext0  "#a9b1d6"
+                    color_overlay2  "#565f89"
+                    color_overlay1  "#737aa2"
+                    color_overlay0  "#545c7e"
+                    color_surface2  "#414868"
+                    color_surface1  "#3b4261"
+                    color_surface0  "#292e42"
+                    color_base      "#1a1b26"
+                    color_mantle    "#16161e"
+                    color_crust     "#13131a"
 
-                    // --- Sections ---
-                    // Top: session name
-                    format_1_top "#[fg=$comment] {session}"
+                    // --- Zones (mirrored from "vertical" example) ---
 
-                    // Middle: tabs with right alignment.
-                    // When tabs are right-aligned, leading  glyphs get
-                    // anchored to the left edge of the pane. This creates
-                    // the correct visual: cap flush left, text flush right.
+                    // Top zone, row 1: aggregate notification count on left,
+                    // session name pinned to the right.
+                    format_1_top_left  "#[fg=$overlay1]{notifications}"
+                    format_1_top_right "#[fg=$overlay1]{session} "
+
+                    // Top zone, row 2: datetime as a solid bar. _left pins the
+                    // time to the left edge; fill stretches $surface1 bg rightward.
+                    // (In the vertical example this is _right — pinned to the right.)
+                    format_2_top_left "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+
+                    // Middle zone: the {tabs} anchor. _right means tab text is
+                    // right-aligned within each row. The renderer auto-pins any
+                    // leading powerline cap to the left edge and fills the gap
+                    // between the cap and the right-aligned content.
+                    // (In the vertical example this is _left — left-aligned.)
                     format_1_middle_right "{tabs}"
 
-                    // Bottom row 1: split pair — mode left, datetime right
-                    format_1_bottom_left  "{mode}"
-                    format_1_bottom_right "{mode_cap}"
+                    // Bottom zone: split row — cap arrow on the left, mode label
+                    // on the right. This is the mirror of the vertical example
+                    // which has mode on the left and cap on the right.
+                    format_1_bottom_left  "{mode_cap}"
+                    format_1_bottom_right "{mode}"
 
-                    // Bottom row 2: datetime
-                    format_2_bottom_left  "{datetime_cap}"
-                    format_2_bottom_right "#[bg=$border,fg=$fg,bold,fill] {datetime} "
-
-                    // Cap config
-                    cap_bg              "$bg"
-                    datetime_cap_fg     "$border"
-                    datetime_cap_symbol ""
+                    // Cap config: left-pointing arrow (U+E0B2) instead of the
+                    // default right-pointing arrow, matching the mirrored layout.
+                    cap_bg     "$base"
+                    cap_symbol ""
 
                     // --- Tab format strings ---
-                    // Right-aligned vertical tabs.  at left edge is auto-anchored.
-                    tab_normal            "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} "
-                    tab_active            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} "
-                    tab_normal_fullscreen "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} 󰊓 "
-                    tab_active_fullscreen "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} 󰊓 "
-                    tab_normal_sync       "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name}  "
-                    tab_active_sync       "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name}  "
-                    tab_rename            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] RENAME "
+                    // Right-aligned vertical tabs with LEFT-pointing arrows ().
+                    // This is the mirror of the vertical example's right-pointing
+                    // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
+                    // Content order: {index} left-aligned near the cap, then a
+                    // fill gap, then {name} right-aligned at the trailing edge.
+                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} {notification} #[fg=$mantle,bg=$base]"
+                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} {notification} #[fg=$mantle,bg=$green]"
+                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$base]"
+                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$green]"
+                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$base]"
+                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$green]"
+                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
 
-                    overflow_above "#[fg=$comment]  ^ +{count}"
-                    overflow_below "#[fg=$comment]  v +{count}"
+                    tab_sync_indicator       "󰻆"
+                    tab_fullscreen_indicator "󰊓"
+                    tab_floating_indicator   "󰶙"
+
+                    // Shown when tabs overflow the available rows.
+                    overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
 
                     max_name_length 20
                     start_index     1
-                    padding_top     0
+                    padding_top 0
 
-                    // Border on the left edge (interior side for a right sidebar).
-                    border "#[fg=$border]│"
+                    // Left-edge separator between content pane and sidebar.
+                    // (In the vertical example the border is on the right edge.)
+                    border "#[fg=$surface1]│"
+
+                    // --- Notifications ---
+                    notification_enabled        "true"
+                    notification_waiting_icon   "󰅐"
+                    notification_completed_icon "󰅕"
+                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_show_if_empty  "false"
 
                     // --- Mode widget ---
-                    mode_normal       "#[bg=$blue,fg=$bg,bold,fill] NORMAL "
-                    mode_locked       "#[bg=$red,fg=$bg,bold,fill] LOCKED "
-                    mode_pane         "#[bg=$orange,fg=$bg,bold,fill] PANE "
-                    mode_rename_pane  "#[bg=$orange,fg=$bg,bold,fill] RENAMEPANE "
-                    mode_tab          "#[bg=$green,fg=$bg,bold,fill] TAB "
-                    mode_rename_tab   "#[bg=$green,fg=$bg,bold,fill] RENAMETAB "
-                    mode_scroll       "#[bg=$orange,fg=$bg,bold,fill] SCROLL "
-                    mode_enter_search "#[bg=$yellow,fg=$bg,bold,fill] ENT-SEARCH "
-                    mode_search       "#[bg=$yellow,fg=$bg,bold,fill] SEARCH "
-                    mode_resize       "#[bg=$cyan,fg=$bg,bold,fill] RESIZE "
-                    mode_move         "#[bg=$cyan,fg=$bg,bold,fill] MOVE "
-                    mode_session      "#[bg=$magenta,fg=$bg,bold,fill] SESSION "
-                    mode_tmux         "#[bg=$red,fg=$bg,bold,fill] TMUX "
-                    mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+                    // Same mode colours as the vertical example. The  cap arrow
+                    // is on the left here (via {mode_cap} in bottom_left) instead
+                    // of the right.
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
 
                     // --- DateTime ---
                     datetime_format   "%H:%M"
@@ -99,61 +159,130 @@ layout {
         }
     }
 
+    // See the "vertical" example for why this must be a full duplicate.
     new_tab_template {
         pane split_direction="vertical" {
             children
             pane size=26 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"
-                    color_bg       "#1a1b26"
-                    color_bg_dark  "#16161e"
-                    color_fg       "#c0caf5"
-                    color_fg_dark  "#a9b1d6"
-                    color_comment  "#565f89"
-                    color_blue     "#7aa2f7"
-                    color_cyan     "#7dcfff"
-                    color_green    "#9ece6a"
-                    color_magenta  "#bb9af7"
-                    color_orange   "#ff9e64"
-                    color_red      "#f7768e"
-                    color_yellow   "#e0af68"
-                    color_border   "#3b4261"
-                    format_1_top "#[fg=$comment] {session}"
+
+                    // -- Tokyo Night palette --
+                    // Same palette as the "vertical" example for easy comparison.
+                    color_rosewater "#89ddff"
+                    color_flamingo  "#ff007c"
+                    color_pink      "#9d7cd8"
+                    color_mauve     "#bb9af7"
+                    color_red       "#f7768e"
+                    color_maroon    "#db4b4b"
+                    color_peach     "#ff9e64"
+                    color_yellow    "#e0af68"
+                    color_green     "#9ece6a"
+                    color_teal      "#73daca"
+                    color_sky       "#7dcfff"
+                    color_sapphire  "#2ac3de"
+                    color_blue      "#7aa2f7"
+                    color_lavender  "#b4f9f8"
+                    color_text      "#c0caf5"
+                    color_subtext1  "#a9b1d6"
+                    color_subtext0  "#a9b1d6"
+                    color_overlay2  "#565f89"
+                    color_overlay1  "#737aa2"
+                    color_overlay0  "#545c7e"
+                    color_surface2  "#414868"
+                    color_surface1  "#3b4261"
+                    color_surface0  "#292e42"
+                    color_base      "#1a1b26"
+                    color_mantle    "#16161e"
+                    color_crust     "#13131a"
+
+                    // --- Zones (mirrored from "vertical" example) ---
+
+                    // Top zone, row 1: aggregate notification count on left,
+                    // session name pinned to the right.
+                    format_1_top_left  "#[fg=$overlay1]{notifications}"
+                    format_1_top_right "#[fg=$overlay1]{session} "
+
+                    // Top zone, row 2: datetime as a solid bar. _left pins the
+                    // time to the left edge; fill stretches $surface1 bg rightward.
+                    // (In the vertical example this is _right — pinned to the right.)
+                    format_2_top_left "#[bg=$surface1,fg=$text,bold,fill] {datetime} "
+
+                    // Middle zone: the {tabs} anchor. _right means tab text is
+                    // right-aligned within each row. The renderer auto-pins any
+                    // leading powerline cap to the left edge and fills the gap
+                    // between the cap and the right-aligned content.
+                    // (In the vertical example this is _left — left-aligned.)
                     format_1_middle_right "{tabs}"
-                    format_1_bottom_left  "{mode}"
-                    format_1_bottom_right "{mode_cap}"
-                    format_2_bottom_left  "{datetime_cap}"
-                    format_2_bottom_right "#[bg=$border,fg=$fg,bold,fill] {datetime} "
-                    cap_bg              "$bg"
-                    datetime_cap_fg     "$border"
-                    datetime_cap_symbol ""
-                    tab_normal            "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} "
-                    tab_active            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} "
-                    tab_normal_fullscreen "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name} 󰊓 "
-                    tab_active_fullscreen "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name} 󰊓 "
-                    tab_normal_sync       "#[bg=$bg,fg=$bg_dark]#[bg=$bg,fg=$comment] {index} {name}  "
-                    tab_active_sync       "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] {index} {name}  "
-                    tab_rename            "#[bg=$bg,fg=$blue]#[bg=$blue,fg=$bg,bold,fill] RENAME "
-                    overflow_above "#[fg=$comment]  ^ +{count}"
-                    overflow_below "#[fg=$comment]  v +{count}"
+
+                    // Bottom zone: split row — cap arrow on the left, mode label
+                    // on the right. This is the mirror of the vertical example
+                    // which has mode on the left and cap on the right.
+                    format_1_bottom_left  "{mode_cap}"
+                    format_1_bottom_right "{mode}"
+
+                    // Cap config: left-pointing arrow (U+E0B2) instead of the
+                    // default right-pointing arrow, matching the mirrored layout.
+                    cap_bg     "$base"
+                    cap_symbol ""
+
+                    // --- Tab format strings ---
+                    // Right-aligned vertical tabs with LEFT-pointing arrows ().
+                    // This is the mirror of the vertical example's right-pointing
+                    // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
+                    // Content order: {index} left-aligned near the cap, then a
+                    // fill gap, then {name} right-aligned at the trailing edge.
+                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} {notification} #[fg=$mantle,bg=$base]"
+                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} {notification} #[fg=$mantle,bg=$green]"
+                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$base]"
+                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 {notification} #[fg=$mantle,bg=$green]"
+                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0]#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$base]"
+                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base]#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 {notification} #[fg=$mantle,bg=$green]"
+                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
+
+                    tab_sync_indicator       "󰻆"
+                    tab_fullscreen_indicator "󰊓"
+                    tab_floating_indicator   "󰶙"
+
+                    // Shown when tabs overflow the available rows.
+                    overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
+
                     max_name_length 20
                     start_index     1
-                    padding_top     0
-                    border "#[fg=$border]│"
-                    mode_normal       "#[bg=$blue,fg=$bg,bold,fill] NORMAL "
-                    mode_locked       "#[bg=$red,fg=$bg,bold,fill] LOCKED "
-                    mode_pane         "#[bg=$orange,fg=$bg,bold,fill] PANE "
-                    mode_rename_pane  "#[bg=$orange,fg=$bg,bold,fill] RENAMEPANE "
-                    mode_tab          "#[bg=$green,fg=$bg,bold,fill] TAB "
-                    mode_rename_tab   "#[bg=$green,fg=$bg,bold,fill] RENAMETAB "
-                    mode_scroll       "#[bg=$orange,fg=$bg,bold,fill] SCROLL "
-                    mode_enter_search "#[bg=$yellow,fg=$bg,bold,fill] ENT-SEARCH "
-                    mode_search       "#[bg=$yellow,fg=$bg,bold,fill] SEARCH "
-                    mode_resize       "#[bg=$cyan,fg=$bg,bold,fill] RESIZE "
-                    mode_move         "#[bg=$cyan,fg=$bg,bold,fill] MOVE "
-                    mode_session      "#[bg=$magenta,fg=$bg,bold,fill] SESSION "
-                    mode_tmux         "#[bg=$red,fg=$bg,bold,fill] TMUX "
-                    mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+                    padding_top 0
+
+                    // Left-edge separator between content pane and sidebar.
+                    // (In the vertical example the border is on the right edge.)
+                    border "#[fg=$surface1]│"
+
+                    // --- Notifications ---
+                    notification_enabled        "true"
+                    notification_waiting_icon   "󰅐"
+                    notification_completed_icon "󰅕"
+                    notification_format         "#[fg=$peach,bold] {count} "
+                    notification_show_if_empty  "false"
+
+                    // --- Mode widget ---
+                    // Same mode colours as the vertical example. The  cap arrow
+                    // is on the left here (via {mode_cap} in bottom_left) instead
+                    // of the right.
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+
+                    // --- DateTime ---
                     datetime_format   "%H:%M"
                     datetime_timezone "America/Los_Angeles"
                 }

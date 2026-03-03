@@ -1,14 +1,12 @@
-// Powerline example — styled horizontal bar with caps in both directions.
+// Powerline example — styled horizontal bar with arrow glyphs between tabs.
 //
 // Demonstrates:
-//   - Powerline glyphs: left zone caps point right (), right zone caps
-//     point left () — arrows flow "into" the bar from each edge
-//   - {widget_cap} with auto-colour derived from fill directive
-//   - cap_bg (global) and per-widget cap overrides
-//   - fill directive on mode + active tab for row background extension
+//   - Powerline  /  glyphs baked into tab format strings for arrow transitions
+//   - {mode_cap} with auto-colour derived from fill directive
+//   - cap_bg for the background behind cap arrows
+//   - fill directive on mode + active tab for colour propagation
 //   - Full 14-mode per-mode colours
-//   - Notifications with styled powerline pill
-//   - format_precedence + overlength hiding
+//   - Nord palette (distinct from Catppuccin used in default/)
 
 layout {
     default_tab_template {
@@ -17,71 +15,58 @@ layout {
             plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                 layout_mode "horizontal"
 
-                // -- Catppuccin Mocha palette --
-                color_rosewater "#f5e0dc"
-                color_flamingo  "#f2cdcd"
-                color_pink      "#f5c2e7"
-                color_mauve     "#cba6f7"
-                color_red       "#f38ba8"
-                color_maroon    "#eba0ac"
-                color_peach     "#fab387"
-                color_yellow    "#f9e2af"
-                color_green     "#a6e3a1"
-                color_teal      "#94e2d5"
-                color_sky       "#89dceb"
-                color_sapphire  "#74c7ec"
-                color_blue      "#89b4fa"
-                color_lavender  "#b4befe"
-                color_text      "#cdd6f4"
-                color_subtext1  "#bac2de"
-                color_subtext0  "#a6adc8"
-                color_overlay2  "#9399b2"
-                color_overlay1  "#7f849c"
-                color_overlay0  "#6c7086"
-                color_surface2  "#585b70"
-                color_surface1  "#45475a"
-                color_surface0  "#313244"
-                color_base      "#1e1e2e"
-                color_mantle    "#181825"
-                color_crust     "#11111b"
+                // -- Nord palette --
+                // Polar Night (dark backgrounds)
+                color_nord0  "#2e3440"
+                color_nord1  "#3b4252"
+                color_nord2  "#434c5e"
+                color_nord3  "#4c566a"
+                // Snow Storm (light foregrounds)
+                color_nord4  "#d8dee9"
+                color_nord5  "#e5e9f0"
+                color_nord6  "#eceff4"
+                // Frost (blues/cyans)
+                color_frost0 "#8fbcbb"
+                color_frost1 "#88c0d0"
+                color_frost2 "#81a1c1"
+                color_frost3 "#5e81ac"
+                // Aurora (accent colours)
+                color_red    "#bf616a"
+                color_orange "#d08770"
+                color_yellow "#ebcb8b"
+                color_green  "#a3be8c"
+                color_purple "#b48ead"
 
-                // --- Left zone: mode pill + cap pointing right, then tabs ---
-                // The  glyph points right — caps on the left edge flow INTO the bar.
-                // {mode_cap} auto-derives its fg from mode's fill bg colour.
+                // --- Left zone: mode pill with powerline cap, then tabs ---
+                // {mode_cap} renders  with fg auto-derived from mode's fill bg.
                 format_1_left "{mode}{mode_cap}{tabs}"
 
-                // --- Center zone: notification count ---
-                format_2_center "{notifications}"
+                // --- Right zone: notifications, then powerline  caps pointing left, then widgets ---
+                format_2_right "{notifications}"
+                format_3_right "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {session} #[bg=$nord0,fg=$nord1]"
+                format_4_right "#[bg=$nord2,fg=$nord0]#[bg=$nord2,fg=$nord5] {datetime} #[bg=$nord0,fg=$nord2]"
 
-                // --- Right zone: caps pointing left, then widgets ---
-                // The  glyph points left — caps on the right edge flow INTO the bar.
-                // Stacking two sections in the right zone (index 3 and 4)
-                // renders them in order: session first, datetime after.
-                format_3_right "#[bg=$mantle,fg=$base]#[bg=$base,fg=$subtext0] {session} "
-                format_4_right "#[bg=$base,fg=$surface1]#[bg=$surface1,fg=$text] {datetime} "
-
-                // Cap config: background behind all cap arrows.
-                cap_bg "$mantle"
+                // Cap config: background behind cap arrows.
+                cap_bg "$nord0"
 
                 // Spacer fill between zones.
-                format_space "#[bg=$mantle]"
+                format_space "#[bg=$nord0]"
 
-                // Zone priority for narrow terminals:
-                // 1=left (keep longest), 3=right, 2=center (drop first).
+                // Zone priority for narrow terminals.
                 format_precedence         "132"
                 format_hide_on_overlength "true"
 
                 // --- Tab format strings ---
-                // Powerline arrows baked into tab format strings:
-                //  before the tab (left edge),  after (right edge).
-                // Active tab uses fill for powerline colour propagation.
-                tab_normal            "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}#[bg=$mantle,fg=$base]"
-                tab_active            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} #[bg=$mantle,fg=$green]"
-                tab_normal_fullscreen "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}#[bg=$mantle,fg=$base]"
-                tab_active_fullscreen "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} #[bg=$mantle,fg=$green]"
-                tab_normal_sync       "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}#[bg=$mantle,fg=$base]"
-                tab_active_sync       "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} #[bg=$mantle,fg=$green]"
-                tab_rename            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] RENAME #[bg=$mantle,fg=$green]"
+                // Each tab has  at the start and  at the end, with colour
+                // transitions creating the powerline arrow effect.
+                // No tab_separator needed — the arrows ARE the separators.
+                tab_normal            "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {notification}#[bg=$nord0,fg=$nord1]"
+                tab_active            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {notification} #[bg=$nord0,fg=$frost1]"
+                tab_normal_fullscreen "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} 󰊓 {notification}#[bg=$nord0,fg=$nord1]"
+                tab_active_fullscreen "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} 󰊓 {notification} #[bg=$nord0,fg=$frost1]"
+                tab_normal_sync       "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name}  {notification}#[bg=$nord0,fg=$nord1]"
+                tab_active_sync       "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name}  {notification} #[bg=$nord0,fg=$frost1]"
+                tab_rename            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] RENAME #[bg=$nord0,fg=$frost1]"
                 tab_separator         ""
 
                 max_name_length 18
@@ -89,113 +74,95 @@ layout {
 
                 // --- Notifications ---
                 notification_enabled        "true"
-                notification_waiting_icon   ""
-                notification_completed_icon ""
-                // Styled as a powerline pill in the center zone.
-                notification_format         "#[bg=$peach,fg=$mantle]#[bg=$peach,fg=$mantle,bold] {count} #[bg=$mantle,fg=$peach]"
+                notification_waiting_icon   "⏳"
+                notification_completed_icon "✅"
+                notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
                 notification_show_if_empty  "false"
 
                 // --- Mode widget ---
-                // fill makes mode's bg extend and tells {mode_cap} what colour
-                // to use for its arrow glyph.
-                mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
-                mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
-                mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
-                mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
-                mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
-                mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
-                mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
-                mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
-                mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
-                mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
-                mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
-                mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
-                mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
-                mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+                // fill extends the mode bg colour across the bar and tells
+                // {mode_cap} what colour to use for its  arrow.
+                mode_normal       "#[bg=$frost2,fg=$nord0,bold,fill] NORMAL "
+                mode_locked       "#[bg=$red,fg=$nord0,bold,fill] LOCKED "
+                mode_pane         "#[bg=$orange,fg=$nord0,bold,fill] PANE "
+                mode_rename_pane  "#[bg=$orange,fg=$nord0,bold,fill] RENAMEPANE "
+                mode_tab          "#[bg=$green,fg=$nord0,bold,fill] TAB "
+                mode_rename_tab   "#[bg=$green,fg=$nord0,bold,fill] RENAMETAB "
+                mode_scroll       "#[bg=$orange,fg=$nord0,bold,fill] SCROLL "
+                mode_enter_search "#[bg=$yellow,fg=$nord0,bold,fill] ENT-SEARCH "
+                mode_search       "#[bg=$yellow,fg=$nord0,bold,fill] SEARCH "
+                mode_resize       "#[bg=$frost0,fg=$nord0,bold,fill] RESIZE "
+                mode_move         "#[bg=$frost0,fg=$nord0,bold,fill] MOVE "
+                mode_session      "#[bg=$purple,fg=$nord0,bold,fill] SESSION "
+                mode_tmux         "#[bg=$frost1,fg=$nord0,bold,fill] TMUX "
+                mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
 
                 // --- DateTime ---
                 datetime_format   "%H:%M"
                 datetime_timezone "America/Los_Angeles"
-
-                // --- Swap layout ---
-                swap_layout_format        "#[fg=$overlay0]{name} "
-                swap_layout_hide_if_empty "true"
             }
         }
     }
 
     new_tab_template {
-        children
         pane size=1 borderless=true {
             plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                 layout_mode "horizontal"
-                color_rosewater "#f5e0dc"
-                color_flamingo  "#f2cdcd"
-                color_pink      "#f5c2e7"
-                color_mauve     "#cba6f7"
-                color_red       "#f38ba8"
-                color_maroon    "#eba0ac"
-                color_peach     "#fab387"
-                color_yellow    "#f9e2af"
-                color_green     "#a6e3a1"
-                color_teal      "#94e2d5"
-                color_sky       "#89dceb"
-                color_sapphire  "#74c7ec"
-                color_blue      "#89b4fa"
-                color_lavender  "#b4befe"
-                color_text      "#cdd6f4"
-                color_subtext1  "#bac2de"
-                color_subtext0  "#a6adc8"
-                color_overlay2  "#9399b2"
-                color_overlay1  "#7f849c"
-                color_overlay0  "#6c7086"
-                color_surface2  "#585b70"
-                color_surface1  "#45475a"
-                color_surface0  "#313244"
-                color_base      "#1e1e2e"
-                color_mantle    "#181825"
-                color_crust     "#11111b"
+                color_nord0  "#2e3440"
+                color_nord1  "#3b4252"
+                color_nord2  "#434c5e"
+                color_nord3  "#4c566a"
+                color_nord4  "#d8dee9"
+                color_nord5  "#e5e9f0"
+                color_nord6  "#eceff4"
+                color_frost0 "#8fbcbb"
+                color_frost1 "#88c0d0"
+                color_frost2 "#81a1c1"
+                color_frost3 "#5e81ac"
+                color_red    "#bf616a"
+                color_orange "#d08770"
+                color_yellow "#ebcb8b"
+                color_green  "#a3be8c"
+                color_purple "#b48ead"
                 format_1_left "{mode}{mode_cap}{tabs}"
-                format_2_center "{notifications}"
-                format_3_right "#[bg=$mantle,fg=$base]#[bg=$base,fg=$subtext0] {session} "
-                format_4_right "#[bg=$base,fg=$surface1]#[bg=$surface1,fg=$text] {datetime} "
-                cap_bg "$mantle"
-                format_space "#[bg=$mantle]"
+                format_2_right "{notifications}"
+                format_3_right "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {session} #[bg=$nord0,fg=$nord1]"
+                format_4_right "#[bg=$nord2,fg=$nord0]#[bg=$nord2,fg=$nord5] {datetime} #[bg=$nord0,fg=$nord2]"
+                cap_bg "$nord0"
+                format_space "#[bg=$nord0]"
                 format_precedence         "132"
                 format_hide_on_overlength "true"
-                tab_normal            "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} {notification}#[bg=$mantle,fg=$base]"
-                tab_active            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} {notification} #[bg=$mantle,fg=$green]"
-                tab_normal_fullscreen "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name} 󰊓 {notification}#[bg=$mantle,fg=$base]"
-                tab_active_fullscreen "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name} 󰊓 {notification} #[bg=$mantle,fg=$green]"
-                tab_normal_sync       "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} {name}  {notification}#[bg=$mantle,fg=$base]"
-                tab_active_sync       "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] {index} {name}  {notification} #[bg=$mantle,fg=$green]"
-                tab_rename            "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base,bold,fill] RENAME #[bg=$mantle,fg=$green]"
+                tab_normal            "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {notification}#[bg=$nord0,fg=$nord1]"
+                tab_active            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {notification} #[bg=$nord0,fg=$frost1]"
+                tab_normal_fullscreen "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} 󰊓 {notification}#[bg=$nord0,fg=$nord1]"
+                tab_active_fullscreen "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} 󰊓 {notification} #[bg=$nord0,fg=$frost1]"
+                tab_normal_sync       "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name}  {notification}#[bg=$nord0,fg=$nord1]"
+                tab_active_sync       "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name}  {notification} #[bg=$nord0,fg=$frost1]"
+                tab_rename            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] RENAME #[bg=$nord0,fg=$frost1]"
                 tab_separator         ""
                 max_name_length 18
                 start_index     1
                 notification_enabled        "true"
-                notification_waiting_icon   ""
-                notification_completed_icon ""
-                notification_format         "#[bg=$peach,fg=$mantle]#[bg=$peach,fg=$mantle,bold] {count} #[bg=$mantle,fg=$peach]"
+                notification_waiting_icon   "⏳"
+                notification_completed_icon "✅"
+                notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
                 notification_show_if_empty  "false"
-                mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
-                mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
-                mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
-                mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
-                mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
-                mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
-                mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
-                mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
-                mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
-                mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
-                mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
-                mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
-                mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
-                mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+                mode_normal       "#[bg=$frost2,fg=$nord0,bold,fill] NORMAL "
+                mode_locked       "#[bg=$red,fg=$nord0,bold,fill] LOCKED "
+                mode_pane         "#[bg=$orange,fg=$nord0,bold,fill] PANE "
+                mode_rename_pane  "#[bg=$orange,fg=$nord0,bold,fill] RENAMEPANE "
+                mode_tab          "#[bg=$green,fg=$nord0,bold,fill] TAB "
+                mode_rename_tab   "#[bg=$green,fg=$nord0,bold,fill] RENAMETAB "
+                mode_scroll       "#[bg=$orange,fg=$nord0,bold,fill] SCROLL "
+                mode_enter_search "#[bg=$yellow,fg=$nord0,bold,fill] ENT-SEARCH "
+                mode_search       "#[bg=$yellow,fg=$nord0,bold,fill] SEARCH "
+                mode_resize       "#[bg=$frost0,fg=$nord0,bold,fill] RESIZE "
+                mode_move         "#[bg=$frost0,fg=$nord0,bold,fill] MOVE "
+                mode_session      "#[bg=$purple,fg=$nord0,bold,fill] SESSION "
+                mode_tmux         "#[bg=$frost1,fg=$nord0,bold,fill] TMUX "
+                mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
                 datetime_format   "%H:%M"
                 datetime_timezone "America/Los_Angeles"
-                swap_layout_format        "#[fg=$overlay0]{name} "
-                swap_layout_hide_if_empty "true"
             }
         }
     }
