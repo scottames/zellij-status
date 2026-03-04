@@ -64,7 +64,7 @@ layout {
                 // share the same zone row with a gap between them.
                 // Split pairs are defined by giving the same index+zone two
                 // keys with _left and _right suffixes.
-                format_3_right_left  "#[fg=$subtext0] {session} {command_git}"
+                format_3_right_left  "#[fg=$subtext0] {pipe_status}{command_git} {session}"
                 format_3_right_right "#[fg=$subtext0]{swap_layout} {datetime} "
 
                 // Spacer between zones (the background fill colour).
@@ -136,7 +136,7 @@ layout {
 
                 // --- Pipe widget: arbitrary external data ---
                 // Send data: zellij pipe --name "zellij-status::pipe::status::ok"
-                pipe_status_format "#[fg=$green]{output}"
+                pipe_status_format "#[fg=$green] {output} "
             }
         }
     }
@@ -176,7 +176,7 @@ layout {
                 format_1_left  "{mode}#[fg=$surface1]|{tabs}"
                 cap_bg         "$mantle"
                 format_2_right "{notifications}"
-                format_3_right_left  "#[fg=$subtext0] {session} {command_git}"
+                format_3_right_left  "#[fg=$subtext0] {pipe_status}{command_git} {session}"
                 format_3_right_right "#[fg=$subtext0]{swap_layout} {datetime} "
                 format_space "#[bg=$mantle]"
                 format_precedence         "132"
@@ -218,7 +218,7 @@ layout {
                 command_git_format     "#[fg=$blue] {stdout} "
                 command_git_interval   "10"
                 command_git_rendermode "static"
-                pipe_status_format "#[fg=$green]{output}"
+                pipe_status_format "#[fg=$green] {output} "
             }
         }
     }
