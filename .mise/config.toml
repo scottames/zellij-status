@@ -39,6 +39,17 @@ zellij \
   -n "$config_dir/layout.kdl"
 """
 
+[tasks.install]
+description = "Install the plugin to ~/.config/zellij/plugins/"
+depends = ["build"]
+run = """
+#!/usr/bin/env bash
+dest="$HOME/.config/zellij/plugins"
+mkdir -p "$dest"
+cp target/wasm32-wasip1/debug/zellij-status.wasm "$dest/"
+echo "installed to $dest/zellij-status.wasm"
+"""
+
 [tasks.test]
 description = "Run tests on native target"
 run = "cargo test --target x86_64-unknown-linux-gnu"
