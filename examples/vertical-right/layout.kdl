@@ -288,6 +288,16 @@ layout {
         }
     }
 
+    // Guide tab — opens first so users land here on launch.
+    // less shows the guide from the top (scrollable); pressing q
+    // drops into a live shell for trying the notification commands.
+    // Relative path assumes launch from project root.
+    tab name="guide" {
+        pane command="bash" {
+            args "-c" "less examples/GUIDE.txt; exec bash"
+        }
+    }
+
     tab name="tab-1" {
         pane
     }

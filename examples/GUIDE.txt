@@ -1,0 +1,158 @@
+zellij-status — interactive guide
+──────────────────────────────────────────────────────────────
+Official Zellij docs: https://zellij.dev/documentation/
+──────────────────────────────────────────────────────────────
+Navigate: arrows / PgUp / PgDn / j / k    Exit viewer: q
+After q you get a shell — use it to try the commands below.
+──────────────────────────────────────────────────────────────
+
+ORIENTATION
+
+  zellij-status is a Zellij status bar plugin. Depending on
+  which profile you launched, the bar is either:
+
+    horizontal   a 1-row bar at the bottom of the screen
+    vertical     a sidebar (left or right, ~26 cols wide)
+
+  Common widgets and where to find them:
+
+    mode        current Zellij mode (Normal, Pane, Tab, ...)
+    tabs        tab list with per-tab notification icons
+    session     session name
+    notifications  global count of pending/done notifications
+    datetime    current time
+    command     output of a shell command (e.g. git branch)
+    pipe        arbitrary text pushed in via zellij pipe
+
+──────────────────────────────────────────────────────────────
+
+BASICS — tabs and modes
+
+  Ctrl-q    quit this example session (kills it entirely)
+  Ctrl-o d  detach (session stays alive in the background)
+
+  Ctrl-t    enter Tab mode
+    n       new tab
+    r       rename tab
+    x       close tab
+    ←/→     navigate tabs
+    Esc     back to Normal
+
+  Ctrl-p    enter Pane mode   (mode label changes colour)
+  Ctrl-n    enter Resize mode
+  Ctrl-o    enter Session mode
+  Esc       return to Normal from any mode
+
+  Open a few tabs and switch between them. Watch the tab list
+  and mode label update in the bar.
+
+──────────────────────────────────────────────────────────────
+
+NOTIFICATIONS
+
+  The notification system lets external processes signal tab
+  status. Each pane has an integer ID; the bar tracks which
+  panes are waiting or completed and shows icons accordingly.
+
+  Protocol — pipe name format:
+
+    zellij-status::EVENT::PANE_ID
+
+  Events:   waiting    task is running   (shows waiting icon)
+            completed  task finished     (shows done icon)
+
+  $ZELLIJ_PANE_ID is set automatically in every Zellij shell.
+  Use it in scripts to target the current pane (see notify()
+  below). For this demo we target a pane on another tab so you
+  can watch the icon appear without it immediately clearing.
+
+  Note: focusing a pane clears its notification automatically —
+  that is the intended production behaviour, not a bug.
+
+  --- Try it (run these from the shell after pressing q) ---
+
+  First, get a pane ID from a different tab:
+
+    a. Switch to "default-1"  (Ctrl-t then →)
+    b. Run:  echo $ZELLIJ_PANE_ID    ← note this number (e.g. "3")
+    c. Switch back to this tab.
+
+  1. Mark it as waiting (replace 3 with your number):
+
+       zellij pipe --name "zellij-status::waiting::3"
+
+     Watch the "default-1" tab show the waiting icon ⏳.
+     The global notification count badge updates too.
+
+  2. Mark it as completed — icon changes to ✅:
+
+       zellij pipe --name "zellij-status::completed::3"
+
+     Or just switch to "default-1" and focus the pane —
+     it clears automatically when the pane is focused.
+
+  3. Simulate a long-running task — run this from the "default-1"
+     pane (using its own $ZELLIJ_PANE_ID), then switch away:
+
+       zellij pipe --name "zellij-status::waiting::$ZELLIJ_PANE_ID" \
+         && sleep 5 \
+         && zellij pipe --name "zellij-status::completed::$ZELLIJ_PANE_ID"
+
+     Watch the icon change from ⏳ to ✅ when the sleep finishes.
+
+  4. Use it in real scripts — wrap any command:
+
+       notify() {
+         local pane=$ZELLIJ_PANE_ID
+         zellij pipe --name "zellij-status::waiting::$pane"
+         "$@"
+         zellij pipe --name "zellij-status::completed::$pane"
+       }
+
+       notify cargo build --release
+
+──────────────────────────────────────────────────────────────
+
+PIPE WIDGET  (default profile)
+
+  Push arbitrary text into a named slot in the bar:
+
+    zellij pipe --name "zellij-status::pipe::status::running"
+    zellij pipe --name "zellij-status::pipe::status::done"
+    zellij pipe --name "zellij-status::pipe::status::"   # clear
+
+  The layout has pipe_status_format on the right zone. Add more
+  named pipe slots in layout.kdl with pipe_NAME_format keys.
+
+──────────────────────────────────────────────────────────────
+
+PROFILE NOTES
+
+  minimal
+    Bare-minimum config: mode, tabs, session, notifications.
+    No datetime, git, pipe, or swap widgets — add them one at
+    a time from the other examples.
+
+  default
+    All widgets enabled. Catppuccin Mocha.
+    format_precedence "132": narrow the terminal to see the
+    right zone (session/git/datetime) disappear first.
+    Split section pairs: two halves of a zone share one row.
+
+  powerline
+    Arrows baked into tab format strings — no tab_separator.
+    {mode_cap} auto-derives its  arrow colour from the active
+    mode's fill background. Nord palette.
+
+  vertical
+    Left sidebar. Three zones: top (datetime + notifications),
+    middle (scrolling tab list), bottom (mode + mode_cap).
+    Open 15+ tabs to trigger the overflow indicators.
+
+  vertical-right
+    Right sidebar — mirror of vertical. Children pane comes
+    before the plugin pane in the layout to push it right.
+    Tabs are right-aligned (_middle_right). Arrows point left
+    (); their bg/fg semantics are reversed vs right-pointing.
+
+──────────────────────────────────────────────────────────────
