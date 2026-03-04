@@ -3,7 +3,8 @@ name = "zellij-status"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
-description = "A Zellij plugin combining vertical tabs, styled status bar, and notifications"
+description = "A Zellij plugin that combines vertical tabs, styled status bars, and notification tracking"
+repository = "https://github.com/scottames/zellij-status"
 
 [dependencies]
 zellij-tile = "0.43.1"

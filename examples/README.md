@@ -19,19 +19,20 @@ parts you like into your own config.
 With [mise](https://mise.jdx.dev/) (builds the plugin first):
 
 ```bash
-mise run example <profile>
-# e.g. mise run example powerline
+EXAMPLE="powerline"
+mise run example "${EXAMPLE}"
 ```
 
 Without mise:
 
 ```bash
+EXAMPLE="default"
 cargo build
 zellij \
-  -s "zellij-status-<profile>" \
-  --config-dir ./examples/<profile> \
-  --config ./examples/<profile>/config.kdl \
-  -n ./examples/<profile>/layout.kdl
+  -s "zellij-status-${EXAMPLE}" \
+  --config-dir "./examples/${EXAMPLE}" \
+  --config "./examples/${EXAMPLE}/config.kdl" \
+  -n "./examples/${EXAMPLE}/layout.kdl"
 ```
 
 ## Which should I start with?
@@ -42,6 +43,13 @@ zellij \
   or `powerline` for a styled look.
 - **Want a sidebar?** Start with `vertical` (left side) or `vertical-right`
   (right side).
+
+## Advanced reference
+
+- Interactive walkthrough, [`GUIDE.txt`](GUIDE.txt), will be printed in the
+  first pane in all examples.
+- Advanced customization and feature reference:
+  [`docs/advanced-features.md`](../docs/advanced-features.md)
 
 ## Important: template sync
 
