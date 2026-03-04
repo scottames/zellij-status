@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/scottames/zellij-status/compare/v0.1.0...v0.1.1) (2026-03-04)
+
+
+### Bug Fixes
+
+* **ci:** require explicit rust toolchain in release workflow ([61f7a78](https://github.com/scottames/zellij-status/commit/61f7a78a39ae38d62824074cb48ad4c4d3f4ef61))
+
 ## 0.1.0 (2026-03-04)
 
 
