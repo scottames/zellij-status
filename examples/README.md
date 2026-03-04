@@ -6,15 +6,13 @@ parts you like into your own config.
 
 ## Profiles
 
-| Profile                                     | Mode       | Palette          | What it shows                                 |
-| ------------------------------------------- | ---------- | ---------------- | --------------------------------------------- |
-| [`minimal`](minimal/)                       | horizontal | neutral          | Bare-minimum starter — 3 colours, 3 widgets   |
-| [`default`](default/)                       | horizontal | Catppuccin Mocha | All widgets, split pairs, caps, precedence    |
-| [`powerline`](powerline/)                   | horizontal | Catppuccin Mocha | Powerline arrows both directions, fill + caps |
-| [`vertical`](vertical/)                     | vertical   | Catppuccin Mocha | Left sidebar with overflow, split rows, caps  |
-| [`vertical-right`](vertical-right/)         | vertical   | Tokyo Night      | Right sidebar, reversed cap direction         |
-| [`gallery-vertical`](gallery-vertical/)     | vertical   | Gruvbox Dark     | Compare alignment, fill, split, cap styles    |
-| [`gallery-horizontal`](gallery-horizontal/) | horizontal | Gruvbox Dark     | Compare spacers, precedence, tab separators   |
+| Profile                             | Mode       | Palette          | What it shows                                 |
+| ----------------------------------- | ---------- | ---------------- | --------------------------------------------- |
+| [`minimal`](minimal/)               | horizontal | neutral          | Bare-minimum starter — 3 colours, 3 widgets   |
+| [`default`](default/)               | horizontal | Catppuccin Mocha | All widgets, split pairs, caps, precedence    |
+| [`powerline`](powerline/)           | horizontal | Catppuccin Mocha | Powerline arrows both directions, fill + caps |
+| [`vertical`](vertical/)             | vertical   | Catppuccin Mocha | Left sidebar with overflow, split rows, caps  |
+| [`vertical-right`](vertical-right/) | vertical   | Tokyo Night      | Right sidebar, reversed cap direction         |
 
 ## Try an example
 
@@ -44,8 +42,6 @@ zellij \
   or `powerline` for a styled look.
 - **Want a sidebar?** Start with `vertical` (left side) or `vertical-right`
   (right side).
-- **Comparing options?** The `gallery-*` profiles show multiple styling
-  approaches side-by-side so you can pick what you like.
 
 ## Important: template sync
 

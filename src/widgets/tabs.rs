@@ -2,7 +2,11 @@ use std::collections::BTreeMap;
 
 use unicode_width::UnicodeWidthStr;
 use zellij_tile::prelude::{InputMode, PaneInfo, TabInfo};
+#[cfg(target_arch = "wasm32")]
 use zellij_tile::shim::switch_tab_to;
+
+#[cfg(not(target_arch = "wasm32"))]
+fn switch_tab_to(_tab_index: u32) {}
 
 use crate::notify::NotificationType;
 use crate::render::format::{parse_format_string, FormattedPart};
@@ -178,12 +182,8 @@ impl TabsWidget {
         }
 
         // Fill must sit between content on both sides to act as a split point.
-        let has_left = parts[..fill_idx]
-            .iter()
-            .any(|p| !p.content.is_empty());
-        let has_right = parts[fill_idx + 1..]
-            .iter()
-            .any(|p| !p.content.is_empty());
+        let has_left = parts[..fill_idx].iter().any(|p| !p.content.is_empty());
+        let has_right = parts[fill_idx + 1..].iter().any(|p| !p.content.is_empty());
         if !has_left || !has_right {
             return None;
         }

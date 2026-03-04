@@ -19,7 +19,7 @@ description = "Build and launch a Zellij dev session with an example profile"
 depends = ["build"]
 usage = '''
 arg "[profile]" help="Config profile to use" default="default" {
-    choices "default" "minimal" "powerline" "vertical" "vertical-right" "gallery-vertical" "gallery-horizontal" "scotty"
+    choices "default" "minimal" "powerline" "vertical" "vertical-right"
 }
 '''
 run = """
@@ -28,7 +28,7 @@ profile="${usage_profile?}"
 config_dir="./examples/$profile"
 if [[ ! -d "$config_dir" ]]; then
   echo "error: unknown profile '$profile' (no directory at $config_dir)" >&2
-  echo "available profiles: default, minimal, powerline, vertical, vertical-right, gallery-vertical, gallery-horizontal" >&2
+  echo "available profiles: default, minimal, powerline, vertical, vertical-right" >&2
   exit 1
 fi
 zellij delete-session "zellij-status-$profile" >&2

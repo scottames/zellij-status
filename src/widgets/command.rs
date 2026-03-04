@@ -1,7 +1,22 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
-#[cfg(not(test))]
+#[cfg(target_arch = "wasm32")]
 use zellij_tile::shim::run_command;
+#[cfg(target_arch = "wasm32")]
+use zellij_tile::shim::run_command_with_env_variables_and_cwd;
+
+#[cfg(not(target_arch = "wasm32"))]
+fn run_command(_command_line: &[&str], _context: BTreeMap<String, String>) {}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn run_command_with_env_variables_and_cwd(
+    _command_line: &[&str],
+    _env_variables: BTreeMap<String, String>,
+    _cwd: PathBuf,
+    _context: BTreeMap<String, String>,
+) {
+}
 
 use super::{PluginState, Widget};
 
@@ -125,7 +140,6 @@ impl CommandWidget {
     ///
     /// Calls `run_command()` which is async — the result arrives later via
     /// `RunCommandResult` event and is stored in `PluginState.command_results`.
-    #[cfg(not(test))]
     fn run_if_needed(&self, name: &str, cmd_config: &CommandConfig, state: &PluginState<'_>) {
         let now = chrono::Utc::now().timestamp();
 
@@ -153,8 +167,6 @@ impl CommandWidget {
         context.insert("timestamp".to_string(), now.to_string());
 
         if let Some(cwd) = &cmd_config.cwd {
-            use std::path::PathBuf;
-            use zellij_tile::shim::run_command_with_env_variables_and_cwd;
             run_command_with_env_variables_and_cwd(
                 &arg_refs,
                 BTreeMap::new(),
@@ -175,7 +187,6 @@ impl Widget for CommandWidget {
 
         // Fire the command if needed (async — result arrives via event).
         // Gated: run_command() is a WASM host function unavailable in native tests.
-        #[cfg(not(test))]
         self.run_if_needed(name, cmd_config, state);
 
         // Return cached result (empty on first call before result arrives).
@@ -200,9 +211,8 @@ impl Widget for CommandWidget {
         }
     }
 
-    fn process_click(&self, name: &str, _state: &PluginState<'_>, _col: usize) {
-        #[cfg(not(test))]
-        if let Some(cmd_config) = self.configs.get(name) {
+    fn process_click(&self, _name: &str, _state: &PluginState<'_>, _col: usize) {
+        if let Some(cmd_config) = self.configs.get(_name) {
             if let Some(click_action) = &cmd_config.click_action {
                 let args = parse_commandline(click_action);
                 let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();

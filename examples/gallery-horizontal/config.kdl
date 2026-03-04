@@ -1,8 +1,0 @@
-// zellij-status example: gallery-horizontal
-// See layout.kdl for plugin configuration.
-default_shell "bash"
-ui {
-    pane_frames {
-        rounded_corners true
-    }
-}

@@ -2,7 +2,16 @@ use std::cmp::{max, min};
 use std::collections::BTreeMap;
 
 use zellij_tile::prelude::*;
-use zellij_tile::shim::{switch_tab_to, unblock_cli_pipe_input};
+#[cfg(target_arch = "wasm32")]
+use zellij_tile::shim::switch_tab_to;
+#[cfg(target_arch = "wasm32")]
+use zellij_tile::shim::unblock_cli_pipe_input;
+
+#[cfg(not(target_arch = "wasm32"))]
+fn switch_tab_to(_tab_index: u32) {}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn unblock_cli_pipe_input(_pipe_name: &str) {}
 
 use crate::config::{LayoutMode, PluginConfig};
 use crate::notify::protocol::{parse_pipe_data, parse_pipe_message};

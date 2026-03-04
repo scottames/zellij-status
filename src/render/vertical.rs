@@ -691,11 +691,12 @@ fn build_split_tab_line(
     let border_width = strip_ansi_width(&border);
     let content_cols = cols.saturating_sub(border_width);
 
-    // Truncate right first (name), then left (index) — keep index visible.
-    let clipped_right = truncate_ansi_to_width(right, content_cols);
+    // Keep left content (index/caps) visible when possible, then fit right.
+    let preferred_left = truncate_ansi_to_width(left, content_cols);
+    let preferred_left_width = strip_ansi_width(&preferred_left);
+    let clipped_right = truncate_ansi_to_width(right, content_cols.saturating_sub(preferred_left_width));
     let right_width = strip_ansi_width(&clipped_right);
-    let clipped_left =
-        truncate_ansi_to_width(left, content_cols.saturating_sub(right_width));
+    let clipped_left = truncate_ansi_to_width(&preferred_left, content_cols.saturating_sub(right_width));
     let left_width = strip_ansi_width(&clipped_left);
     let gap = content_cols.saturating_sub(left_width + right_width);
 
