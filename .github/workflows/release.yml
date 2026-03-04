@@ -19,6 +19,7 @@ jobs:
         # yamllint disable-line rule:line-length
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9 # stable
         with:
+          toolchain: stable
           targets: wasm32-wasip1
       - name: Rust cache
         # yamllint disable-line rule:line-length
