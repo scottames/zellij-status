@@ -56,6 +56,9 @@ Typical notification config:
 ```kdl
 notification_enabled        "true"
 notification_waiting_icon   "⏳"
+notification_in_progress_icon "🔄"
+# optional alias for notification_in_progress_icon:
+# notification_busy_icon     "🔄"
 notification_completed_icon "✅"
 notification_format         "#[fg=$peach,bold] {count} "
 notification_show_if_empty  "false"
@@ -65,7 +68,8 @@ Pipe protocol for state changes:
 
 `zellij-status::EVENT::PANE_ID`
 
-- `EVENT=waiting`: mark pane as running
+- `EVENT=waiting`: mark pane as waiting for user input/approval
+- `EVENT=in_progress` (or `EVENT=busy`): mark pane as actively running
 - `EVENT=completed`: mark pane as done
 
 Try it:
@@ -73,6 +77,7 @@ Try it:
 ```bash
 echo $ZELLIJ_PANE_ID # prints the current pane-id, add a digit or two
 zellij pipe --name "zellij-status::waiting::$((ZELLIJ_PANE_ID + 1))"
+zellij pipe --name "zellij-status::in_progress::$((ZELLIJ_PANE_ID + 1))"
 zellij pipe --name "zellij-status::completed::$((ZELLIJ_PANE_ID + 1))"
 ```
 

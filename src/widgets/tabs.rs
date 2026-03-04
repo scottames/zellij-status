@@ -291,6 +291,7 @@ fn resolve_notification_icon(tab: &TabInfo, state: &PluginState<'_>) -> String {
         .get_tab_notification(tab.position, state.panes)
     {
         Some(NotificationType::Waiting) => notify_config.waiting_icon.clone(),
+        Some(NotificationType::InProgress) => notify_config.in_progress_icon.clone(),
         Some(NotificationType::Completed) => notify_config.completed_icon.clone(),
         None => String::new(),
     }
@@ -375,6 +376,9 @@ pub fn terminal_panes_for_tab(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::PluginConfig;
+    use crate::notify::tracker::NotificationTracker;
+    use zellij_tile::prelude::{ModeInfo, PaneInfo, PaneManifest};
 
     fn make_tab(position: usize, name: &str, active: bool) -> TabInfo {
         TabInfo {
@@ -387,6 +391,32 @@ mod tests {
 
     fn make_widget(config: &BTreeMap<String, String>) -> TabsWidget {
         TabsWidget::new(config)
+    }
+
+    fn make_pane_manifest(entries: Vec<(usize, Vec<PaneInfo>)>) -> PaneManifest {
+        PaneManifest {
+            panes: entries.into_iter().collect(),
+        }
+    }
+
+    fn make_plugin_state_for_notification_test<'a>(
+        tabs: &'a [TabInfo],
+        panes: &'a PaneManifest,
+        config: &'a PluginConfig,
+        notifications: &'a NotificationTracker,
+        mode: &'a ModeInfo,
+        command_results: &'a BTreeMap<String, crate::widgets::command::CommandResult>,
+        pipe_data: &'a BTreeMap<String, String>,
+    ) -> PluginState<'a> {
+        PluginState {
+            tabs,
+            panes,
+            mode,
+            config,
+            notifications,
+            command_results,
+            pipe_data,
+        }
     }
 
     // ---- tab state selection ----
@@ -533,5 +563,43 @@ mod tests {
     fn resolve_tab_name_rename_has_value() {
         let tab = make_tab(0, "partial", true);
         assert_eq!(resolve_tab_name(&tab, &InputMode::RenameTab), "partial");
+    }
+
+    #[test]
+    fn resolve_notification_icon_in_progress() {
+        let tab = make_tab(0, "work", true);
+        let tabs = vec![tab.clone()];
+        let mode = ModeInfo::default();
+        let panes = make_pane_manifest(vec![(
+            0,
+            vec![PaneInfo {
+                id: 42,
+                is_plugin: false,
+                ..Default::default()
+            }],
+        )]);
+
+        let raw = BTreeMap::from([(
+            "notification_in_progress_icon".to_string(),
+            "RUN".to_string(),
+        )]);
+        let config = PluginConfig::from_configuration(raw).unwrap();
+
+        let mut notifications = NotificationTracker::default();
+        notifications.add(42, NotificationType::InProgress);
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &config,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        assert_eq!(resolve_notification_icon(&tab, &state), "RUN");
     }
 }

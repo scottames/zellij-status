@@ -75,6 +75,7 @@ layout {
                 // --- Notifications ---
                 notification_enabled        "true"
                 notification_waiting_icon   "⏳"
+                notification_in_progress_icon "🔄"
                 notification_completed_icon "✅"
                 notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
                 notification_show_if_empty  "false"
@@ -144,6 +145,7 @@ layout {
                 start_index     1
                 notification_enabled        "true"
                 notification_waiting_icon   "⏳"
+                notification_in_progress_icon "🔄"
                 notification_completed_icon "✅"
                 notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
                 notification_show_if_empty  "false"

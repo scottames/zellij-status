@@ -16,13 +16,13 @@ ORIENTATION
 
   Common widgets and where to find them:
 
-    mode        current Zellij mode (Normal, Pane, Tab, ...)
-    tabs        tab list with per-tab notification icons
-    session     session name
-    notifications  global count of pending/done notifications
-    datetime    current time
-    command     output of a shell command (e.g. git branch)
-    pipe        arbitrary text pushed in via zellij pipe
+    mode           current Zellij mode (Normal, Pane, Tab, ...)
+    tabs           tab list with per-tab notification icons
+    session        session name
+    notifications  global count of panes with active notifications
+    datetime       current time
+    command        output of a shell command (e.g. git branch)
+    pipe           arbitrary text pushed in via zellij pipe
 
 ──────────────────────────────────────────────────────────────
 
@@ -52,14 +52,19 @@ NOTIFICATIONS
 
   The notification system lets external processes signal tab
   status. Each pane has an integer ID; the bar tracks which
-  panes are waiting or completed and shows icons accordingly.
+  panes are waiting, in progress, or completed and shows icons
+  accordingly.
 
   Protocol — pipe name format:
 
     zellij-status::EVENT::PANE_ID
 
-  Events:   waiting    task is running   (shows waiting icon)
-            completed  task finished     (shows done icon)
+  Events:   in_progress (or busy)  task is actively running
+            waiting                 task needs your input/approval
+            completed               task finished
+
+  Tab icon priority is: waiting > in_progress > completed.
+  (If a tab has mixed states, waiting wins.)
 
   $ZELLIJ_PANE_ID is set automatically in every Zellij shell.
   Use it in scripts to target the current pane (see notify()
@@ -77,37 +82,51 @@ NOTIFICATIONS
     b. Run:  echo $ZELLIJ_PANE_ID    ← note this number (e.g. "3")
     c. Switch back to this tab.
 
-  1. Mark it as waiting (replace 3 with your number):
+  1. Mark it as actively running (replace 3 with your number):
+
+       zellij pipe --name "zellij-status::in_progress::3"
+
+     (Alias: zellij-status::busy::3)
+
+     Watch the "default-1" tab show the in-progress icon 🔄.
+     The global notification count badge updates too.
+
+  2. Mark it as waiting — icon changes to ⏳:
 
        zellij pipe --name "zellij-status::waiting::3"
 
-     Watch the "default-1" tab show the waiting icon ⏳.
-     The global notification count badge updates too.
-
-  2. Mark it as completed — icon changes to ✅:
+  3. Mark it as completed — icon changes to ✅:
 
        zellij pipe --name "zellij-status::completed::3"
 
      Or just switch to "default-1" and focus the pane —
      it clears automatically when the pane is focused.
 
-  3. Simulate a long-running task — run this from the "default-1"
+  4. Simulate a long-running task — run this from the "default-1"
      pane (using its own $ZELLIJ_PANE_ID), then switch away:
 
-       zellij pipe --name "zellij-status::waiting::$ZELLIJ_PANE_ID" \
+       zellij pipe --name "zellij-status::in_progress::$ZELLIJ_PANE_ID" \
+         && sleep 2 \
+         && zellij pipe --name "zellij-status::waiting::$ZELLIJ_PANE_ID" \
          && sleep 5 \
          && zellij pipe --name "zellij-status::completed::$ZELLIJ_PANE_ID"
 
-     Watch the icon change from ⏳ to ✅ when the sleep finishes.
+     Watch the icon move from 🔄 to ⏳ to ✅.
 
-  4. Use it in real scripts — wrap any command:
+  5. Use it in real scripts — wrap any command:
 
-       notify() {
-         local pane=$ZELLIJ_PANE_ID
-         zellij pipe --name "zellij-status::waiting::$pane"
-         "$@"
-         zellij pipe --name "zellij-status::completed::$pane"
-       }
+        notify() {
+          local pane=$ZELLIJ_PANE_ID
+          zellij pipe --name "zellij-status::in_progress::$pane"
+          "$@"
+          local exit_code=$?
+          if [ $exit_code -eq 0 ]; then
+            zellij pipe --name "zellij-status::completed::$pane"
+          else
+            zellij pipe --name "zellij-status::waiting::$pane"
+          fi
+          return $exit_code
+        }
 
        notify cargo build --release
 

@@ -96,6 +96,7 @@ layout {
                 // Global: {notifications} widget shows aggregate count.
                 notification_enabled        "true"
                 notification_waiting_icon   "⏳"
+                notification_in_progress_icon "🔄"
                 notification_completed_icon "✅"
                 notification_format         "#[fg=$peach,bold] {count} "
                 notification_show_if_empty  "false"
@@ -193,6 +194,7 @@ layout {
                 start_index     1
                 notification_enabled        "true"
                 notification_waiting_icon   "⏳"
+                notification_in_progress_icon "🔄"
                 notification_completed_icon "✅"
                 notification_format         "#[fg=$peach,bold] {count} "
                 notification_show_if_empty  "false"

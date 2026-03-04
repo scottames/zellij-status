@@ -3,7 +3,7 @@ use super::NotificationType;
 /// Result of parsing a pipe message as a notification.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeNotification {
-    /// The type of notification (waiting or completed).
+    /// The type of notification (waiting, in_progress/busy, or completed).
     pub notification_type: NotificationType,
     /// The pane ID that the notification applies to.
     pub pane_id: u32,
@@ -21,7 +21,7 @@ pub struct PipeData {
 /// Parse a pipe message name into a notification.
 ///
 /// Expected format: `zellij-status::EVENT::PANE_ID`
-/// where EVENT is `waiting` or `completed` and PANE_ID is a u32.
+/// where EVENT is `waiting`, `in_progress`/`busy`, or `completed` and PANE_ID is a u32.
 ///
 /// Also checks the payload for the same format (broadcast pipes may
 /// put the message in payload instead of name).
@@ -78,6 +78,7 @@ fn parse_notification_str(s: &str) -> Option<PipeNotification> {
 
     let notification_type = match parts[1].to_lowercase().as_str() {
         "waiting" => NotificationType::Waiting,
+        "in_progress" | "busy" => NotificationType::InProgress,
         "completed" => NotificationType::Completed,
         _ => return None,
     };
@@ -119,12 +120,48 @@ mod tests {
     }
 
     #[test]
+    fn parse_in_progress_from_name() {
+        let result = parse_pipe_message("zellij-status::in_progress::8", None);
+        assert_eq!(
+            result,
+            Some(PipeNotification {
+                notification_type: NotificationType::InProgress,
+                pane_id: 8,
+            })
+        );
+    }
+
+    #[test]
+    fn parse_busy_alias_from_name() {
+        let result = parse_pipe_message("zellij-status::busy::9", None);
+        assert_eq!(
+            result,
+            Some(PipeNotification {
+                notification_type: NotificationType::InProgress,
+                pane_id: 9,
+            })
+        );
+    }
+
+    #[test]
     fn parse_from_payload_fallback() {
         let result = parse_pipe_message("some-other-name", Some("zellij-status::waiting::99"));
         assert_eq!(
             result,
             Some(PipeNotification {
                 notification_type: NotificationType::Waiting,
+                pane_id: 99,
+            })
+        );
+    }
+
+    #[test]
+    fn parse_in_progress_from_payload_fallback() {
+        let result = parse_pipe_message("some-other-name", Some("zellij-status::busy::99"));
+        assert_eq!(
+            result,
+            Some(PipeNotification {
+                notification_type: NotificationType::InProgress,
                 pane_id: 99,
             })
         );
@@ -183,6 +220,18 @@ mod tests {
             result,
             Some(PipeNotification {
                 notification_type: NotificationType::Waiting,
+                pane_id: 42,
+            })
+        );
+    }
+
+    #[test]
+    fn case_insensitive_busy_alias() {
+        let result = parse_pipe_message("zellij-status::BUSY::42", None);
+        assert_eq!(
+            result,
+            Some(PipeNotification {
+                notification_type: NotificationType::InProgress,
                 pane_id: 42,
             })
         );
@@ -260,7 +309,7 @@ mod tests {
 
     #[test]
     fn parse_pipe_data_ignores_notification_format() {
-        // Notifications use "waiting"/"completed", not "pipe"
+        // Notifications use "waiting"/"in_progress"/"busy"/"completed", not "pipe"
         assert_eq!(parse_pipe_data("zellij-status::waiting::42", None), None);
     }
 

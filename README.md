@@ -103,11 +103,15 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
 
     notification_enabled        "true"
     notification_waiting_icon   "⏳"
+    notification_in_progress_icon "🔄"
     notification_completed_icon "✅"
     notification_format         "#[fg=$accent,bold] {count} "
     notification_show_if_empty  "false"
 }
 ```
+
+`notification_busy_icon` is also supported as an alias for
+`notification_in_progress_icon`.
 
 <!-- prettier-ignore-start -->
 > [!TIP]

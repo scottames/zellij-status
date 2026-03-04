@@ -8,7 +8,7 @@ use super::NotificationType;
 ///
 /// Notifications are stored as `pane_id → {notification_types}`. When
 /// querying a tab, we aggregate across all non-plugin panes in that tab
-/// with priority ordering: `Waiting` > `Completed`.
+/// with priority ordering: `Waiting` > `InProgress` > `Completed`.
 #[derive(Debug, Default)]
 pub struct NotificationTracker {
     /// Per-pane notification state: pane_id → set of active notification types.
@@ -46,6 +46,7 @@ impl NotificationTracker {
     /// Iterates all non-plugin panes in the tab and returns the highest-priority
     /// notification type found:
     /// - `Waiting` (highest priority — any pane waiting means tab shows waiting)
+    /// - `InProgress`
     /// - `Completed`
     /// - `None` (no notifications)
     pub fn get_tab_notification(
@@ -54,6 +55,7 @@ impl NotificationTracker {
         panes: &PaneManifest,
     ) -> Option<NotificationType> {
         let tab_panes = panes.panes.get(&tab_position)?;
+        let mut has_in_progress = false;
         let mut has_completed = false;
 
         for pane in tab_panes {
@@ -64,13 +66,18 @@ impl NotificationTracker {
                 if types.contains(&NotificationType::Waiting) {
                     return Some(NotificationType::Waiting);
                 }
+                if types.contains(&NotificationType::InProgress) {
+                    has_in_progress = true;
+                }
                 if types.contains(&NotificationType::Completed) {
                     has_completed = true;
                 }
             }
         }
 
-        if has_completed {
+        if has_in_progress {
+            Some(NotificationType::InProgress)
+        } else if has_completed {
             Some(NotificationType::Completed)
         } else {
             None
@@ -202,7 +209,7 @@ mod tests {
     #[test]
     fn tab_notification_waiting_priority() {
         let mut tracker = NotificationTracker::default();
-        tracker.add(1, NotificationType::Completed);
+        tracker.add(1, NotificationType::InProgress);
         tracker.add(2, NotificationType::Waiting);
 
         let panes = make_manifest(vec![(
@@ -210,10 +217,27 @@ mod tests {
             vec![make_pane(1, false, false), make_pane(2, false, false)],
         )]);
 
-        // Waiting takes priority over Completed
+        // Waiting takes priority over InProgress
         assert_eq!(
             tracker.get_tab_notification(0, &panes),
             Some(NotificationType::Waiting)
+        );
+    }
+
+    #[test]
+    fn tab_notification_in_progress_over_completed() {
+        let mut tracker = NotificationTracker::default();
+        tracker.add(1, NotificationType::Completed);
+        tracker.add(2, NotificationType::InProgress);
+
+        let panes = make_manifest(vec![(
+            0,
+            vec![make_pane(1, false, false), make_pane(2, false, false)],
+        )]);
+
+        assert_eq!(
+            tracker.get_tab_notification(0, &panes),
+            Some(NotificationType::InProgress)
         );
     }
 
