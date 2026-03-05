@@ -60,8 +60,23 @@ notification_in_progress_icon "🔄"
 # optional alias for notification_in_progress_icon:
 # notification_busy_icon     "🔄"
 notification_completed_icon "✅"
+notification_format_tab         "{icon}"
+notification_format_waiting     "#[fg=$peach,bold]{icon}"
+notification_format_in_progress "{icon}"
+notification_format_completed   "#[fg=$green,bold]{icon}"
 notification_format         "#[fg=$peach,bold] {count} "
 notification_show_if_empty  "false"
+```
+
+`notification_format_*` keys style the per-tab `{notification}` icon.
+`notification_format_tab` is the fallback for any state-specific format key you
+do not set.
+
+If your tab format already has surrounding style, prefer isolating
+`{notification}` in its own segment so icon styling is predictable, for example:
+
+```kdl
+tab_normal "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
 ```
 
 Pipe protocol for state changes:

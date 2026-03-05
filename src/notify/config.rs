@@ -8,6 +8,10 @@ use std::collections::BTreeMap;
 /// - `notification_in_progress_icon` — icon string (default "🔄")
 /// - `notification_busy_icon` — alias of `notification_in_progress_icon`
 /// - `notification_completed_icon` — icon string (default "✅")
+/// - `notification_format_tab` — per-tab format fallback with `{icon}` (default `{icon}`)
+/// - `notification_format_waiting` — per-tab waiting format (fallback: `notification_format_tab`)
+/// - `notification_format_in_progress` — per-tab in-progress format (fallback: `notification_format_tab`)
+/// - `notification_format_completed` — per-tab completed format (fallback: `notification_format_tab`)
 #[derive(Debug, Clone)]
 pub struct NotificationConfig {
     /// Whether the notification system is active.
@@ -18,6 +22,14 @@ pub struct NotificationConfig {
     pub in_progress_icon: String,
     /// Icon displayed when a pane's operation has completed.
     pub completed_icon: String,
+    /// Per-tab notification format fallback with `{icon}` placeholder.
+    pub tab_format: String,
+    /// Per-tab waiting notification format with `{icon}` placeholder.
+    pub waiting_format: String,
+    /// Per-tab in-progress notification format with `{icon}` placeholder.
+    pub in_progress_format: String,
+    /// Per-tab completed notification format with `{icon}` placeholder.
+    pub completed_format: String,
 }
 
 impl Default for NotificationConfig {
@@ -27,6 +39,10 @@ impl Default for NotificationConfig {
             waiting_icon: "\u{23f3}".to_string(),
             in_progress_icon: "\u{1f504}".to_string(),
             completed_icon: "\u{2705}".to_string(),
+            tab_format: "{icon}".to_string(),
+            waiting_format: "{icon}".to_string(),
+            in_progress_format: "{icon}".to_string(),
+            completed_format: "{icon}".to_string(),
         }
     }
 }
@@ -56,6 +72,23 @@ impl NotificationConfig {
             config.completed_icon = icon.clone();
         }
 
+        if let Some(format) = raw.get("notification_format_tab") {
+            config.tab_format = format.clone();
+        }
+
+        config.waiting_format = raw
+            .get("notification_format_waiting")
+            .cloned()
+            .unwrap_or_else(|| config.tab_format.clone());
+        config.in_progress_format = raw
+            .get("notification_format_in_progress")
+            .cloned()
+            .unwrap_or_else(|| config.tab_format.clone());
+        config.completed_format = raw
+            .get("notification_format_completed")
+            .cloned()
+            .unwrap_or_else(|| config.tab_format.clone());
+
         config
     }
 }
@@ -71,6 +104,10 @@ mod tests {
         assert_eq!(config.waiting_icon, "\u{23f3}");
         assert_eq!(config.in_progress_icon, "\u{1f504}");
         assert_eq!(config.completed_icon, "\u{2705}");
+        assert_eq!(config.tab_format, "{icon}");
+        assert_eq!(config.waiting_format, "{icon}");
+        assert_eq!(config.in_progress_format, "{icon}");
+        assert_eq!(config.completed_format, "{icon}");
     }
 
     #[test]
@@ -81,6 +118,10 @@ mod tests {
         assert_eq!(config.waiting_icon, "\u{23f3}");
         assert_eq!(config.in_progress_icon, "\u{1f504}");
         assert_eq!(config.completed_icon, "\u{2705}");
+        assert_eq!(config.tab_format, "{icon}");
+        assert_eq!(config.waiting_format, "{icon}");
+        assert_eq!(config.in_progress_format, "{icon}");
+        assert_eq!(config.completed_format, "{icon}");
     }
 
     #[test]
@@ -90,12 +131,32 @@ mod tests {
             ("notification_waiting_icon".to_string(), "!".to_string()),
             ("notification_in_progress_icon".to_string(), "~".to_string()),
             ("notification_completed_icon".to_string(), "*".to_string()),
+            (
+                "notification_format_tab".to_string(),
+                "#[fg=yellow]{icon}".to_string(),
+            ),
+            (
+                "notification_format_waiting".to_string(),
+                "#[fg=orange]{icon}".to_string(),
+            ),
+            (
+                "notification_format_in_progress".to_string(),
+                "#[fg=default]{icon}".to_string(),
+            ),
+            (
+                "notification_format_completed".to_string(),
+                "#[fg=green]{icon}".to_string(),
+            ),
         ]);
         let config = NotificationConfig::from_raw(&raw);
         assert!(config.enabled);
         assert_eq!(config.waiting_icon, "!");
         assert_eq!(config.in_progress_icon, "~");
         assert_eq!(config.completed_icon, "*");
+        assert_eq!(config.tab_format, "#[fg=yellow]{icon}");
+        assert_eq!(config.waiting_format, "#[fg=orange]{icon}");
+        assert_eq!(config.in_progress_format, "#[fg=default]{icon}");
+        assert_eq!(config.completed_format, "#[fg=green]{icon}");
     }
 
     #[test]
@@ -120,5 +181,36 @@ mod tests {
         let raw = BTreeMap::from([("notification_enabled".to_string(), "false".to_string())]);
         let config = NotificationConfig::from_raw(&raw);
         assert!(!config.enabled);
+    }
+
+    #[test]
+    fn format_fallbacks_use_tab_format_when_state_formats_missing() {
+        let raw = BTreeMap::from([(
+            "notification_format_tab".to_string(),
+            "#[fg=peach]{icon}".to_string(),
+        )]);
+        let config = NotificationConfig::from_raw(&raw);
+        assert_eq!(config.tab_format, "#[fg=peach]{icon}");
+        assert_eq!(config.waiting_format, "#[fg=peach]{icon}");
+        assert_eq!(config.in_progress_format, "#[fg=peach]{icon}");
+        assert_eq!(config.completed_format, "#[fg=peach]{icon}");
+    }
+
+    #[test]
+    fn state_format_overrides_tab_fallback() {
+        let raw = BTreeMap::from([
+            (
+                "notification_format_tab".to_string(),
+                "#[fg=yellow]{icon}".to_string(),
+            ),
+            (
+                "notification_format_completed".to_string(),
+                "#[fg=green,bold]{icon}".to_string(),
+            ),
+        ]);
+        let config = NotificationConfig::from_raw(&raw);
+        assert_eq!(config.waiting_format, "#[fg=yellow]{icon}");
+        assert_eq!(config.in_progress_format, "#[fg=yellow]{icon}");
+        assert_eq!(config.completed_format, "#[fg=green,bold]{icon}");
     }
 }

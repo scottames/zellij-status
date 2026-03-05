@@ -127,26 +127,36 @@ impl TabsWidget {
         let name = resolve_tab_name(tab, &state.mode.mode);
         let name_truncated = truncate_str(&name, max_name);
 
-        // Resolve notification icon for this tab
-        let notification_icon = resolve_notification_icon(tab, state);
-
+        let notification_fragment = resolve_notification_icon(tab, state);
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let mut out = String::new();
 
         for part in &parts {
             let mut content = part.content.clone();
-
             if content.contains("{index}") {
                 content = content.replace("{index}", &display_index.to_string());
             }
             if content.contains("{name}") {
                 content = content.replace("{name}", &name_truncated);
             }
-            if content.contains("{notification}") {
-                content = content.replace("{notification}", &notification_icon);
-            }
 
-            out.push_str(&part.render(&content));
+            if content.contains("{notification}") {
+                let segments: Vec<&str> = content.split("{notification}").collect();
+                for (i, segment) in segments.iter().enumerate() {
+                    if !segment.is_empty() {
+                        out.push_str(&part.render(segment));
+                    }
+                    if i + 1 < segments.len() {
+                        out.push_str(&render_notification_fragment(
+                            &notification_fragment,
+                            part,
+                            &state.config.color_aliases,
+                        ));
+                    }
+                }
+            } else {
+                out.push_str(&part.render(&content));
+            }
         }
 
         out
@@ -168,7 +178,7 @@ impl TabsWidget {
         let max_name = state.config.tabs.max_name_length;
         let name = resolve_tab_name(tab, &state.mode.mode);
         let name_truncated = truncate_str(&name, max_name);
-        let notification_icon = resolve_notification_icon(tab, state);
+        let notification_fragment = resolve_notification_icon(tab, state);
 
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let fill_idx = parts.iter().position(|p| p.fill)?;
@@ -199,9 +209,22 @@ impl TabsWidget {
                     content = content.replace("{name}", &name_truncated);
                 }
                 if content.contains("{notification}") {
-                    content = content.replace("{notification}", &notification_icon);
+                    let segments: Vec<&str> = content.split("{notification}").collect();
+                    for (i, segment) in segments.iter().enumerate() {
+                        if !segment.is_empty() {
+                            out.push_str(&part.render(segment));
+                        }
+                        if i + 1 < segments.len() {
+                            out.push_str(&render_notification_fragment(
+                                &notification_fragment,
+                                part,
+                                &state.config.color_aliases,
+                            ));
+                        }
+                    }
+                } else {
+                    out.push_str(&part.render(&content));
                 }
-                out.push_str(&part.render(&content));
             }
             out
         };
@@ -276,25 +299,62 @@ impl Widget for TabsWidget {
     }
 }
 
-/// Resolve the notification icon for a tab based on tracker state and config.
+/// Resolve the rendered notification content for a tab based on tracker state
+/// and config.
 ///
-/// Returns the appropriate icon string, or an empty string if no notification
-/// is active or notifications are disabled.
+/// Returns the formatted notification fragment, or an empty string if no
+/// notification is active or notifications are disabled.
 fn resolve_notification_icon(tab: &TabInfo, state: &PluginState<'_>) -> String {
     let notify_config = &state.config.notifications;
     if !notify_config.enabled {
         return String::new();
     }
 
-    match state
+    let (icon, format_template) = match state
         .notifications
         .get_tab_notification(tab.position, state.panes)
     {
-        Some(NotificationType::Waiting) => notify_config.waiting_icon.clone(),
-        Some(NotificationType::InProgress) => notify_config.in_progress_icon.clone(),
-        Some(NotificationType::Completed) => notify_config.completed_icon.clone(),
-        None => String::new(),
+        Some(NotificationType::Waiting) => {
+            (&notify_config.waiting_icon, &notify_config.waiting_format)
+        }
+        Some(NotificationType::InProgress) => (
+            &notify_config.in_progress_icon,
+            &notify_config.in_progress_format,
+        ),
+        Some(NotificationType::Completed) => (
+            &notify_config.completed_icon,
+            &notify_config.completed_format,
+        ),
+        None => return String::new(),
+    };
+
+    format_template.replace("{icon}", icon)
+}
+
+fn render_notification_fragment(
+    fragment: &str,
+    host: &FormattedPart,
+    aliases: &BTreeMap<String, String>,
+) -> String {
+    if fragment.is_empty() {
+        return String::new();
     }
+
+    if !fragment.contains("#[") {
+        return host.render(fragment);
+    }
+
+    let mut out = String::new();
+    for mut part in parse_format_string(fragment, aliases) {
+        if part.fg.is_none() {
+            part.fg = host.fg;
+        }
+        if part.bg.is_none() {
+            part.bg = host.bg;
+        }
+        out.push_str(&part.render_content());
+    }
+    out
 }
 
 /// Resolve what name to display for a tab.
@@ -601,5 +661,92 @@ mod tests {
         );
 
         assert_eq!(resolve_notification_icon(&tab, &state), "RUN");
+    }
+
+    #[test]
+    fn resolve_notification_icon_uses_state_specific_format() {
+        let tab = make_tab(0, "work", true);
+        let tabs = vec![tab.clone()];
+        let mode = ModeInfo::default();
+        let panes = make_pane_manifest(vec![(
+            0,
+            vec![PaneInfo {
+                id: 99,
+                is_plugin: false,
+                ..Default::default()
+            }],
+        )]);
+
+        let raw = BTreeMap::from([
+            ("notification_waiting_icon".to_string(), "WAIT".to_string()),
+            (
+                "notification_format_waiting".to_string(),
+                "#[fg=green,bold]{icon}".to_string(),
+            ),
+        ]);
+        let config = PluginConfig::from_configuration(raw).unwrap();
+
+        let mut notifications = NotificationTracker::default();
+        notifications.add(99, NotificationType::Waiting);
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &config,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        let rendered = resolve_notification_icon(&tab, &state);
+        assert!(rendered.contains("WAIT"));
+        assert!(rendered.contains("#[fg=green,bold]"));
+    }
+
+    #[test]
+    fn resolve_notification_icon_falls_back_to_tab_format() {
+        let tab = make_tab(0, "work", true);
+        let tabs = vec![tab.clone()];
+        let mode = ModeInfo::default();
+        let panes = make_pane_manifest(vec![(
+            0,
+            vec![PaneInfo {
+                id: 77,
+                is_plugin: false,
+                ..Default::default()
+            }],
+        )]);
+
+        let raw = BTreeMap::from([
+            (
+                "notification_completed_icon".to_string(),
+                "DONE".to_string(),
+            ),
+            (
+                "notification_format_tab".to_string(),
+                "[{icon}]".to_string(),
+            ),
+        ]);
+        let config = PluginConfig::from_configuration(raw).unwrap();
+
+        let mut notifications = NotificationTracker::default();
+        notifications.add(77, NotificationType::Completed);
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &config,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        assert_eq!(resolve_notification_icon(&tab, &state), "[DONE]");
     }
 }

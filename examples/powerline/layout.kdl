@@ -74,9 +74,13 @@ layout {
 
                 // --- Notifications ---
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_in_progress_icon "🔄"
-                notification_completed_icon "✅"
+                notification_waiting_icon   ""
+                notification_in_progress_icon "󰔛"
+                notification_completed_icon ""
+                notification_format_tab         "{icon}"
+                notification_format_waiting     "#[fg=$yellow,bold]{icon}"
+                notification_format_in_progress "{icon}"
+                notification_format_completed   "#[fg=$green,bold]{icon}"
                 notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
                 notification_show_if_empty  "false"
 
@@ -144,9 +148,13 @@ layout {
                 max_name_length 18
                 start_index     1
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_in_progress_icon "🔄"
-                notification_completed_icon "✅"
+                notification_waiting_icon   ""
+                notification_in_progress_icon "󰔛"
+                notification_completed_icon ""
+                notification_format_tab         "{icon}"
+                notification_format_waiting     "#[fg=$yellow,bold]{icon}"
+                notification_format_in_progress "{icon}"
+                notification_format_completed   "#[fg=$green,bold]{icon}"
                 notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
                 notification_show_if_empty  "false"
                 mode_normal       "#[bg=$frost2,fg=$nord0,bold,fill] NORMAL "

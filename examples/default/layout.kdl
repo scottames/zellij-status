@@ -79,12 +79,12 @@ layout {
                 // --- Tab format strings ---
                 // Each variant handles a different tab state. Fallback chain:
                 //   fullscreen/sync -> active/normal -> tab_normal (hard default)
-                tab_normal            "#[fg=$overlay0] {index} {name} {notification}"
-                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 {notification}"
-                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification} #[bg=default]"
-                tab_normal_sync       "#[fg=$overlay0] {index} {name}  {notification}"
-                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification} #[bg=default]"
+                tab_normal            "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
+                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{notification} #[bg=default]"
+                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 #[fg=$overlay0]{notification}"
+                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 #[fg=$base,bg=$green]{notification} #[bg=default]"
+                tab_normal_sync       "#[fg=$overlay0] {index} {name}  #[fg=$overlay0]{notification}"
+                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  #[fg=$base,bg=$green]{notification} #[bg=default]"
                 tab_rename            "#[fg=$green,italic] {index} {name} "
                 tab_separator         "#[fg=$surface1]|"
 
@@ -98,6 +98,13 @@ layout {
                 notification_waiting_icon   "⏳"
                 notification_in_progress_icon "🔄"
                 notification_completed_icon "✅"
+                // Per-tab icon formatting by state.
+                // This block intentionally applies color to waiting/completed
+                // to validate interaction with surrounding tab style segments.
+                notification_format_tab         "{icon}"
+                notification_format_waiting     "#[fg=$yellow,bold]{icon}"
+                notification_format_in_progress "{icon}"
+                notification_format_completed   "#[fg=$green,bold]{icon}"
                 notification_format         "#[fg=$peach,bold] {count} "
                 notification_show_if_empty  "false"
 
@@ -182,12 +189,12 @@ layout {
                 format_space "#[bg=$mantle]"
                 format_precedence         "132"
                 format_hide_on_overlength "true"
-                tab_normal            "#[fg=$overlay0] {index} {name} {notification}"
-                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 {notification}"
-                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 {notification} #[bg=default]"
-                tab_normal_sync       "#[fg=$overlay0] {index} {name}  {notification}"
-                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  {notification} #[bg=default]"
+                tab_normal            "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
+                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{notification} #[bg=default]"
+                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 #[fg=$overlay0]{notification}"
+                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 #[fg=$base,bg=$green]{notification} #[bg=default]"
+                tab_normal_sync       "#[fg=$overlay0] {index} {name}  #[fg=$overlay0]{notification}"
+                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  #[fg=$base,bg=$green]{notification} #[bg=default]"
                 tab_rename            "#[fg=$green,italic] {index} {name} "
                 tab_separator         "#[fg=$surface1]|"
                 max_name_length 18
@@ -196,6 +203,10 @@ layout {
                 notification_waiting_icon   "⏳"
                 notification_in_progress_icon "🔄"
                 notification_completed_icon "✅"
+                notification_format_tab         "{icon}"
+                notification_format_waiting     "#[fg=$yellow,bold]{icon}"
+                notification_format_in_progress "{icon}"
+                notification_format_completed   "#[fg=$green,bold]{icon}"
                 notification_format         "#[fg=$peach,bold] {count} "
                 notification_show_if_empty  "false"
                 mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "

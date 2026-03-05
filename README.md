@@ -105,6 +105,10 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
     notification_waiting_icon   "⏳"
     notification_in_progress_icon "🔄"
     notification_completed_icon "✅"
+    notification_format_tab         "{icon}"
+    notification_format_waiting     "#[fg=yellow,bold]{icon}"
+    notification_format_in_progress "{icon}"
+    notification_format_completed   "#[fg=$accent,bold]{icon}"
     notification_format         "#[fg=$accent,bold] {count} "
     notification_show_if_empty  "false"
 }
@@ -112,6 +116,9 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
 
 `notification_busy_icon` is also supported as an alias for
 `notification_in_progress_icon`.
+
+Per-tab `{notification}` formatting uses `notification_format_*` keys and
+supports `{icon}` as a placeholder.
 
 <!-- prettier-ignore-start -->
 > [!TIP]
