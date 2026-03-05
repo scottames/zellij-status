@@ -55,11 +55,9 @@ Typical notification config:
 
 ```kdl
 notification_enabled        "true"
-notification_waiting_icon   "⏳"
-notification_in_progress_icon "🔄"
-# optional alias for notification_in_progress_icon:
-# notification_busy_icon     "🔄"
-notification_completed_icon "✅"
+notification_icon_waiting   "⏳"
+notification_icon_in_progress "🔄"
+notification_icon_completed "✅"
 notification_format_tab         "{icon}"
 notification_format_waiting     "#[fg=$peach,bold]{icon}"
 notification_format_in_progress "{icon}"

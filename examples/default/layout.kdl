@@ -95,9 +95,9 @@ layout {
                 // Per-tab: {notification} in tab format strings shows an icon.
                 // Global: {notifications} widget shows aggregate count.
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_in_progress_icon "🔄"
-                notification_completed_icon "✅"
+                notification_icon_waiting   "⏳"
+                notification_icon_in_progress "🔄"
+                notification_icon_completed "✅"
                 // Per-tab icon formatting by state.
                 // This block intentionally applies color to waiting/completed
                 // to validate interaction with surrounding tab style segments.
@@ -200,9 +200,9 @@ layout {
                 max_name_length 18
                 start_index     1
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_in_progress_icon "🔄"
-                notification_completed_icon "✅"
+                notification_icon_waiting   "⏳"
+                notification_icon_in_progress "🔄"
+                notification_icon_completed "✅"
                 notification_format_tab         "{icon}"
                 notification_format_waiting     "#[fg=$yellow,bold]{icon}"
                 notification_format_in_progress "{icon}"

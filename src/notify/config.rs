@@ -4,10 +4,9 @@ use std::collections::BTreeMap;
 ///
 /// Parsed from the plugin's flat key-value config with keys:
 /// - `notification_enabled` — "true" (default) or "false"
-/// - `notification_waiting_icon` — icon string (default "⏳")
-/// - `notification_in_progress_icon` — icon string (default "🔄")
-/// - `notification_busy_icon` — alias of `notification_in_progress_icon`
-/// - `notification_completed_icon` — icon string (default "✅")
+/// - `notification_icon_waiting` — icon string (default "⏳")
+/// - `notification_icon_in_progress` — icon string (default "🔄")
+/// - `notification_icon_completed` — icon string (default "✅")
 /// - `notification_format_tab` — per-tab format fallback with `{icon}` (default `{icon}`)
 /// - `notification_format_waiting` — per-tab waiting format (fallback: `notification_format_tab`)
 /// - `notification_format_in_progress` — per-tab in-progress format (fallback: `notification_format_tab`)
@@ -56,19 +55,15 @@ impl NotificationConfig {
             config.enabled = enabled == "true";
         }
 
-        if let Some(icon) = raw.get("notification_waiting_icon") {
+        if let Some(icon) = raw.get("notification_icon_waiting") {
             config.waiting_icon = icon.clone();
         }
 
-        if let Some(icon) = raw.get("notification_busy_icon") {
+        if let Some(icon) = raw.get("notification_icon_in_progress") {
             config.in_progress_icon = icon.clone();
         }
 
-        if let Some(icon) = raw.get("notification_in_progress_icon") {
-            config.in_progress_icon = icon.clone();
-        }
-
-        if let Some(icon) = raw.get("notification_completed_icon") {
+        if let Some(icon) = raw.get("notification_icon_completed") {
             config.completed_icon = icon.clone();
         }
 
@@ -128,9 +123,9 @@ mod tests {
     fn from_raw_custom_values() {
         let raw = BTreeMap::from([
             ("notification_enabled".to_string(), "true".to_string()),
-            ("notification_waiting_icon".to_string(), "!".to_string()),
-            ("notification_in_progress_icon".to_string(), "~".to_string()),
-            ("notification_completed_icon".to_string(), "*".to_string()),
+            ("notification_icon_waiting".to_string(), "!".to_string()),
+            ("notification_icon_in_progress".to_string(), "~".to_string()),
+            ("notification_icon_completed".to_string(), "*".to_string()),
             (
                 "notification_format_tab".to_string(),
                 "#[fg=yellow]{icon}".to_string(),
@@ -160,20 +155,17 @@ mod tests {
     }
 
     #[test]
-    fn from_raw_busy_alias() {
-        let raw = BTreeMap::from([("notification_busy_icon".to_string(), "...".to_string())]);
-        let config = NotificationConfig::from_raw(&raw);
-        assert_eq!(config.in_progress_icon, "...");
-    }
-
-    #[test]
-    fn from_raw_in_progress_takes_precedence_over_busy_alias() {
+    fn from_raw_ignores_legacy_icon_keys() {
         let raw = BTreeMap::from([
-            ("notification_busy_icon".to_string(), "...".to_string()),
-            ("notification_in_progress_icon".to_string(), "~".to_string()),
+            ("notification_waiting_icon".to_string(), "W".to_string()),
+            ("notification_busy_icon".to_string(), "B".to_string()),
+            ("notification_in_progress_icon".to_string(), "P".to_string()),
+            ("notification_completed_icon".to_string(), "C".to_string()),
         ]);
         let config = NotificationConfig::from_raw(&raw);
-        assert_eq!(config.in_progress_icon, "~");
+        assert_eq!(config.waiting_icon, "\u{23f3}");
+        assert_eq!(config.in_progress_icon, "\u{1f504}");
+        assert_eq!(config.completed_icon, "\u{2705}");
     }
 
     #[test]
@@ -212,5 +204,27 @@ mod tests {
         assert_eq!(config.waiting_format, "#[fg=yellow]{icon}");
         assert_eq!(config.in_progress_format, "#[fg=yellow]{icon}");
         assert_eq!(config.completed_format, "#[fg=green,bold]{icon}");
+    }
+
+    #[test]
+    fn state_format_overrides_are_independent() {
+        let raw = BTreeMap::from([
+            (
+                "notification_format_tab".to_string(),
+                "#[fg=yellow]{icon}".to_string(),
+            ),
+            (
+                "notification_format_waiting".to_string(),
+                "#[fg=orange]{icon}".to_string(),
+            ),
+            (
+                "notification_format_in_progress".to_string(),
+                "#[fg=blue]{icon}".to_string(),
+            ),
+        ]);
+        let config = NotificationConfig::from_raw(&raw);
+        assert_eq!(config.waiting_format, "#[fg=orange]{icon}");
+        assert_eq!(config.in_progress_format, "#[fg=blue]{icon}");
+        assert_eq!(config.completed_format, "#[fg=yellow]{icon}");
     }
 }
