@@ -74,9 +74,9 @@ layout {
 
                 // --- Notifications ---
                 notification_enabled        "true"
-                notification_waiting_icon   ""
-                notification_in_progress_icon "󰔛"
-                notification_completed_icon ""
+                notification_icon_waiting   ""
+                notification_icon_in_progress "󰔛"
+                notification_icon_completed ""
                 notification_format_tab         "{icon}"
                 notification_format_waiting     "#[fg=$yellow,bold]{icon}"
                 notification_format_in_progress "{icon}"
@@ -148,9 +148,9 @@ layout {
                 max_name_length 18
                 start_index     1
                 notification_enabled        "true"
-                notification_waiting_icon   ""
-                notification_in_progress_icon "󰔛"
-                notification_completed_icon ""
+                notification_icon_waiting   ""
+                notification_icon_in_progress "󰔛"
+                notification_icon_completed ""
                 notification_format_tab         "{icon}"
                 notification_format_waiting     "#[fg=$yellow,bold]{icon}"
                 notification_format_in_progress "{icon}"

@@ -31,9 +31,9 @@ layout {
 
                 // --- Notifications ---
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_in_progress_icon "🔄"
-                notification_completed_icon "✅"
+                notification_icon_waiting   "⏳"
+                notification_icon_in_progress "🔄"
+                notification_icon_completed "✅"
                 notification_format         "#[fg=$accent,bold] {count} "
                 notification_show_if_empty  "false"
             }
@@ -53,9 +53,9 @@ layout {
                 tab_normal "#[fg=$fg] {index}:{name} {notification}"
                 tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
                 notification_enabled        "true"
-                notification_waiting_icon   "⏳"
-                notification_in_progress_icon "🔄"
-                notification_completed_icon "✅"
+                notification_icon_waiting   "⏳"
+                notification_icon_in_progress "🔄"
+                notification_icon_completed "✅"
                 notification_format         "#[fg=$accent,bold] {count} "
                 notification_show_if_empty  "false"
             }

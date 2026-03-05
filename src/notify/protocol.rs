@@ -237,6 +237,21 @@ mod tests {
         );
     }
 
+    #[test]
+    fn busy_name_takes_precedence_over_payload() {
+        let result = parse_pipe_message(
+            "zellij-status::busy::3",
+            Some("zellij-status::completed::4"),
+        );
+        assert_eq!(
+            result,
+            Some(PipeNotification {
+                notification_type: NotificationType::InProgress,
+                pane_id: 3,
+            })
+        );
+    }
+
     // -- parse_pipe_data tests --
 
     #[test]

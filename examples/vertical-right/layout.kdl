@@ -126,9 +126,9 @@ layout {
 
                     // --- Notifications ---
                     notification_enabled        "true"
-                    notification_waiting_icon   "󰈅"
-                    notification_in_progress_icon "󰇘"
-                    notification_completed_icon ""
+                    notification_icon_waiting   "󰈅"
+                    notification_icon_in_progress "󰇘"
+                    notification_icon_completed ""
                     notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
                     notification_show_if_empty  "false"
 
@@ -257,9 +257,9 @@ layout {
 
                     // --- Notifications ---
                     notification_enabled        "true"
-                    notification_waiting_icon   "󰈅"
-                    notification_in_progress_icon "󰇘"
-                    notification_completed_icon ""
+                    notification_icon_waiting   "󰈅"
+                    notification_icon_in_progress "󰇘"
+                    notification_icon_completed ""
                     notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
                     notification_show_if_empty  "false"
 

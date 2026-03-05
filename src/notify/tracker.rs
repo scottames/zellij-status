@@ -242,6 +242,28 @@ mod tests {
     }
 
     #[test]
+    fn tab_notification_precedence_waiting_over_in_progress_over_completed() {
+        let mut tracker = NotificationTracker::default();
+        tracker.add(1, NotificationType::Completed);
+        tracker.add(2, NotificationType::InProgress);
+        tracker.add(3, NotificationType::Waiting);
+
+        let panes = make_manifest(vec![(
+            0,
+            vec![
+                make_pane(1, false, false),
+                make_pane(2, false, false),
+                make_pane(3, false, false),
+            ],
+        )]);
+
+        assert_eq!(
+            tracker.get_tab_notification(0, &panes),
+            Some(NotificationType::Waiting)
+        );
+    }
+
+    #[test]
     fn tab_notification_skips_plugin_panes() {
         let mut tracker = NotificationTracker::default();
         tracker.add(1, NotificationType::Waiting);
