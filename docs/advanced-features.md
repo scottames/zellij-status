@@ -6,6 +6,14 @@ reference when you want to tune behavior.
 
 ## Start from a known-good profile
 
+<!-- prettier-ignore-start -->
+>[!NOTE]
+> The example profiles use [Nerd Fonts](https://www.nerdfonts.com/) glyphs for
+> tab indicators, powerline arrows, and notification icons. Make sure your
+> terminal font includes Nerd Fonts glyphs, or substitute plain-text alternatives
+> in your own config.
+<!-- prettier-ignore-end -->
+
 Run any profile from `examples/` first so you can compare behavior while making
 changes:
 
@@ -16,9 +24,12 @@ mise run example default
 
 ## Format model: how the bar is composed
 
-`zellij-status` renders sections using `format_<index>_<zone>` keys.
+The bar is built from **sections** — each section is a styled segment of text
+rendered in a specific zone of the bar. You define sections using
+`format_<index>_<zone>` keys, and the plugin composes them left-to-right (or
+top-to-bottom in vertical mode) within each zone.
 
-- `index` controls order within a zone (`1`, `2`, `3`, ...)
+- `index` controls render order within a zone (`1`, `2`, `3`, ...)
 - `zone` depends on layout mode:
   - horizontal: `left`, `center`, `right` (aliases: `start`, `middle`, `end`)
   - vertical: `top`, `middle`, `bottom`
@@ -79,11 +90,15 @@ tab_normal "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
 
 Pipe protocol for state changes:
 
-`zellij-status::EVENT::PANE_ID`
+```plaintext
+zellij-status::EVENT::PANE_ID
+```
 
-- `EVENT=waiting`: mark pane as waiting for user input/approval
-- `EVENT=in_progress` (or `EVENT=busy`): mark pane as actively running
-- `EVENT=completed`: mark pane as done
+| Event         | Meaning                                            |
+| ------------- | -------------------------------------------------- |
+| `waiting`     | Mark pane as waiting for input                     |
+| `in_progress` | Mark pane as actively running (`busy` is an alias) |
+| `completed`   | Mark pane as done                                  |
 
 Try it:
 
@@ -140,7 +155,7 @@ Three styling ideas are used across examples:
   space in a row.
 - `{mode_cap}` renders a cap transition arrow based on mode fill color.
 - `cap_bg` sets the background behind cap arrows; `cap_symbol` can override the
-  glyph (default cap glyph is ``; for example, `` in `vertical-right`).
+  glyph.
 - If you prefer a classic non-powerline look, use `tab_separator` and/or literal
   separators (like `|`) in `format_*` strings instead of cap widgets.
 
