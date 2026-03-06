@@ -3,7 +3,6 @@
 show_full_cmd = true
 
 [tools]
-"npm:fission-ai/openspec" = "latest"
 rust = "latest"
 
 [tasks.build]
