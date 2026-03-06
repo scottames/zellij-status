@@ -63,5 +63,9 @@ run = "cargo clippy --all-features --lib"
 
 [tasks.check]
 description = "Run all checks"
-depends = ["test"]
+run = ["trunk check"]
+
+[tasks.check-all]
+description = "Run all checks"
+depends = ["lint", "build", "test"]
 run = ["trunk check"]
