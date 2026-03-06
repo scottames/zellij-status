@@ -7,13 +7,6 @@ zellij-vertical-tabs (vertical layout), and zellij-attention (notifications)
 into one WASM binary. Renders tabs vertically or horizontally with configurable
 styling and pipe-based notification icons.
 
-## conditionally
-
-- The original plan doc can be found in `thoughts/shared/plans/` (see oldest) if
-  available
-- The three plugins that are used as reference are in `.clones/` (git-ignored,
-  should go away eventually)
-
 ## architecture
 
 ```
@@ -28,8 +21,9 @@ src/
 ## build & test
 
 - `mise run build` — compile to wasm32-wasip1
-- `mise run example` — launch Zellij dev session (e.g. `mise run example powerline`)
-- `cargo test --target x86_64-unknown-linux-gnu` — tests require native target
+- `mise run example` — launch Zellij dev session (e.g.
+  `mise run example powerline`)
+- `mise run test` — tests run on native host target (auto-detected)
 - `mise run check` — trunk check (clippy, formatting)
 
 ## before work should be considered complete
@@ -42,8 +36,8 @@ mise run check
 
 ## visual verification with pilotty
 
-Use `pilotty` to test the plugin renders correctly in a real Zellij session.
-Load the `pilotty` skill if available.
+If `pilotty` is available, us it to test the plugin renders correctly in a real
+Zellij session. Load the `pilotty` skill if available.
 
 ### one-time setup: grant plugin permissions
 
@@ -66,7 +60,7 @@ Use `realpath target/wasm32-wasip1/debug/zellij-status.wasm` for the exact path.
 # 1. build the plugin
 mise run build
 
-# 2. spawn a zellij dev session via pilotty (use any profile: default, scotty)
+# 2. spawn a zellij dev session via pilotty (use any profile: default)
 pilotty spawn --name dev-view zellij \
   -s zellij-status-default \
   --config-dir ./examples/default \

@@ -52,7 +52,10 @@ echo "Installed to '$dest/zellij-status.wasm'"
 
 [tasks.test]
 description = "Run tests on native target"
-run = "cargo test --target x86_64-unknown-linux-gnu"
+run = """
+#!/usr/bin/env bash
+cargo test --lib --target "$(rustc -vV | sed -n 's/^host: //p')"
+"""
 
 [tasks.lint]
 description = "Run clippy"

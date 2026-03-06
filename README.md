@@ -63,8 +63,9 @@ it in `~/.config/zellij/plugins/`:
 
 ```bash
 mkdir -p ~/.config/zellij/plugins
-# then move/copy zellij-status.wasm to the desired location, for example:
-# ~/.config/zellij/plugins/zellij-status.wasm
+curl -fsSL \
+  "https://github.com/scottames/zellij-status/releases/latest/download/zellij-status.wasm" \
+  -o ~/.config/zellij/plugins/zellij-status.wasm
 ```
 
 Then reference it in your layout as:
@@ -84,7 +85,10 @@ cp target/wasm32-wasip1/release/zellij-status.wasm ~/.config/zellij/plugins/
 
 ## Quick start
 
-Use this minimal plugin block in your tab template:
+Add this plugin block inside both `default_tab_template` and `new_tab_template`
+in your Zellij layout file (see
+[`examples/minimal/layout.kdl`](examples/minimal/layout.kdl) for a complete
+working layout):
 
 ```kdl
 plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
@@ -123,7 +127,14 @@ supports `{icon}` as a placeholder.
 > (for tabs, status segments, notifications, etc).
 <!-- prettier-ignore-end -->
 
-Full example source: `examples/minimal/layout.kdl`
+<!-- prettier-ignore-start -->
+> [!IMPORTANT]
+> Zellij uses separate templates for tabs in the layout file
+> (`default_tab_template`) and tabs created at runtime (`new_tab_template`).
+> Both must contain the same plugin block or new tabs will look different. See
+> [`examples/README.md`](examples/README.md#important-template-sync) for
+> details.
+<!-- prettier-ignore-end -->
 
 On first run, Zellij prompts for plugin permissions:
 
@@ -143,9 +154,12 @@ Each profile under `examples/` is self-contained (`config.kdl` + `layout.kdl`):
 | `vertical/`       | vertical   | Left sidebar with top/middle/bottom zones and overflow indicators   |
 | `vertical-right/` | vertical   | Right sidebar mirror of `vertical/` with reversed cap direction     |
 
-Run an example:
+Run an example from a local clone:
 
 ```bash
+git clone https://github.com/scottames/zellij-status.git
+cd zellij-status
+cargo build
 EXAMPLE="default"
 zellij \
   -s "zellij-status-${EXAMPLE}" \
@@ -154,7 +168,7 @@ zellij \
   -n "./examples/${EXAMPLE}/layout.kdl"
 ```
 
-With mise (build + run):
+With [mise](https://mise.jdx.dev/) (build + run):
 
 ```bash
 mise run example <profile>
@@ -180,6 +194,11 @@ This Frankenstein plugin is a soft-fork of the three excellent Zellij plugins:
 
 Many thanks to them for their hard work. Please check them out; give them much
 ❤️ and 🌟.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions, testing, and how
+to submit changes.
 
 ## License
 
