@@ -212,12 +212,12 @@ impl Widget for CommandWidget {
     }
 
     fn process_click(&self, _name: &str, _state: &PluginState<'_>, _col: usize) {
-        if let Some(cmd_config) = self.configs.get(_name) {
-            if let Some(click_action) = &cmd_config.click_action {
-                let args = parse_commandline(click_action);
-                let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();
-                run_command(&arg_refs, BTreeMap::new());
-            }
+        if let Some(cmd_config) = self.configs.get(_name)
+            && let Some(click_action) = &cmd_config.click_action
+        {
+            let args = parse_commandline(click_action);
+            let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();
+            run_command(&arg_refs, BTreeMap::new());
         }
     }
 

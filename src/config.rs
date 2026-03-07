@@ -24,17 +24,12 @@ pub enum SectionZone {
 }
 
 /// Horizontal alignment of rendered text within a section row.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TextAlign {
+    #[default]
     Left,
     Center,
     Right,
-}
-
-impl Default for TextAlign {
-    fn default() -> Self {
-        Self::Left
-    }
 }
 
 impl TextAlign {
