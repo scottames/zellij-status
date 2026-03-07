@@ -28,15 +28,15 @@ impl PipeWidget {
         let mut configs = BTreeMap::new();
 
         for (key, value) in config {
-            if let Some(name) = key.strip_suffix("_format") {
-                if name.starts_with("pipe_") {
-                    configs.insert(
-                        name.to_string(),
-                        PipeConfig {
-                            format: value.clone(),
-                        },
-                    );
-                }
+            if let Some(name) = key.strip_suffix("_format")
+                && name.starts_with("pipe_")
+            {
+                configs.insert(
+                    name.to_string(),
+                    PipeConfig {
+                        format: value.clone(),
+                    },
+                );
             }
         }
 

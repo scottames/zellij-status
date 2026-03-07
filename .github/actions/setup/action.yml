@@ -1,0 +1,17 @@
+---
+name: setup
+description: install mise, Rust toolchain, and cache
+runs:
+  using: composite
+  steps:
+    - name: install mise
+      # yamllint disable-line rule:line-length
+      uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3.6.3
+    - name: install rust targets and components
+      shell: bash
+      run: |
+        rustup target add wasm32-wasip1
+        rustup component add clippy
+    - name: rust cache
+      # yamllint disable-line rule:line-length
+      uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2

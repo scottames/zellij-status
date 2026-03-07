@@ -200,8 +200,6 @@ pub fn render_vertical(
             tab_count,
             available_tabs,
             cols,
-            border_fmt,
-            aliases,
             tabs_anchor.align,
         );
 
@@ -252,8 +250,6 @@ pub fn render_vertical(
             tab_count,
             available_tabs,
             cols,
-            border_fmt,
-            aliases,
             tabs_anchor.align,
         );
 
@@ -513,13 +509,14 @@ fn render_tabs_block(
     tab_count: usize,
     available_rows: usize,
     cols: usize,
-    border_fmt: &str,
-    aliases: &std::collections::BTreeMap<String, String>,
     align: TextAlign,
 ) -> Vec<String> {
     if tab_count == 0 || available_rows == 0 {
         return Vec::new();
     }
+
+    let border_fmt = &state.config.tabs.border.clone();
+    let aliases = &state.config.color_aliases;
 
     let (start, end, tabs_above, tabs_below) =
         calculate_visible_range(tab_count, available_rows, active_index);
