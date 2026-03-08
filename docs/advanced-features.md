@@ -200,6 +200,10 @@ In vertical layouts (`layout_mode "vertical"`):
 - `{tabs}` is usually anchored in `middle` so it can expand
 - overflow indicators (`tab_overflow_above`, `tab_overflow_below`) appear when
   tab rows exceed available height
+- on stable Zellij `0.43.1`, a tiled vertical plugin sidebar is hidden when a
+  sibling pane enters fullscreen, even if the plugin sets
+  `set_selectable(false)`; use horizontal mode if you need fullscreen-safe
+  always-visible status UI
 
 Right sidebar (see `vertical-right` example) mirrors the left sidebar by
 changing pane order and alignment keys, for example
