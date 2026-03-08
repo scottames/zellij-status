@@ -6,9 +6,6 @@
 
 layout {
     // default_tab_template defines the layout for tabs declared in this file.
-    // new_tab_template defines the layout for tabs created at runtime (Ctrl-t n).
-    // Both must contain the same plugin block — Zellij instantiates a separate
-    // plugin per template so they don't share config.
     default_tab_template {
         children
         pane size=1 borderless=true {
@@ -30,28 +27,6 @@ layout {
                 tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
 
                 // --- Notifications ---
-                notification_enabled        "true"
-                notification_icon_waiting   "⏳"
-                notification_icon_in_progress "🔄"
-                notification_icon_completed "✅"
-                notification_format         "#[fg=$accent,bold] {count} "
-                notification_show_if_empty  "false"
-            }
-        }
-    }
-
-    new_tab_template {
-        pane size=1 borderless=true {
-            plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
-                layout_mode "horizontal"
-                color_bg     "#1e1e2e"
-                color_fg     "#cdd6f4"
-                color_accent "#a6e3a1"
-                format_1_left  "#[fg=$accent,bold]{mode} {tabs}"
-                format_2_right "{notifications}"
-                format_3_right "#[fg=$fg] {session} "
-                tab_normal "#[fg=$fg] {index}:{name} {notification}"
-                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
                 notification_enabled        "true"
                 notification_icon_waiting   "⏳"
                 notification_icon_in_progress "🔄"

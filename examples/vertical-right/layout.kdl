@@ -159,10 +159,10 @@ layout {
         }
     }
 
-    // See the "vertical" example for why this must be a full duplicate.
+    // Required for vertical layouts — see vertical/layout.kdl header comment.
     new_tab_template {
         pane split_direction="vertical" {
-            children
+            pane command="bash"
             pane size=26 borderless=true {
                 plugin location="file:target/wasm32-wasip1/debug/zellij-status.wasm" {
                     layout_mode "vertical"

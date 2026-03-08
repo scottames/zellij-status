@@ -85,9 +85,8 @@ cp target/wasm32-wasip1/release/zellij-status.wasm ~/.config/zellij/plugins/
 
 ## Quick start
 
-Add this plugin block inside both `default_tab_template` and `new_tab_template`
-in your Zellij layout file (see
-[`examples/minimal/layout.kdl`](examples/minimal/layout.kdl) for a complete
+Add this plugin block inside `default_tab_template` in your Zellij layout file
+(see [`examples/minimal/layout.kdl`](examples/minimal/layout.kdl) for a complete
 working layout):
 
 ```kdl
@@ -105,21 +104,18 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
     tab_normal "#[fg=$fg] {index}:{name} {notification}"
     tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
 
-    notification_enabled        "true"
-    notification_icon_waiting   "⏳"
-    notification_icon_in_progress "🔄"
-    notification_icon_completed "✅"
+    notification_enabled            "true"
+    notification_icon_waiting       "⏳"
+    notification_icon_in_progress   "🔄"
+    notification_icon_completed     "✅"
     notification_format_tab         "{icon}"
     notification_format_waiting     "#[fg=yellow,bold]{icon}"
     notification_format_in_progress "{icon}"
     notification_format_completed   "#[fg=$accent,bold]{icon}"
-    notification_format         "#[fg=$accent,bold] {count} "
-    notification_show_if_empty  "false"
+    notification_format             "#[fg=$accent,bold] {count} "
+    notification_show_if_empty      "false"
 }
 ```
-
-Per-tab `{notification}` formatting uses `notification_format_*` keys and
-supports `{icon}` as a placeholder.
 
 <!-- prettier-ignore-start -->
 > [!TIP]
@@ -127,13 +123,17 @@ supports `{icon}` as a placeholder.
 > (for tabs, status segments, notifications, etc).
 <!-- prettier-ignore-end -->
 
+Per-tab `{notification}` formatting uses `notification_format_*` keys and
+supports `{icon}` as a placeholder.
+
 <!-- prettier-ignore-start -->
 > [!IMPORTANT]
-> Zellij uses separate templates for tabs in the layout file
-> (`default_tab_template`) and tabs created at runtime (`new_tab_template`).
-> Both must contain the same plugin block or new tabs will look different. See
-> [`examples/README.md`](examples/README.md#important-template-sync) for
-> details.
+> Layout specific gotchas:
+>
+> - For _horizontal_ layouts, omit `new_tab_template` — Zellij falls back to
+> `default_tab_template` automatically.
+> - For _vertical_ layouts, define `new_tab_template` with `pane command="bash"`
+> as the content pane (see the vertical examples).
 <!-- prettier-ignore-end -->
 
 On first run, Zellij prompts for plugin permissions:

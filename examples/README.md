@@ -37,12 +37,14 @@ zellij \
 
 ## Which should I start with?
 
-- **New to zellij-status?** Start with `minimal` — it's the simplest working
-  config. Add features one at a time.
-- **Want a horizontal bar?** Start with `default` for a full-featured baseline,
-  or `powerline` for a styled look.
-- **Want a sidebar?** Start with `vertical` (left side) or `vertical-right`
-  (right side).
+- _New to zellij-status?_
+  - Start with `minimal` — it's the simplest working config. Add features one at
+    a time.
+- _Want a horizontal bar?_
+  - Start with `default` for a full-featured baseline, or `powerline` for a
+    styled look.
+- _Want a sidebar?_
+  - Start with `vertical` (left side) or `vertical-right` (right side).
 
 ## Advanced reference
 
@@ -51,12 +53,11 @@ zellij \
 - Advanced customization and feature reference:
   [`docs/advanced-features.md`](../docs/advanced-features.md)
 
-## Important: template sync
+## Template for new tabs
 
-Zellij uses two templates for tab layouts:
+For _horizontal_ layouts, omit `new_tab_template` — Zellij falls back to
+`default_tab_template` automatically.
 
-- `default_tab_template` — tabs declared in the layout file
-- `new_tab_template` — tabs created at runtime (e.g. `Ctrl-t n`)
-
-Both must contain the same plugin configuration block because Zellij creates a
-separate plugin instance for each. If you change one, update the other to match.
+For _vertical_ layouts, define `new_tab_template` with `pane command="bash"` as
+the content pane. Using `children` directly in `new_tab_template` is not
+supported (see vertical examples for the correct structure).

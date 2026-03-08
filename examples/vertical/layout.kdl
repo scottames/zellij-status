@@ -42,10 +42,12 @@
 // row create the angled cap effect. The `fill` on the trailing segment
 // stretches the background between the tab content and the trailing arrow.
 //
-// WHY new_tab_template IS DUPLICATED
-// Zellij creates a separate plugin instance for each template, so
-// new_tab_template must carry the full config — it does not inherit from
-// default_tab_template.
+// WHY VERTICAL LAYOUTS NEED new_tab_template
+// Zellij's fallback from new_tab_template to default_tab_template only finds
+// `children` at the template level. Vertical layouts nest `children` inside
+// `pane split_direction="vertical"`, so the fallback misses it and new tabs
+// fail. Defining new_tab_template explicitly works because `children` inside
+// a pane node is accepted.
 
 layout {
     default_tab_template {
@@ -178,9 +180,7 @@ layout {
         }
     }
 
-    // Zellij requires new_tab_template to carry the full plugin config —
-    // it spawns a separate plugin instance, so nothing is inherited from
-    // default_tab_template above. Keep both blocks in sync.
+    // Required for vertical layouts — see header comment for why.
     new_tab_template {
         pane split_direction="vertical" {
             pane size=26 borderless=true {
@@ -307,7 +307,7 @@ layout {
                     datetime_timezone "America/Los_Angeles"
                 }
             }
-            children
+            pane command="bash"
         }
     }
 

@@ -244,8 +244,11 @@ widget.
 - Pipe value never appears:
   - confirm matching `pipe_<name>_format` exists
   - verify pipe name uses `zellij-status::pipe::<name>::<value>` exactly
-- New tabs look different from startup tabs:
-  - update both `default_tab_template` and `new_tab_template`
+- New tabs flash and close immediately:
+  - for _horizontal_ layouts: remove `new_tab_template`; Zellij falls back to
+    `default_tab_template`
+  - for _vertical_ layouts: ensure `new_tab_template` uses `pane command="bash"`
+    not `children`
 - Widgets disappear in small terminals:
   - expected if `format_hide_on_overlength "true"` is set; tune
     `format_precedence`
