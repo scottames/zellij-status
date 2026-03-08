@@ -65,16 +65,16 @@ There are two separate placeholders with different jobs:
 Typical notification config:
 
 ```kdl
-notification_enabled        "true"
-notification_icon_waiting   "⏳"
-notification_icon_in_progress "🔄"
-notification_icon_completed "✅"
-notification_format_tab         "{icon}"
-notification_format_waiting     "#[fg=$peach,bold]{icon}"
-notification_format_in_progress "{icon}"
-notification_format_completed   "#[fg=$green,bold]{icon}"
-notification_format         "#[fg=$peach,bold] {count} "
-notification_show_if_empty  "false"
+notification_enabled               "true"
+notification_format                "#[fg=$peach,bold] {count} "
+notification_format_completed      "#[fg=$green,bold]{icon}"
+notification_format_in_progress    "{icon}"
+notification_format_tab            "{icon}"
+notification_format_waiting        "#[fg=$peach,bold]{icon}"
+notification_indicator_completed   "✅"
+notification_indicator_in_progress "🔄"
+notification_indicator_waiting     "⏳"
+notification_show_if_empty         "false"
 ```
 
 `notification_format_*` keys style the per-tab `{notification}` icon.
@@ -173,8 +173,8 @@ In vertical layouts (`layout_mode "vertical"`):
 
 - zones become `top`, `middle`, and `bottom`
 - `{tabs}` is usually anchored in `middle` so it can expand
-- overflow indicators (`overflow_above`, `overflow_below`) appear when tab rows
-  exceed available height
+- overflow indicators (`tab_overflow_above`, `tab_overflow_below`) appear when
+  tab rows exceed available height
 
 Right sidebar (see `vertical-right` example) mirrors the left sidebar by
 changing pane order and alignment keys, for example

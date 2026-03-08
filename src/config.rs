@@ -163,29 +163,29 @@ impl TabConfig {
         let tab_separator = raw.get("tab_separator").cloned().unwrap_or_default();
 
         let overflow_above = raw
-            .get("overflow_above")
+            .get("tab_overflow_above")
             .cloned()
             .unwrap_or_else(|| "  ^ +{count}".to_string());
 
         let overflow_below = raw
-            .get("overflow_below")
+            .get("tab_overflow_below")
             .cloned()
             .unwrap_or_else(|| "  v +{count}".to_string());
 
         let max_name_length = raw
-            .get("max_name_length")
+            .get("tab_max_name_length")
             .and_then(|v| v.parse().ok())
             .unwrap_or(20);
 
         let padding_top = raw
-            .get("padding_top")
+            .get("tab_padding_top")
             .and_then(|v| v.parse().ok())
             .unwrap_or(0);
 
-        let border = raw.get("border").cloned().unwrap_or_default();
+        let border = raw.get("tab_border").cloned().unwrap_or_default();
 
         let start_index = raw
-            .get("start_index")
+            .get("tab_start_index")
             .and_then(|v| v.parse().ok())
             .unwrap_or(1);
 
@@ -580,9 +580,9 @@ mod tests {
                 "tab_active".to_string(),
                 "#[bold]{index}:{name}".to_string(),
             ),
-            ("max_name_length".to_string(), "30".to_string()),
-            ("start_index".to_string(), "0".to_string()),
-            ("overflow_above".to_string(), "^ {count}".to_string()),
+            ("tab_max_name_length".to_string(), "30".to_string()),
+            ("tab_start_index".to_string(), "0".to_string()),
+            ("tab_overflow_above".to_string(), "^ {count}".to_string()),
         ]);
         let parsed = PluginConfig::from_configuration(config).unwrap();
         assert_eq!(parsed.tabs.tab_active, "#[bold]{index}:{name}");

@@ -640,7 +640,7 @@ mod tests {
         )]);
 
         let raw = BTreeMap::from([(
-            "notification_icon_in_progress".to_string(),
+            "notification_indicator_in_progress".to_string(),
             "RUN".to_string(),
         )]);
         let config = PluginConfig::from_configuration(raw).unwrap();
@@ -678,7 +678,7 @@ mod tests {
         )]);
 
         let raw = BTreeMap::from([
-            ("notification_icon_waiting".to_string(), "WAIT".to_string()),
+            ("notification_indicator_waiting".to_string(), "WAIT".to_string()),
             (
                 "notification_format_waiting".to_string(),
                 "#[fg=green,bold]{icon}".to_string(),
@@ -722,7 +722,7 @@ mod tests {
 
         let raw = BTreeMap::from([
             (
-                "notification_icon_completed".to_string(),
+                "notification_indicator_completed".to_string(),
                 "DONE".to_string(),
             ),
             (

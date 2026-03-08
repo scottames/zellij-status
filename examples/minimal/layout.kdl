@@ -23,16 +23,16 @@ layout {
                 format_3_right "#[fg=$fg] {session} "
 
                 // Plain tab styling — no powerline, no separators.
-                tab_normal "#[fg=$fg] {index}:{name} {notification}"
                 tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
+                tab_normal "#[fg=$fg] {index}:{name} {notification}"
 
                 // --- Notifications ---
-                notification_enabled        "true"
-                notification_icon_waiting   "⏳"
-                notification_icon_in_progress "🔄"
-                notification_icon_completed "✅"
-                notification_format         "#[fg=$accent,bold] {count} "
-                notification_show_if_empty  "false"
+                notification_enabled               "true"
+                notification_format                "#[fg=$accent,bold] {count} "
+                notification_indicator_completed   "✅"
+                notification_indicator_in_progress "🔄"
+                notification_indicator_waiting     "⏳"
+                notification_show_if_empty         "false"
             }
         }
     }

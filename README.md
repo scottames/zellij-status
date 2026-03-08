@@ -105,9 +105,9 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
     tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
 
     notification_enabled            "true"
-    notification_icon_waiting       "⏳"
-    notification_icon_in_progress   "🔄"
-    notification_icon_completed     "✅"
+    notification_indicator_waiting       "⏳"
+    notification_indicator_in_progress   "🔄"
+    notification_indicator_completed     "✅"
     notification_format_tab         "{icon}"
     notification_format_waiting     "#[fg=yellow,bold]{icon}"
     notification_format_in_progress "{icon}"

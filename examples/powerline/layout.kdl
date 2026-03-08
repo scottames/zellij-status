@@ -60,47 +60,47 @@ layout {
                 // Each tab has  at the start and  at the end, with colour
                 // transitions creating the powerline arrow effect.
                 // No tab_separator needed — the arrows ARE the separators.
-                tab_normal            "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {notification}#[bg=$nord0,fg=$nord1]"
                 tab_active            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {notification} #[bg=$nord0,fg=$frost1]"
-                tab_normal_fullscreen "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} 󰊓 {notification}#[bg=$nord0,fg=$nord1]"
                 tab_active_fullscreen "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} 󰊓 {notification} #[bg=$nord0,fg=$frost1]"
-                tab_normal_sync       "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name}  {notification}#[bg=$nord0,fg=$nord1]"
                 tab_active_sync       "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name}  {notification} #[bg=$nord0,fg=$frost1]"
+                tab_max_name_length   18
+                tab_normal            "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {notification}#[bg=$nord0,fg=$nord1]"
+                tab_normal_fullscreen "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} 󰊓 {notification}#[bg=$nord0,fg=$nord1]"
+                tab_normal_sync       "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name}  {notification}#[bg=$nord0,fg=$nord1]"
                 tab_rename            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] RENAME #[bg=$nord0,fg=$frost1]"
                 tab_separator         ""
+                tab_start_index       1
 
-                max_name_length 18
-                start_index     1
 
                 // --- Notifications ---
-                notification_enabled        "true"
-                notification_icon_waiting   ""
-                notification_icon_in_progress "󰔛"
-                notification_icon_completed ""
-                notification_format_tab         "{icon}"
-                notification_format_waiting     "#[fg=$yellow,bold]{icon}"
-                notification_format_in_progress "{icon}"
-                notification_format_completed   "#[fg=$green,bold]{icon}"
-                notification_format         "#[bg=$nord0,fg=$orange,bold] {count} "
-                notification_show_if_empty  "false"
+                notification_enabled               "true"
+                notification_format                "#[bg=$nord0,fg=$orange,bold] {count} "
+                notification_format_completed      "#[fg=$green,bold]{icon}"
+                notification_format_in_progress    "{icon}"
+                notification_format_tab            "{icon}"
+                notification_format_waiting        "#[fg=$yellow,bold]{icon}"
+                notification_indicator_completed   ""
+                notification_indicator_in_progress "󰔛"
+                notification_indicator_waiting     ""
+                notification_show_if_empty         "false"
 
                 // --- Mode widget ---
                 // fill extends the mode bg colour across the bar and tells
                 // {mode_cap} what colour to use for its  arrow.
-                mode_normal       "#[bg=$frost2,fg=$nord0,bold,fill] NORMAL "
-                mode_locked       "#[bg=$red,fg=$nord0,bold,fill] LOCKED "
-                mode_pane         "#[bg=$orange,fg=$nord0,bold,fill] PANE "
-                mode_rename_pane  "#[bg=$orange,fg=$nord0,bold,fill] RENAMEPANE "
-                mode_tab          "#[bg=$green,fg=$nord0,bold,fill] TAB "
-                mode_rename_tab   "#[bg=$green,fg=$nord0,bold,fill] RENAMETAB "
-                mode_scroll       "#[bg=$orange,fg=$nord0,bold,fill] SCROLL "
                 mode_enter_search "#[bg=$yellow,fg=$nord0,bold,fill] ENT-SEARCH "
-                mode_search       "#[bg=$yellow,fg=$nord0,bold,fill] SEARCH "
-                mode_resize       "#[bg=$frost0,fg=$nord0,bold,fill] RESIZE "
+                mode_locked       "#[bg=$red,fg=$nord0,bold,fill] LOCKED "
                 mode_move         "#[bg=$frost0,fg=$nord0,bold,fill] MOVE "
-                mode_session      "#[bg=$purple,fg=$nord0,bold,fill] SESSION "
-                mode_tmux         "#[bg=$frost1,fg=$nord0,bold,fill] TMUX "
+                mode_normal       "#[bg=$frost2,fg=$nord0,bold,fill] NORMAL "
+                mode_pane         "#[bg=$orange,fg=$nord0,bold,fill] PANE "
                 mode_prompt       "#[bg=$red,fg=$orange,bold,fill] PROMPT "
+                mode_rename_pane  "#[bg=$orange,fg=$nord0,bold,fill] RENAMEPANE "
+                mode_rename_tab   "#[bg=$green,fg=$nord0,bold,fill] RENAMETAB "
+                mode_resize       "#[bg=$frost0,fg=$nord0,bold,fill] RESIZE "
+                mode_scroll       "#[bg=$orange,fg=$nord0,bold,fill] SCROLL "
+                mode_search       "#[bg=$yellow,fg=$nord0,bold,fill] SEARCH "
+                mode_session      "#[bg=$purple,fg=$nord0,bold,fill] SESSION "
+                mode_tab          "#[bg=$green,fg=$nord0,bold,fill] TAB "
+                mode_tmux         "#[bg=$frost1,fg=$nord0,bold,fill] TMUX "
 
                 // --- DateTime ---
                 datetime_format   "%H:%M"

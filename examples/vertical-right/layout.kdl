@@ -100,56 +100,55 @@ layout {
                     // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
                     // Content order: {index}, then {notification}, then a fill
                     // gap and {name} right-aligned at the trailing edge.
-                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
-                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
-                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
-                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
-                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
-                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
-                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
+                    tab_active            "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_active_fullscreen "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
+                    tab_active_sync       "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
+                    tab_max_name_length   20
+                    tab_normal            "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_normal_fullscreen "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
+                    tab_normal_sync       "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
+                    tab_padding_top       0
+                    tab_separator         "#[bg=$mantle,fg=$overlay0]"
+                    tab_start_index       1
 
                     tab_sync_indicator       "󰻆"
                     tab_fullscreen_indicator "󰊓"
                     tab_floating_indicator   "󰶙"
 
                     // Shown when tabs overflow the available rows.
-                    overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
-                    overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
-
-                    max_name_length 20
-                    start_index     1
-                    padding_top 0
+                    tab_overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    tab_overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
 
                     // Left-edge separator between content pane and sidebar.
                     // (In the vertical example the border is on the right edge.)
-                    border "#[fg=$surface1]│"
+                    tab_border "#[fg=$surface1]│"
 
                     // --- Notifications ---
-                    notification_enabled        "true"
-                    notification_icon_waiting   "󰈅"
-                    notification_icon_in_progress "󰇘"
-                    notification_icon_completed ""
-                    notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
-                    notification_show_if_empty  "false"
+                    notification_enabled               "true"
+                    notification_format                "#[bg=$surface1,fg=$peach,bold] {count} "
+                    notification_indicator_completed   "✅"
+                    notification_indicator_in_progress "🔄"
+                    notification_indicator_waiting     "⏳"
+                    notification_show_if_empty         "false"
 
                     // --- Mode widget ---
                     // Same mode colours as the vertical example. The  cap arrow
                     // is on the left here (via {mode_cap} in bottom_left) instead
                     // of the right.
-                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
-                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
-                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
-                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
-                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
-                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
-                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
                     mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
-                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
-                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
                     mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
-                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
-                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
                     mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
 
                     // --- DateTime ---
                     datetime_format   "%H:%M"
@@ -231,56 +230,55 @@ layout {
                     // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
                     // Content order: {index}, then {notification}, then a fill
                     // gap and {name} right-aligned at the trailing edge.
-                    tab_normal              "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
-                    tab_active              "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
-                    tab_normal_fullscreen   "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
-                    tab_active_fullscreen   "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
-                    tab_normal_sync         "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
-                    tab_active_sync         "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
-                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
+                    tab_normal            "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_active            "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_normal_fullscreen "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
+                    tab_active_fullscreen "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
+                    tab_normal_sync       "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
+                    tab_active_sync       "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
+                    tab_separator         "#[bg=$mantle,fg=$overlay0]"
+                    tab_max_name_length   20
+                    tab_start_index       1
+                    tab_padding_top       0
 
                     tab_sync_indicator       "󰻆"
                     tab_fullscreen_indicator "󰊓"
                     tab_floating_indicator   "󰶙"
 
                     // Shown when tabs overflow the available rows.
-                    overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
-                    overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
-
-                    max_name_length 20
-                    start_index     1
-                    padding_top 0
+                    tab_overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+                    tab_overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
 
                     // Left-edge separator between content pane and sidebar.
                     // (In the vertical example the border is on the right edge.)
-                    border "#[fg=$surface1]│"
+                    tab_border "#[fg=$surface1]│"
 
                     // --- Notifications ---
-                    notification_enabled        "true"
-                    notification_icon_waiting   "󰈅"
-                    notification_icon_in_progress "󰇘"
-                    notification_icon_completed ""
-                    notification_format         "#[bg=$surface1,fg=$peach,bold] {count} "
-                    notification_show_if_empty  "false"
+                    notification_enabled               "true"
+                    notification_format                "#[bg=$surface1,fg=$peach,bold] {count} "
+                    notification_indicator_completed   "✅"
+                    notification_indicator_in_progress "🔄"
+                    notification_indicator_waiting     "⏳"
+                    notification_show_if_empty         "false"
 
                     // --- Mode widget ---
                     // Same mode colours as the vertical example. The  cap arrow
                     // is on the left here (via {mode_cap} in bottom_left) instead
                     // of the right.
-                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
-                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
-                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
-                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
-                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
-                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
-                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
                     mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
-                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
-                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
                     mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
-                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
-                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                    mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                    mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
                     mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+                    mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                    mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                    mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                    mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                    mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                    mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                    mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                    mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
 
                     // --- DateTime ---
                     datetime_format   "%H:%M"

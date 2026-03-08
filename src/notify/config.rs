@@ -4,9 +4,9 @@ use std::collections::BTreeMap;
 ///
 /// Parsed from the plugin's flat key-value config with keys:
 /// - `notification_enabled` — "true" (default) or "false"
-/// - `notification_icon_waiting` — icon string (default "⏳")
-/// - `notification_icon_in_progress` — icon string (default "🔄")
-/// - `notification_icon_completed` — icon string (default "✅")
+/// - `notification_indicator_waiting` — icon string (default "⏳")
+/// - `notification_indicator_in_progress` — icon string (default "🔄")
+/// - `notification_indicator_completed` — icon string (default "✅")
 /// - `notification_format_tab` — per-tab format fallback with `{icon}` (default `{icon}`)
 /// - `notification_format_waiting` — per-tab waiting format (fallback: `notification_format_tab`)
 /// - `notification_format_in_progress` — per-tab in-progress format (fallback: `notification_format_tab`)
@@ -55,15 +55,15 @@ impl NotificationConfig {
             config.enabled = enabled == "true";
         }
 
-        if let Some(icon) = raw.get("notification_icon_waiting") {
+        if let Some(icon) = raw.get("notification_indicator_waiting") {
             config.waiting_icon = icon.clone();
         }
 
-        if let Some(icon) = raw.get("notification_icon_in_progress") {
+        if let Some(icon) = raw.get("notification_indicator_in_progress") {
             config.in_progress_icon = icon.clone();
         }
 
-        if let Some(icon) = raw.get("notification_icon_completed") {
+        if let Some(icon) = raw.get("notification_indicator_completed") {
             config.completed_icon = icon.clone();
         }
 
@@ -123,9 +123,9 @@ mod tests {
     fn from_raw_custom_values() {
         let raw = BTreeMap::from([
             ("notification_enabled".to_string(), "true".to_string()),
-            ("notification_icon_waiting".to_string(), "!".to_string()),
-            ("notification_icon_in_progress".to_string(), "~".to_string()),
-            ("notification_icon_completed".to_string(), "*".to_string()),
+            ("notification_indicator_waiting".to_string(), "!".to_string()),
+            ("notification_indicator_in_progress".to_string(), "~".to_string()),
+            ("notification_indicator_completed".to_string(), "*".to_string()),
             (
                 "notification_format_tab".to_string(),
                 "#[fg=yellow]{icon}".to_string(),
@@ -161,6 +161,9 @@ mod tests {
             ("notification_busy_icon".to_string(), "B".to_string()),
             ("notification_in_progress_icon".to_string(), "P".to_string()),
             ("notification_completed_icon".to_string(), "C".to_string()),
+            ("notification_icon_waiting".to_string(), "W".to_string()),
+            ("notification_icon_in_progress".to_string(), "P".to_string()),
+            ("notification_icon_completed".to_string(), "C".to_string()),
         ]);
         let config = NotificationConfig::from_raw(&raw);
         assert_eq!(config.waiting_icon, "\u{23f3}");

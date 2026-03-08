@@ -79,52 +79,52 @@ layout {
                 // --- Tab format strings ---
                 // Each variant handles a different tab state. Fallback chain:
                 //   fullscreen/sync -> active/normal -> tab_normal (hard default)
-                tab_normal            "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
                 tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{notification} #[bg=default]"
-                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 #[fg=$overlay0]{notification}"
                 tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 #[fg=$base,bg=$green]{notification} #[bg=default]"
-                tab_normal_sync       "#[fg=$overlay0] {index} {name}  #[fg=$overlay0]{notification}"
                 tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  #[fg=$base,bg=$green]{notification} #[bg=default]"
+                tab_max_name_length   18
+                tab_normal            "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
+                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 #[fg=$overlay0]{notification}"
+                tab_normal_sync       "#[fg=$overlay0] {index} {name}  #[fg=$overlay0]{notification}"
                 tab_rename            "#[fg=$green,italic] {index} {name} "
                 tab_separator         "#[fg=$surface1]|"
+                tab_start_index       1
 
-                max_name_length 18
-                start_index     1
 
                 // --- Notifications ---
                 // Per-tab: {notification} in tab format strings shows an icon.
                 // Global: {notifications} widget shows aggregate count.
                 notification_enabled        "true"
-                notification_icon_waiting   "⏳"
-                notification_icon_in_progress "🔄"
-                notification_icon_completed "✅"
+                notification_indicator_waiting   "⏳"
+                notification_indicator_in_progress "🔄"
+                notification_indicator_completed "✅"
                 // Per-tab icon formatting by state.
                 // This block intentionally applies color to waiting/completed
                 // to validate interaction with surrounding tab style segments.
+                notification_format             "#[fg=$peach,bold] {count} "
+                notification_format_completed   "#[fg=$green,bold]{icon}"
+                notification_format_in_progress "{icon}"
                 notification_format_tab         "{icon}"
                 notification_format_waiting     "#[fg=$yellow,bold]{icon}"
-                notification_format_in_progress "{icon}"
-                notification_format_completed   "#[fg=$green,bold]{icon}"
-                notification_format         "#[fg=$peach,bold] {count} "
-                notification_show_if_empty  "false"
+                notification_show_if_empty      "false"
 
                 // --- Mode widget ---
                 // The fill directive on the active mode extends its background
                 // across the bar and tells the cap widget what colour to use.
-                mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
-                mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
-                mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
-                mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
-                mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
-                mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
-                mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
                 mode_enter_search "#[bg=$yellow,fg=$base,bold,fill] ENT-SEARCH "
-                mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
-                mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                mode_locked       "#[bg=$red,fg=$base,bold,fill] LOCKED "
                 mode_move         "#[bg=$teal,fg=$base,bold,fill] MOVE "
-                mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
-                mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
+                mode_normal       "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+                mode_pane         "#[bg=$peach,fg=$base,bold,fill] PANE "
                 mode_prompt       "#[bg=$red,fg=$peach,bold,fill] PROMPT "
+                mode_rename_pane  "#[bg=$peach,fg=$base,bold,fill] RENAMEPANE "
+                mode_rename_tab   "#[bg=$green,fg=$base,bold,fill] RENAMETAB "
+                mode_resize       "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+                mode_scroll       "#[bg=$peach,fg=$base,bold,fill] SCROLL "
+                mode_search       "#[bg=$yellow,fg=$base,bold,fill] SEARCH "
+                mode_session      "#[bg=$mauve,fg=$base,bold,fill] SESSION "
+                mode_tab          "#[bg=$green,fg=$base,bold,fill] TAB "
+                mode_tmux         "#[bg=$flamingo,fg=$base,bold,fill] TMUX "
 
                 // --- DateTime ---
                 datetime_format   "%H:%M"
