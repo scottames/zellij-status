@@ -121,6 +121,12 @@ pub struct TabConfig {
     pub border: String,
     /// Tab index offset (1 = first tab shown as "1").
     pub start_index: usize,
+    /// Icon/text substituted for `{sync_indicator}` in tab format strings.
+    pub indicator_sync: String,
+    /// Icon/text substituted for `{fullscreen_indicator}` in tab format strings.
+    pub indicator_fullscreen: String,
+    /// Icon/text substituted for `{floating_indicator}` in tab format strings.
+    pub indicator_floating: String,
 }
 
 impl TabConfig {
@@ -189,6 +195,21 @@ impl TabConfig {
             .and_then(|v| v.parse().ok())
             .unwrap_or(1);
 
+        let indicator_sync = raw
+            .get("tab_indicator_sync")
+            .cloned()
+            .unwrap_or_default();
+
+        let indicator_fullscreen = raw
+            .get("tab_indicator_fullscreen")
+            .cloned()
+            .unwrap_or_default();
+
+        let indicator_floating = raw
+            .get("tab_indicator_floating")
+            .cloned()
+            .unwrap_or_default();
+
         Self {
             tab_normal,
             tab_active,
@@ -204,6 +225,9 @@ impl TabConfig {
             padding_top,
             border,
             start_index,
+            indicator_sync,
+            indicator_fullscreen,
+            indicator_floating,
         }
     }
 }
@@ -561,6 +585,9 @@ mod tests {
         assert_eq!(parsed.tabs.max_name_length, 20);
         assert_eq!(parsed.tabs.start_index, 1);
         assert_eq!(parsed.tabs.padding_top, 0);
+        assert_eq!(parsed.tabs.indicator_sync, "");
+        assert_eq!(parsed.tabs.indicator_fullscreen, "");
+        assert_eq!(parsed.tabs.indicator_floating, "");
     }
 
     #[test]
@@ -570,6 +597,19 @@ mod tests {
         let parsed = PluginConfig::from_configuration(config).unwrap();
         assert_eq!(parsed.tabs.tab_normal, "N:{name}");
         assert_eq!(parsed.tabs.tab_active, "N:{name}");
+    }
+
+    #[test]
+    fn tab_config_indicators() {
+        let config = BTreeMap::from([
+            ("tab_indicator_sync".to_string(), "S".to_string()),
+            ("tab_indicator_fullscreen".to_string(), "F".to_string()),
+            ("tab_indicator_floating".to_string(), "L".to_string()),
+        ]);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        assert_eq!(parsed.tabs.indicator_sync, "S");
+        assert_eq!(parsed.tabs.indicator_fullscreen, "F");
+        assert_eq!(parsed.tabs.indicator_floating, "L");
     }
 
     #[test]

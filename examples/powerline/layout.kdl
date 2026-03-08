@@ -60,17 +60,19 @@ layout {
                 // Each tab has  at the start and  at the end, with colour
                 // transitions creating the powerline arrow effect.
                 // No tab_separator needed — the arrows ARE the separators.
-                tab_active            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {notification} #[bg=$nord0,fg=$frost1]"
-                tab_active_fullscreen "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} 󰊓 {notification} #[bg=$nord0,fg=$frost1]"
-                tab_active_sync       "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name}  {notification} #[bg=$nord0,fg=$frost1]"
-                tab_max_name_length   18
-                tab_normal            "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {notification}#[bg=$nord0,fg=$nord1]"
-                tab_normal_fullscreen "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} 󰊓 {notification}#[bg=$nord0,fg=$nord1]"
-                tab_normal_sync       "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name}  {notification}#[bg=$nord0,fg=$nord1]"
-                tab_rename            "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] RENAME #[bg=$nord0,fg=$frost1]"
-                tab_separator         ""
-                tab_start_index       1
-
+                tab_active               "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[bg=$nord0,fg=$frost1]"
+                tab_active_fullscreen    "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[bg=$nord0,fg=$frost1]"
+                tab_active_sync          "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[bg=$nord0,fg=$frost1]"
+                tab_max_name_length      18
+                tab_normal               "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$nord0,fg=$nord1]"
+                tab_normal_fullscreen    "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$nord0,fg=$nord1]"
+                tab_normal_sync          "#[bg=$nord1,fg=$nord0]#[bg=$nord1,fg=$nord4] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$nord0,fg=$nord1]"
+                tab_rename               "#[bg=$frost1,fg=$nord0]#[bg=$frost1,fg=$nord0,bold,fill] RENAME #[bg=$nord0,fg=$frost1]"
+                tab_separator            ""
+                tab_start_index          1
+                tab_indicator_fullscreen "󰊓"
+                tab_indicator_sync       ""
+                tab_indicator_floating   "󰹙"
 
                 // --- Notifications ---
                 notification_enabled               "true"

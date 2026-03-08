@@ -114,6 +114,9 @@ impl TabsWidget {
     /// Supported variables:
     /// - `{index}` — tab position (1-based by default, controlled by `start_index`)
     /// - `{name}` — tab name (shows "Enter name..." when renaming and name is empty)
+    /// - `{sync_indicator}` — icon from `tab_indicator_sync` (shown only when sync active)
+    /// - `{fullscreen_indicator}` — icon from `tab_indicator_fullscreen` (shown only when fullscreen active)
+    /// - `{floating_indicator}` — icon from `tab_indicator_floating` (shown only when floating panes visible)
     /// - `{notification}` — notification icon for the tab (or empty if none)
     pub fn render_tab(
         &self,
@@ -128,6 +131,9 @@ impl TabsWidget {
         let name_truncated = truncate_str(&name, max_name);
 
         let notification_fragment = resolve_notification_icon(tab, state);
+        let sync_val = resolve_indicator(&state.config.tabs.indicator_sync, tab.is_sync_panes_active);
+        let fs_val = resolve_indicator(&state.config.tabs.indicator_fullscreen, tab.is_fullscreen_active);
+        let float_val = resolve_indicator(&state.config.tabs.indicator_floating, tab.are_floating_panes_visible);
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let mut out = String::new();
 
@@ -138,6 +144,15 @@ impl TabsWidget {
             }
             if content.contains("{name}") {
                 content = content.replace("{name}", &name_truncated);
+            }
+            if content.contains("{sync_indicator}") {
+                content = content.replace("{sync_indicator}", &sync_val);
+            }
+            if content.contains("{fullscreen_indicator}") {
+                content = content.replace("{fullscreen_indicator}", &fs_val);
+            }
+            if content.contains("{floating_indicator}") {
+                content = content.replace("{floating_indicator}", &float_val);
             }
 
             if content.contains("{notification}") {
@@ -179,6 +194,9 @@ impl TabsWidget {
         let name = resolve_tab_name(tab, &state.mode.mode);
         let name_truncated = truncate_str(&name, max_name);
         let notification_fragment = resolve_notification_icon(tab, state);
+        let sync_val = resolve_indicator(&state.config.tabs.indicator_sync, tab.is_sync_panes_active);
+        let fs_val = resolve_indicator(&state.config.tabs.indicator_fullscreen, tab.is_fullscreen_active);
+        let float_val = resolve_indicator(&state.config.tabs.indicator_floating, tab.are_floating_panes_visible);
 
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let fill_idx = parts.iter().position(|p| p.fill)?;
@@ -207,6 +225,15 @@ impl TabsWidget {
                 }
                 if content.contains("{name}") {
                     content = content.replace("{name}", &name_truncated);
+                }
+                if content.contains("{sync_indicator}") {
+                    content = content.replace("{sync_indicator}", &sync_val);
+                }
+                if content.contains("{fullscreen_indicator}") {
+                    content = content.replace("{fullscreen_indicator}", &fs_val);
+                }
+                if content.contains("{floating_indicator}") {
+                    content = content.replace("{floating_indicator}", &float_val);
                 }
                 if content.contains("{notification}") {
                     let segments: Vec<&str> = content.split("{notification}").collect();
@@ -355,6 +382,12 @@ fn render_notification_fragment(
         out.push_str(&part.render_content());
     }
     out
+}
+
+/// Resolve a tab state indicator: returns the configured icon when the state
+/// is active, empty string otherwise.
+fn resolve_indicator(icon: &str, active: bool) -> String {
+    if active { icon.to_string() } else { String::new() }
 }
 
 /// Resolve what name to display for a tab.

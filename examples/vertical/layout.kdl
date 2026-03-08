@@ -119,25 +119,25 @@ layout {
                     // The trailing  pins to the right edge. `fill` on the
                     // content segment stretches its bg to meet the trailing arrow.
                     // Normal tabs use $base bg; active tabs use $green bg.
-                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {notification} #[fg=$green]"
-                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰊓 {notification} #[fg=$green]"
-                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰻆 {notification} #[fg=$green]"
-                    tab_max_name_length     20
-                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification} #[fg=$base]"
-                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰊓 {notification} #[fg=$base]"
-                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰻆 {notification} #[fg=$base]"
-                    tab_padding_top         0
-                    tab_separator           "#[bg=$mantle,fg=$overlay0]"
-                    tab_start_index         1
+                    tab_active               "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$green]"
+                    tab_active_fullscreen    "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$green]"
+                    tab_active_sync          "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$green]"
+                    tab_indicator_floating   "🛟"
+                    tab_indicator_fullscreen "↔️"
+                    tab_indicator_sync       "🔄"
+                    tab_max_name_length      20
+                    tab_normal               "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$base]"
+                    tab_normal_fullscreen    "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$base]"
+                    tab_normal_sync          "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$base]"
+                    tab_padding_top          0
+                    tab_separator            "#[bg=$mantle,fg=$overlay0]"
+                    tab_start_index          1
 
                     // Shown when tabs overflow the available rows. {count}
                     // is replaced with the number of hidden tabs.
                     tab_overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
                     tab_overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
 
-                    tab_sync_indicator       "󰻆"
-                    tab_fullscreen_indicator "󰊓"
-                    tab_floating_indicator   "󰶙"
 
                     // Right-edge separator between the sidebar and content pane.
                     tab_border "#[fg=$surface1]│"
@@ -249,20 +249,19 @@ layout {
                     // The trailing  pins to the right edge. `fill` on the
                     // content segment stretches its bg to meet the trailing arrow.
                     // Normal tabs use $base bg; active tabs use $green bg.
-                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {notification} #[fg=$green]"
-                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰊓 {notification} #[fg=$green]"
-                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} 󰻆 {notification} #[fg=$green]"
+                    tab_active              "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$green]"
+                    tab_active_fullscreen   "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$green]"
+                    tab_active_sync         "#[bg=$green,fg=$mantle]#[bg=$green,fg=$base] {index} #[bg=$green,fg=$base,bold,fill] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$green]"
                     tab_max_name_length     20
-                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {notification} #[fg=$base]"
-                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰊓 {notification} #[fg=$base]"
-                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} 󰻆 {notification} #[fg=$base]"
+                    tab_normal              "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$base]"
+                    tab_normal_fullscreen   "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$base]"
+                    tab_normal_sync         "#[bg=$base,fg=$mantle]#[bg=$base,fg=$overlay0] {index} #[bg=$base,fg=$overlay0,bold] {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[fg=$base]"
                     tab_padding_top         0
                     tab_separator           "#[bg=$mantle,fg=$overlay0]"
                     tab_start_index         1
+                    tab_indicator_fullscreen "󰊓"
+                    tab_indicator_sync       "󰻆"
 
-                    tab_sync_indicator       "󰻆"
-                    tab_fullscreen_indicator "󰊓"
-                    tab_floating_indicator   "󰶙"
 
                     // Shown when tabs overflow the available rows. {count}
                     // is replaced with the number of hidden tabs.

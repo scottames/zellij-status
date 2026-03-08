@@ -53,6 +53,31 @@ Notes:
 - `format_precedence` and `format_hide_on_overlength` control what disappears
   first on narrow terminals.
 
+## Tab state indicators
+
+Tab format strings support three conditional indicator placeholders:
+
+- `{fullscreen_indicator}` — shown only when the tab has fullscreen active
+- `{sync_indicator}` — shown only when the tab has sync panes active
+- `{floating_indicator}` — shown only when the tab has floating panes visible
+
+Each resolves to its configured icon when the state is active, or empty string
+otherwise. This lets you place indicators in any tab format string and they
+show/hide automatically:
+
+```kdl
+tab_indicator_floating   "🛟"
+tab_indicator_fullscreen "↔️"
+tab_indicator_sync       "🔄"
+
+tab_normal "#[fg=$overlay0] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}"
+tab_active "#[fg=$base,bg=$green,bold,fill] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification} #[bg=default]"
+```
+
+You can also use them in state-specific format strings (`tab_active_fullscreen`,
+etc.) for different styling per state. All three default to empty string when
+not configured.
+
 ## Notifications: per-tab vs aggregate
 
 There are two separate placeholders with different jobs:

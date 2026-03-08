@@ -23,12 +23,17 @@ layout {
                 format_3_right "#[fg=$fg] {session} "
 
                 // Plain tab styling — no powerline, no separators.
-                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
-                tab_normal "#[fg=$fg] {index}:{name} {notification}"
+                tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name}{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification}#[bg=default]"
+                tab_normal "#[fg=$fg] {index}:{name}{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification}"
+                tab_indicator_floating   " 🛟"
+                tab_indicator_fullscreen " ↔️"
+                tab_indicator_sync       " 🔄"
+
 
                 // --- Notifications ---
                 notification_enabled               "true"
                 notification_format                "#[fg=$accent,bold] {count} "
+                notification_format_tab            " {icon}"
                 notification_indicator_completed   "✅"
                 notification_indicator_in_progress "🔄"
                 notification_indicator_waiting     "⏳"

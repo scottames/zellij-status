@@ -100,20 +100,19 @@ layout {
                     // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
                     // Content order: {index}, then {notification}, then a fill
                     // gap and {name} right-aligned at the trailing edge.
-                    tab_active            "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
-                    tab_active_fullscreen "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
-                    tab_active_sync       "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
+                    tab_active            "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_active_fullscreen "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_active_sync       "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
                     tab_max_name_length   20
-                    tab_normal            "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
-                    tab_normal_fullscreen "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
-                    tab_normal_sync       "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
+                    tab_normal            "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_normal_fullscreen "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_normal_sync       "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
                     tab_padding_top       0
                     tab_separator         "#[bg=$mantle,fg=$overlay0]"
                     tab_start_index       1
+                    tab_indicator_fullscreen "󰊓"
+                    tab_indicator_sync       "󰻆"
 
-                    tab_sync_indicator       "󰻆"
-                    tab_fullscreen_indicator "󰊓"
-                    tab_floating_indicator   "󰶙"
 
                     // Shown when tabs overflow the available rows.
                     tab_overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
@@ -230,20 +229,20 @@ layout {
                     // arrows. For : bg is the LEFT colour, fg is the RIGHT colour.
                     // Content order: {index}, then {notification}, then a fill
                     // gap and {name} right-aligned at the trailing edge.
-                    tab_normal            "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
-                    tab_active            "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
-                    tab_normal_fullscreen "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰊓 #[fg=$mantle,bg=$base]"
-                    tab_active_fullscreen "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰊓 #[fg=$mantle,bg=$green]"
-                    tab_normal_sync       "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} 󰋆 #[fg=$mantle,bg=$base]"
-                    tab_active_sync       "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} 󰋆 #[fg=$mantle,bg=$green]"
-                    tab_separator         "#[bg=$mantle,fg=$overlay0]"
-                    tab_max_name_length   20
-                    tab_start_index       1
-                    tab_padding_top       0
+                    tab_active               "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_active_fullscreen    "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_active_sync          "#[bg=$mantle,fg=$green]#[bg=$green,fg=$base,bold] {index} #[bg=$green,fg=$base] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$green,fg=$base,fill] #[bg=$green,fg=$base,bold]{name} #[fg=$mantle,bg=$green]"
+                    tab_indicator_floating   "🛟"
+                    tab_indicator_fullscreen "↔️"
+                    tab_indicator_sync       "🔄"
+                    tab_max_name_length      20
+                    tab_normal               "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_normal_fullscreen    "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_normal_sync          "#[bg=$mantle,fg=$base]#[bg=$base,fg=$overlay0,bold] {index} #[bg=$base,fg=$overlay0] {fullscreen_indicator}{sync_indicator}{floating_indicator} {notification}#[bg=$base,fg=$overlay0,fill] #[bg=$base,fg=$overlay0,bold]{name} #[fg=$mantle,bg=$base]"
+                    tab_padding_top          0
+                    tab_separator            "#[bg=$mantle,fg=$overlay0]"
+                    tab_start_index          1
 
-                    tab_sync_indicator       "󰻆"
-                    tab_fullscreen_indicator "󰊓"
-                    tab_floating_indicator   "󰶙"
 
                     // Shown when tabs overflow the available rows.
                     tab_overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"

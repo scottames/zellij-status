@@ -79,25 +79,28 @@ layout {
                 // --- Tab format strings ---
                 // Each variant handles a different tab state. Fallback chain:
                 //   fullscreen/sync -> active/normal -> tab_normal (hard default)
-                tab_active            "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{notification} #[bg=default]"
-                tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} 󰊓 #[fg=$base,bg=$green]{notification} #[bg=default]"
-                tab_active_sync       "#[fg=$base,bg=$green,bold,fill] {index} {name}  #[fg=$base,bg=$green]{notification} #[bg=default]"
-                tab_max_name_length   18
-                tab_normal            "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{notification}"
-                tab_normal_fullscreen "#[fg=$overlay0] {index} {name} 󰊓 #[fg=$overlay0]{notification}"
-                tab_normal_sync       "#[fg=$overlay0] {index} {name}  #[fg=$overlay0]{notification}"
-                tab_rename            "#[fg=$green,italic] {index} {name} "
-                tab_separator         "#[fg=$surface1]|"
-                tab_start_index       1
+                tab_active               "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification} #[bg=default]"
+                tab_active_fullscreen    "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification} #[bg=default]"
+                tab_active_sync          "#[fg=$base,bg=$green,bold,fill] {index} {name} #[fg=$base,bg=$green]{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification} #[bg=default]"
+                tab_indicator_floating   "🛟"
+                tab_indicator_fullscreen "↔️"
+                tab_indicator_sync       "🔄"
+                tab_max_name_length      18
+                tab_normal               "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification}"
+                tab_normal_fullscreen    "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification}"
+                tab_normal_sync          "#[fg=$overlay0] {index} {name} #[fg=$overlay0]{fullscreen_indicator}{sync_indicator}{floating_indicator}{notification}"
+                tab_rename               "#[fg=$green,italic] {index} {name} "
+                tab_separator            "#[fg=$surface1]|"
+                tab_start_index          1
 
 
                 // --- Notifications ---
                 // Per-tab: {notification} in tab format strings shows an icon.
-                // Global: {notifications} widget shows aggregate count.
-                notification_enabled        "true"
-                notification_indicator_waiting   "⏳"
-                notification_indicator_in_progress "🔄"
-                notification_indicator_completed "✅"
+                // Global:  {notifications} widget shows aggregate count.
+                notification_enabled               "true"
+                notification_indicator_waiting     "⏳"
+                notification_indicator_in_progress "🚀"
+                notification_indicator_completed   "✅"
                 // Per-tab icon formatting by state.
                 // This block intentionally applies color to waiting/completed
                 // to validate interaction with surrounding tab style segments.
