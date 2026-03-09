@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.2.0](https://github.com/scottames/zellij-status/compare/v0.1.1...v0.2.0) (2026-03-09)
+
+
+### Features
+
+* **docs:** add schema-driven config reference generation ([1e0c39b](https://github.com/scottames/zellij-status/commit/1e0c39bcfb8afb85171b3bc59bf2241c042ed0a4))
+* implement tab state indicators as conditional placeholders ([a5a3141](https://github.com/scottames/zellij-status/commit/a5a3141b53eb204bb1fcc314f42b2ac26851346e))
+* **notifications:** add in-progress state and busy alias ([80c80f3](https://github.com/scottames/zellij-status/commit/80c80f3ba17e7d38ffce089a4b6759f45c1ebf03))
+* **notifications:** add per-tab state formatting for tab icons ([1e5aaec](https://github.com/scottames/zellij-status/commit/1e5aaec4917d799209129ca3efb977b0f76f6862))
+* **notifications:** rename icon keys to notification_icon_* ([69b4f7a](https://github.com/scottames/zellij-status/commit/69b4f7acee5481c3c9d34df30773318649c83881))
+
+
+### Bug Fixes
+
+* preserve notifications across new tabs ([48f1ebf](https://github.com/scottames/zellij-status/commit/48f1ebf9583d80ed9d1e656bb0fc601f5c13405f))
+* remove broken new_tab_template from horizontal layouts ([046acbb](https://github.com/scottames/zellij-status/commit/046acbb0decfe1c669c3c7210bb5adbdac906678))
+
+
+### Documentation
+
+* improvements and cleanup, generalize test target ([6025c02](https://github.com/scottames/zellij-status/commit/6025c02ffbbdb79c78eb241086c31489473a9ca9))
+* note vertical layout fullscreen limitation ([e126384](https://github.com/scottames/zellij-status/commit/e1263844698426bcc5ca4c2a25a6982dd843123b))
+* update reference images ([d804ccd](https://github.com/scottames/zellij-status/commit/d804ccd7b113736422151dae88fe399c24ecd6bc))
+
+
+### Miscellaneous Chores
+
+* **deps:** lock file maintenance ([#9](https://github.com/scottames/zellij-status/issues/9)) ([e73d418](https://github.com/scottames/zellij-status/commit/e73d4180afaf455a378a2a2cc05c125712c4d089))
+* **deps:** update ⬆️ github-actions to v6 ([#8](https://github.com/scottames/zellij-status/issues/8)) ([0bd488f](https://github.com/scottames/zellij-status/commit/0bd488fb4ec53381c0bff317d3bde8e59af607e2))
+* **mise/task:** quiet install ([45cc7e1](https://github.com/scottames/zellij-status/commit/45cc7e1acf8d372260fece6c8bddba3679328906))
+* rm unused openspec bits ([9f6c534](https://github.com/scottames/zellij-status/commit/9f6c5345dd6f9f6f5a5adc3f8a4e5d5416f63166))
+
+
+### Code Refactoring
+
+* correct tab/notification config names ([25698c5](https://github.com/scottames/zellij-status/commit/25698c5b433d17609923960ecb73348652b0d6a0))
+
 ## [0.1.1](https://github.com/scottames/zellij-status/compare/v0.1.0...v0.1.1) (2026-03-04)
 
 
