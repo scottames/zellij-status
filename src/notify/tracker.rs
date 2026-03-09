@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use serde::{Deserialize, Serialize};
 use zellij_tile::prelude::PaneManifest;
 
 use super::NotificationType;
@@ -9,7 +10,7 @@ use super::NotificationType;
 /// Notifications are stored as `pane_id → {notification_types}`. When
 /// querying a tab, we aggregate across all non-plugin panes in that tab
 /// with priority ordering: `Waiting` > `InProgress` > `Completed`.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NotificationTracker {
     /// Per-pane notification state: pane_id → set of active notification types.
     notifications: HashMap<u32, HashSet<NotificationType>>,

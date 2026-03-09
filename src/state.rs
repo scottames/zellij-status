@@ -1,5 +1,7 @@
 use std::cmp::{max, min};
 use std::collections::BTreeMap;
+use std::fs;
+use std::path::PathBuf;
 
 use zellij_tile::prelude::*;
 #[cfg(target_arch = "wasm32")]
@@ -118,6 +120,7 @@ impl ZellijPlugin for State {
             if enabled {
                 self.notifications
                     .add(notification.pane_id, notification.notification_type);
+                self.persist_notifications_to_store();
             }
 
             unblock_cli_pipe_input(&pipe_message.name);
@@ -173,6 +176,65 @@ impl ZellijPlugin for State {
 }
 
 impl State {
+    fn notification_store_path(&self) -> Option<PathBuf> {
+        let session_name = self.mode.session_name.as_deref()?;
+        let safe_name: String = session_name
+            .chars()
+            .map(|ch| {
+                if ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_') {
+                    ch
+                } else {
+                    '_'
+                }
+            })
+            .collect();
+        Some(PathBuf::from(format!(
+            "/tmp/zellij-status-notifications-{safe_name}.json"
+        )))
+    }
+
+    fn hydrate_notifications_from_store(&mut self) -> bool {
+        if !self.notifications.is_empty() {
+            return false;
+        }
+
+        let Some(path) = self.notification_store_path() else {
+            return false;
+        };
+
+        let Ok(contents) = fs::read_to_string(path) else {
+            return false;
+        };
+
+        let Ok(restored) = serde_json::from_str::<NotificationTracker>(&contents) else {
+            return false;
+        };
+
+        if restored.is_empty() {
+            return false;
+        }
+
+        self.notifications = restored;
+        true
+    }
+
+    fn persist_notifications_to_store(&self) {
+        let Some(path) = self.notification_store_path() else {
+            return;
+        };
+
+        if self.notifications.is_empty() {
+            let _ = fs::remove_file(path);
+            return;
+        }
+
+        let Ok(serialized) = serde_json::to_string(&self.notifications) else {
+            return;
+        };
+
+        let _ = fs::write(path, serialized);
+    }
+
     /// Handle a single event after permissions are granted.
     fn handle_event(&mut self, event: Event) -> bool {
         match event {
@@ -181,6 +243,11 @@ impl State {
                 // Clear notifications for the focused pane (focus-clears behavior)
                 let cleared = self.notifications.clear_focused(&self.tabs, &self.panes);
                 let cleaned = self.notifications.clean_stale(&self.panes);
+                if !cleared && !cleaned {
+                    self.hydrate_notifications_from_store();
+                } else {
+                    self.persist_notifications_to_store();
+                }
                 // Always re-render on tab update; cleared/cleaned just confirm side effects
                 let _ = (cleared, cleaned);
                 true
@@ -188,12 +255,18 @@ impl State {
             Event::PaneUpdate(panes) => {
                 self.panes = panes;
                 // Clear focused pane notifications + clean stale entries
-                self.notifications.clear_focused(&self.tabs, &self.panes);
-                self.notifications.clean_stale(&self.panes);
+                let cleared = self.notifications.clear_focused(&self.tabs, &self.panes);
+                let cleaned = self.notifications.clean_stale(&self.panes);
+                if !cleared && !cleaned {
+                    self.hydrate_notifications_from_store();
+                } else {
+                    self.persist_notifications_to_store();
+                }
                 true
             }
             Event::ModeUpdate(mode) => {
                 self.mode = mode;
+                self.hydrate_notifications_from_store();
                 true
             }
             Event::SessionUpdate(sessions, _) => {
@@ -255,5 +328,127 @@ impl State {
             }
             _ => false,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::notify::NotificationType;
+
+    fn state_with_session(session_name: &str) -> State {
+        State {
+            mode: ModeInfo {
+                session_name: Some(session_name.to_string()),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    fn remove_store_file(state: &State) {
+        if let Some(path) = state.notification_store_path() {
+            let _ = fs::remove_file(path);
+        }
+    }
+
+    #[test]
+    fn persist_and_hydrate_notifications_for_same_session() {
+        let session_name = format!(
+            "state-test-persist-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        let mut writer = state_with_session(&session_name);
+        remove_store_file(&writer);
+
+        writer.notifications.add(42, NotificationType::Waiting);
+        writer.persist_notifications_to_store();
+
+        let mut reader = state_with_session(&session_name);
+        assert!(reader.hydrate_notifications_from_store());
+        assert_eq!(reader.notifications.total_count(), 1);
+
+        remove_store_file(&reader);
+    }
+
+    #[test]
+    fn persist_notifications_removes_file_when_tracker_empty() {
+        let session_name = format!(
+            "state-test-empty-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        let mut state = state_with_session(&session_name);
+        remove_store_file(&state);
+
+        state.notifications.add(7, NotificationType::Completed);
+        state.persist_notifications_to_store();
+        let path = state.notification_store_path().expect("session path");
+        assert!(path.exists());
+
+        state.notifications.clear_pane(7);
+        state.persist_notifications_to_store();
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn mode_update_hydrates_notifications_from_store() {
+        let session_name = format!(
+            "state-test-mode-update-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        let mut writer = state_with_session(&session_name);
+        remove_store_file(&writer);
+
+        writer.notifications.add(99, NotificationType::InProgress);
+        writer.persist_notifications_to_store();
+
+        let mut reader = State::default();
+        let changed = reader.handle_event(Event::ModeUpdate(ModeInfo {
+            session_name: Some(session_name.clone()),
+            ..Default::default()
+        }));
+
+        assert!(changed);
+        assert_eq!(reader.notifications.total_count(), 1);
+
+        remove_store_file(&writer);
+    }
+
+    #[test]
+    fn pipe_notification_persists_to_store() {
+        let session_name = format!(
+            "state-test-pipe-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        let mut state = state_with_session(&session_name);
+        remove_store_file(&state);
+
+        let should_render = state.pipe(PipeMessage::new(
+            PipeSource::Cli("test-pipe".to_string()),
+            "zellij-status::waiting::123",
+            &None,
+            &None,
+            false,
+        ));
+
+        assert!(should_render);
+
+        let mut hydrated = state_with_session(&session_name);
+        assert!(hydrated.hydrate_notifications_from_store());
+        assert_eq!(hydrated.notifications.total_count(), 1);
+
+        remove_store_file(&hydrated);
     }
 }

@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 pub mod config;
 pub mod protocol;
 pub mod tracker;
@@ -6,7 +8,7 @@ pub mod tracker;
 ///
 /// Priority ordering: `Waiting` > `InProgress` > `Completed`.
 /// When aggregating across panes in a tab, higher-priority states win.
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum NotificationType {
     /// An operation is blocked and waiting for user input or approval.
     Waiting,
