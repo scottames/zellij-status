@@ -16,6 +16,28 @@ permissions: read-all
 env:
   RUSTFLAGS: -Dwarnings
 jobs:
+  trunk:
+    name: trunk.io
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: checkout
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: trunk check
+        uses: trunk-io/trunk-action@75699af9e26881e564e9d832ef7dc3af25ec031b # v1.2.4
+  check-config-docs:
+    name: check-config-docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        # yamllint disable-line rule:line-length
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: setup
+        uses: ./.github/actions/setup
+      - run: mise run check-config-docs
   lint:
     name: lint
     runs-on: ubuntu-latest
