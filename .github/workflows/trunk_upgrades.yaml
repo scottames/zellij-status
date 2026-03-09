@@ -1,0 +1,38 @@
+---
+name: trunk upgrade
+on:
+  schedule:
+    - cron: 0 16 * * 4
+  workflow_dispatch: {}
+permissions: read-all
+jobs:
+  trunk_upgrade:
+    name: run trunk upgrade
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # For trunk to create PRs
+      pull-requests: write # For trunk to create PRs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        # pr changes using our GitHub app in order to
+        # trigger other actions workflows
+      - name: generate app token
+        id: generate_app_token
+        # yamllint disable-line rule:line-length
+        uses: suzuki-shunsuke/github-token-action@350d7506222e3a0016491abe85b5c4dd475b67d1 # v0.2.1
+        with:
+          github_app_id: ${{ secrets.APP_ID }}
+          github_app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          github_app_permissions: >-
+            { "contents": "write", "pull_requests": "write" }
+          github_app_repositories: >-
+            ["${{github.event.repository.name}}"]
+      - name: Trunk Upgrade
+        # yamllint disable-line rule:line-length
+        uses: trunk-io/trunk-action/upgrade@75699af9e26881e564e9d832ef7dc3af25ec031b # v1.2.4
+        with:
+          github-token: ${{ steps.generate_app_token.outputs.token }}
+          prefix: "chore: "
+          lowercase-title: true
+          sign-commits: true
