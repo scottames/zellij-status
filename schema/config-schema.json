@@ -1,0 +1,605 @@
+{
+  "version": 1,
+  "title": "zellij-status config schema",
+  "groups": [
+    {
+      "id": "layout",
+      "title": "Layout",
+      "entries": [
+        {
+          "kind": "key",
+          "key": "layout_mode",
+          "title": "Layout mode",
+          "value_type": "enum",
+          "allowed_values": ["horizontal", "vertical"],
+          "default": "horizontal",
+          "example_value": "horizontal",
+          "description": "Controls whether sections render as a horizontal bar or a vertical sidebar.",
+          "notes": [
+            "Invalid values fall back to horizontal.",
+            "Horizontal uses left/center/right zones; vertical uses top/middle/bottom."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "colors",
+      "title": "Colors",
+      "entries": [
+        {
+          "kind": "pattern",
+          "pattern": "color_<name>",
+          "pattern_rule": "color_alias",
+          "title": "Color alias",
+          "value_type": "string",
+          "description": "Defines a named color alias that can be referenced as $name inside format strings.",
+          "notes": [
+            "Any key beginning with color_ is collected into the alias map.",
+            "Values are passed through the existing color parser, so aliases can point to hex, rgb(...), or named colors."
+          ],
+          "examples": [
+            {
+              "key": "color_base",
+              "value": "#1e1e2e"
+            },
+            {
+              "key": "color_accent",
+              "value": "#a6e3a1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sections",
+      "title": "Sections",
+      "entries": [
+        {
+          "kind": "pattern",
+          "pattern": "format_<index>_<zone>[_<align-or-side>]",
+          "pattern_rule": "format_section",
+          "title": "Section format entry",
+          "value_type": "format_string",
+          "description": "Defines a section row in a zone, including aligned rows and split left/right pairs.",
+          "notes": [
+            "index must be a positive integer.",
+            "zone accepts start/middle/end plus aliases left/center/right/top/bottom.",
+            "A _left + _right pair with the same index and zone creates a split row.",
+            "A single _left or _right entry without its partner is treated as an aligned row."
+          ],
+          "examples": [
+            {
+              "key": "format_1_left",
+              "value": "{mode} {tabs}"
+            },
+            {
+              "key": "format_3_right_left",
+              "value": "#[fg=$overlay0] {session}"
+            },
+            {
+              "key": "format_3_right_right",
+              "value": "#[fg=$overlay0]{datetime}"
+            }
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "format_space",
+          "title": "Zone spacer style",
+          "value_type": "format_string",
+          "default": "",
+          "example_value": "#[bg=$mantle]",
+          "description": "Sets the style used for the spacer between major zones.",
+          "notes": [
+            "Most useful in horizontal mode where the bar has visible gaps between start, middle, and end zones."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "format_precedence",
+          "title": "Overlength precedence",
+          "value_type": "format_precedence",
+          "default": "123",
+          "example_value": "132",
+          "description": "Controls which zones keep priority when the bar is wider than the terminal.",
+          "notes": [
+            "Use digits 1, 2, and 3 exactly once.",
+            "1=start or top, 2=middle, 3=end or bottom."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "format_hide_on_overlength",
+          "title": "Hide on overlength",
+          "value_type": "bool_string",
+          "default": "false",
+          "example_value": "true",
+          "description": "When true, lower-priority zones are hidden on narrow terminals instead of being squeezed.",
+          "notes": ["The plugin checks for the literal string true."]
+        }
+      ]
+    },
+    {
+      "id": "tabs",
+      "title": "Tabs",
+      "entries": [
+        {
+          "kind": "key",
+          "key": "tab_normal",
+          "title": "Normal tab format",
+          "value_type": "format_string",
+          "default": "{index}:{name}",
+          "example_value": "#[fg=$overlay0] {index} {name} {notification}",
+          "description": "Format string for an inactive tab.",
+          "placeholders": [
+            "{index}",
+            "{name}",
+            "{sync_indicator}",
+            "{fullscreen_indicator}",
+            "{floating_indicator}",
+            "{notification}"
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_active",
+          "title": "Active tab format",
+          "value_type": "format_string",
+          "default": "tab_normal",
+          "example_value": "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification} #[bg=default]",
+          "description": "Format string for the active tab.",
+          "placeholders": [
+            "{index}",
+            "{name}",
+            "{sync_indicator}",
+            "{fullscreen_indicator}",
+            "{floating_indicator}",
+            "{notification}"
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_normal_fullscreen",
+          "title": "Normal fullscreen tab format",
+          "value_type": "format_string",
+          "default": "tab_normal",
+          "example_value": "#[fg=$overlay0] {index} {name} {fullscreen_indicator}{notification}",
+          "description": "Format string for an inactive tab when fullscreen is active.",
+          "placeholders": [
+            "{index}",
+            "{name}",
+            "{fullscreen_indicator}",
+            "{notification}"
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_active_fullscreen",
+          "title": "Active fullscreen tab format",
+          "value_type": "format_string",
+          "default": "tab_active",
+          "example_value": "#[fg=$base,bg=$green,bold,fill] {index} {name} {fullscreen_indicator}{notification} #[bg=default]",
+          "description": "Format string for the active tab when fullscreen is active.",
+          "placeholders": [
+            "{index}",
+            "{name}",
+            "{fullscreen_indicator}",
+            "{notification}"
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_normal_sync",
+          "title": "Normal sync tab format",
+          "value_type": "format_string",
+          "default": "tab_normal",
+          "example_value": "#[fg=$overlay0] {index} {name} {sync_indicator}{notification}",
+          "description": "Format string for an inactive tab when sync panes is active.",
+          "placeholders": [
+            "{index}",
+            "{name}",
+            "{sync_indicator}",
+            "{notification}"
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_active_sync",
+          "title": "Active sync tab format",
+          "value_type": "format_string",
+          "default": "tab_active",
+          "example_value": "#[fg=$base,bg=$green,bold,fill] {index} {name} {sync_indicator}{notification} #[bg=default]",
+          "description": "Format string for the active tab when sync panes is active.",
+          "placeholders": [
+            "{index}",
+            "{name}",
+            "{sync_indicator}",
+            "{notification}"
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_rename",
+          "title": "Rename tab format",
+          "value_type": "format_string",
+          "default": "tab_active",
+          "example_value": "#[fg=$green,italic] {index} {name} ",
+          "description": "Format string for the active tab while Rename Tab mode is active.",
+          "placeholders": ["{index}", "{name}"]
+        },
+        {
+          "kind": "key",
+          "key": "tab_separator",
+          "title": "Horizontal tab separator",
+          "value_type": "format_string",
+          "default": "",
+          "example_value": "#[fg=$surface1]|",
+          "description": "Separator rendered between tabs in horizontal mode.",
+          "notes": [
+            "Vertical mode does not use the separator between tab rows."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "tab_overflow_above",
+          "title": "Overflow indicator above",
+          "value_type": "format_string",
+          "default": "  ^ +{count}",
+          "example_value": "#[fg=$overlay0,bg=$mantle]  ^ +{count}",
+          "description": "Indicator shown above the visible tab range in vertical mode.",
+          "placeholders": ["{count}"]
+        },
+        {
+          "kind": "key",
+          "key": "tab_overflow_below",
+          "title": "Overflow indicator below",
+          "value_type": "format_string",
+          "default": "  v +{count}",
+          "example_value": "#[fg=$overlay0,bg=$mantle]  v +{count}",
+          "description": "Indicator shown below the visible tab range in vertical mode.",
+          "placeholders": ["{count}"]
+        },
+        {
+          "kind": "key",
+          "key": "tab_max_name_length",
+          "title": "Tab name max length",
+          "value_type": "integer",
+          "default": "20",
+          "example_value": "18",
+          "description": "Maximum display width for tab names before truncation."
+        },
+        {
+          "kind": "key",
+          "key": "tab_padding_top",
+          "title": "Vertical tab top padding",
+          "value_type": "integer",
+          "default": "0",
+          "example_value": "0",
+          "description": "Number of blank rows to render above the vertical tab list."
+        },
+        {
+          "kind": "key",
+          "key": "tab_border",
+          "title": "Vertical tab border",
+          "value_type": "format_string",
+          "default": "",
+          "example_value": "#[fg=$surface1]│",
+          "description": "Optional right-side border appended to each vertical tab row."
+        },
+        {
+          "kind": "key",
+          "key": "tab_start_index",
+          "title": "Tab index offset",
+          "value_type": "integer",
+          "default": "1",
+          "example_value": "1",
+          "description": "Controls the displayed starting index for tabs."
+        },
+        {
+          "kind": "key",
+          "key": "tab_indicator_sync",
+          "title": "Sync indicator",
+          "value_type": "string",
+          "default": "",
+          "example_value": "🔄",
+          "description": "Text or icon substituted for {sync_indicator} when sync panes is active."
+        },
+        {
+          "kind": "key",
+          "key": "tab_indicator_fullscreen",
+          "title": "Fullscreen indicator",
+          "value_type": "string",
+          "default": "",
+          "example_value": "↔️",
+          "description": "Text or icon substituted for {fullscreen_indicator} when fullscreen is active."
+        },
+        {
+          "kind": "key",
+          "key": "tab_indicator_floating",
+          "title": "Floating panes indicator",
+          "value_type": "string",
+          "default": "",
+          "example_value": "🛟",
+          "description": "Text or icon substituted for {floating_indicator} when floating panes are visible."
+        }
+      ]
+    },
+    {
+      "id": "notifications",
+      "title": "Notifications",
+      "entries": [
+        {
+          "kind": "key",
+          "key": "notification_enabled",
+          "title": "Notifications enabled",
+          "value_type": "bool_string",
+          "default": "true",
+          "example_value": "true",
+          "description": "Turns the notification system on or off.",
+          "notes": [
+            "The aggregate widget and per-tab indicator both respect this flag."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "notification_format",
+          "title": "Aggregate notification format",
+          "value_type": "format_string",
+          "default": " {count}",
+          "example_value": "#[fg=$peach,bold] {count} ",
+          "description": "Format string for the aggregate {notifications} widget.",
+          "placeholders": ["{count}"]
+        },
+        {
+          "kind": "key",
+          "key": "notification_show_if_empty",
+          "title": "Show aggregate when empty",
+          "value_type": "bool_string",
+          "default": "false",
+          "example_value": "false",
+          "description": "When true, the aggregate notification widget renders even when the count is zero."
+        },
+        {
+          "kind": "key",
+          "key": "notification_format_tab",
+          "title": "Per-tab notification fallback format",
+          "value_type": "format_string",
+          "default": "{icon}",
+          "example_value": "{icon}",
+          "description": "Fallback format for the per-tab {notification} placeholder.",
+          "placeholders": ["{icon}"]
+        },
+        {
+          "kind": "key",
+          "key": "notification_format_waiting",
+          "title": "Per-tab waiting format",
+          "value_type": "format_string",
+          "default": "notification_format_tab",
+          "example_value": "#[fg=$yellow,bold]{icon}",
+          "description": "Override format for waiting notifications in tab strings.",
+          "placeholders": ["{icon}"]
+        },
+        {
+          "kind": "key",
+          "key": "notification_format_in_progress",
+          "title": "Per-tab in-progress format",
+          "value_type": "format_string",
+          "default": "notification_format_tab",
+          "example_value": "{icon}",
+          "description": "Override format for in-progress notifications in tab strings.",
+          "placeholders": ["{icon}"]
+        },
+        {
+          "kind": "key",
+          "key": "notification_format_completed",
+          "title": "Per-tab completed format",
+          "value_type": "format_string",
+          "default": "notification_format_tab",
+          "example_value": "#[fg=$green,bold]{icon}",
+          "description": "Override format for completed notifications in tab strings.",
+          "placeholders": ["{icon}"]
+        },
+        {
+          "kind": "key",
+          "key": "notification_indicator_waiting",
+          "title": "Waiting indicator",
+          "value_type": "string",
+          "default": "⏳",
+          "example_value": "⏳",
+          "description": "Icon or text used for waiting notifications."
+        },
+        {
+          "kind": "key",
+          "key": "notification_indicator_in_progress",
+          "title": "In-progress indicator",
+          "value_type": "string",
+          "default": "🔄",
+          "example_value": "🚀",
+          "description": "Icon or text used for in-progress notifications."
+        },
+        {
+          "kind": "key",
+          "key": "notification_indicator_completed",
+          "title": "Completed indicator",
+          "value_type": "string",
+          "default": "✅",
+          "example_value": "✅",
+          "description": "Icon or text used for completed notifications."
+        }
+      ]
+    },
+    {
+      "id": "widgets",
+      "title": "Widgets",
+      "entries": [
+        {
+          "kind": "pattern",
+          "pattern": "mode_<mode>",
+          "pattern_rule": "mode_format",
+          "title": "Mode widget format",
+          "value_type": "format_string",
+          "description": "Defines the rendered label for a specific Zellij input mode.",
+          "notes": [
+            "Any key beginning with mode_ is treated as a mode format.",
+            "Unconfigured modes fall back to the plugin's built-in uppercase labels."
+          ],
+          "examples": [
+            {
+              "key": "mode_normal",
+              "value": "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+            },
+            {
+              "key": "mode_resize",
+              "value": "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+            }
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "datetime_format",
+          "title": "Datetime format",
+          "value_type": "string",
+          "default": "%Y-%m-%d %H:%M",
+          "example_value": "%H:%M",
+          "description": "strftime format string used by the datetime widget."
+        },
+        {
+          "kind": "key",
+          "key": "datetime_timezone",
+          "title": "Datetime timezone",
+          "value_type": "timezone",
+          "default": "UTC",
+          "example_value": "America/Los_Angeles",
+          "description": "IANA timezone name used by the datetime widget."
+        },
+        {
+          "kind": "key",
+          "key": "swap_layout_format",
+          "title": "Swap layout format",
+          "value_type": "format_string",
+          "default": "{name}",
+          "example_value": "#[fg=$overlay0] {name}",
+          "description": "Format string used by the swap layout widget.",
+          "placeholders": ["{name}"]
+        },
+        {
+          "kind": "key",
+          "key": "swap_layout_hide_if_empty",
+          "title": "Hide empty swap layout",
+          "value_type": "bool_string",
+          "default": "true",
+          "example_value": "true",
+          "description": "When true, hides the swap layout widget if there is no active layout name."
+        },
+        {
+          "kind": "pattern",
+          "pattern": "command_<name>_<property>",
+          "pattern_rule": "command_widget_property",
+          "title": "Command widget property",
+          "value_type": "string",
+          "description": "Defines a command widget instance, including its command, format, polling interval, render mode, click action, and optional working directory.",
+          "notes": [
+            "Supported property suffixes are _command, _format, _interval, _rendermode, _clickaction, and _cwd.",
+            "command_<name>_rendermode accepts static, dynamic, or raw.",
+            "command_<name>_interval is parsed as a non-negative integer string."
+          ],
+          "examples": [
+            {
+              "key": "command_git_command",
+              "value": "git branch --show-current"
+            },
+            {
+              "key": "command_git_format",
+              "value": "#[fg=$blue] {stdout} "
+            },
+            {
+              "key": "command_git_interval",
+              "value": "10"
+            },
+            {
+              "key": "command_git_rendermode",
+              "value": "static"
+            }
+          ]
+        },
+        {
+          "kind": "pattern",
+          "pattern": "pipe_<name>_format",
+          "pattern_rule": "pipe_widget_format",
+          "title": "Pipe widget format",
+          "value_type": "format_string",
+          "description": "Defines a pipe widget that renders externally supplied data.",
+          "notes": [
+            "Pipe widgets consume values sent through zellij-status::pipe::<name>::<value>.",
+            "Use the {output} placeholder to insert the latest pipe payload."
+          ],
+          "placeholders": ["{output}"],
+          "examples": [
+            {
+              "key": "pipe_status_format",
+              "value": "#[fg=$green] {output} "
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "caps",
+      "title": "Caps",
+      "entries": [
+        {
+          "kind": "key",
+          "key": "cap_bg",
+          "title": "Global cap background",
+          "value_type": "string",
+          "default": "",
+          "example_value": "$mantle",
+          "description": "Background color or alias placed behind generated cap arrows."
+        },
+        {
+          "kind": "key",
+          "key": "cap_fg",
+          "title": "Global cap foreground",
+          "value_type": "string",
+          "default": "",
+          "example_value": "$green",
+          "description": "Optional override foreground color for generated cap arrows.",
+          "notes": [
+            "If omitted, the cap widget derives its foreground from the source widget fill background when possible."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "cap_symbol",
+          "title": "Global cap symbol",
+          "value_type": "string",
+          "default": "",
+          "example_value": "",
+          "description": "Override symbol used for generated cap arrows."
+        },
+        {
+          "kind": "pattern",
+          "pattern": "<source>_cap_<property>",
+          "pattern_rule": "scoped_cap_style",
+          "title": "Scoped cap override",
+          "value_type": "string",
+          "description": "Overrides cap styling for a specific source widget, falling back to the global cap settings when absent.",
+          "notes": [
+            "Supported scoped properties are _cap_bg, _cap_fg, and _cap_symbol.",
+            "Examples include mode_cap_bg and mode_cap_symbol."
+          ],
+          "examples": [
+            {
+              "key": "mode_cap_bg",
+              "value": "$base"
+            },
+            {
+              "key": "mode_cap_symbol",
+              "value": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

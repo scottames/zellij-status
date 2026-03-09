@@ -3757,9 +3757,11 @@ dependencies = [
  "anyhow",
  "chrono",
  "chrono-tz",
+ "kdl",
  "regex",
  "rstest",
  "serde",
+ "serde_json",
  "unicode-width 0.2.2",
  "zellij-tile",
 ]

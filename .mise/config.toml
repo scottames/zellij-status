@@ -57,6 +57,20 @@ run = """
 cargo test --lib --target "$(rustc -vV | sed -n 's/^host: //p')"
 """
 
+[tasks."config-docs"]
+description = "Generate the KDL config reference from schema/config-schema.json"
+run = """
+#!/usr/bin/env bash
+cargo run --target "$(rustc -vV | sed -n 's/^host: //p')" --bin config-docgen
+"""
+
+[tasks."check-config-docs"]
+description = "Verify docs/config-reference.kdl matches the schema"
+run = """
+#!/usr/bin/env bash
+cargo run --target "$(rustc -vV | sed -n 's/^host: //p')" --bin config-docgen -- --check
+"""
+
 [tasks.lint]
 description = "Run clippy"
 run = "cargo clippy --all-features --lib"
@@ -67,5 +81,5 @@ run = ["trunk check"]
 
 [tasks.check-all]
 description = "Run all checks"
-depends = ["lint", "build", "test"]
+depends = ["lint", "check-config-docs", "build", "test"]
 run = ["trunk check"]

@@ -4,6 +4,8 @@ This document explains how to customize `zellij-status` beyond the starter
 examples. Use `examples/GUIDE.txt` for an interactive walkthrough, then use this
 reference when you want to tune behavior.
 
+For a generated key-by-key config reference, see `docs/config-reference.kdl`.
+
 ## Start from a known-good profile
 
 <!-- prettier-ignore-start -->
@@ -260,6 +262,7 @@ command_git_rendermode "static"
 
 - `static`: command output is inserted as literal text (`{stdout}`)
 - `dynamic`: command output can include style directives (`#[...]`)
+- `raw`: command output is returned as-is with no extra formatting
 
 See the [`default`](./examples/default) example for a live usage of the command
 widget.

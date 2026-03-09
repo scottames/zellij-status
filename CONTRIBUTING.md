@@ -42,6 +42,21 @@ Or with mise (auto-detects your host target):
 mise run test
 ```
 
+## Regenerating the config reference
+
+The generated config reference is driven by `schema/config-schema.json`.
+Regenerate it with:
+
+```bash
+mise run config-docs
+```
+
+To verify the checked-in reference is current without rewriting the file:
+
+```bash
+mise run check-config-docs
+```
+
 ## Linting and formatting
 
 This project uses [Trunk](https://docs.trunk.io/) for linting (clippy,
@@ -99,5 +114,7 @@ docs/            # Advanced feature reference
 
 - [`README.md`](README.md) — overview, installation, quick start
 - [`examples/README.md`](examples/README.md) — example profiles and usage
+- [`docs/config-reference.kdl`](docs/config-reference.kdl) — generated key-by-key
+  config reference
 - [`docs/advanced-features.md`](docs/advanced-features.md) — format strings,
   notifications, pipe protocol, caps, vertical layout details

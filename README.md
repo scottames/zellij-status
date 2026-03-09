@@ -181,6 +181,9 @@ For advanced customization (notifications, format composition, pipe protocol,
 caps, and vertical specifics), see
 [`docs/advanced-features.md`](./docs/advanced-features.md).
 
+For a generated key-by-key config reference, see
+[`docs/config-reference.kdl`](./docs/config-reference.kdl).
+
 ## Acknowledgments
 
 This Frankenstein plugin is a soft-fork of the three excellent Zellij plugins:

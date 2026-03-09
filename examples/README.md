@@ -52,6 +52,8 @@ zellij \
   first pane in all examples.
 - Advanced customization and feature reference:
   [`docs/advanced-features.md`](../docs/advanced-features.md)
+- Generated config key reference:
+  [`docs/config-reference.kdl`](../docs/config-reference.kdl)
 
 ## Template for new tabs
 

@@ -1,0 +1,285 @@
+// zellij-status config schema
+// Generated from schema/config-schema.json (v1). Do not edit directly.
+
+// --- Layout ---
+// Layout mode
+// Controls whether sections render as a horizontal bar or a vertical sidebar.
+// Allowed: horizontal | vertical
+// Default: horizontal
+// Note: Invalid values fall back to horizontal.
+// Note: Horizontal uses left/center/right zones; vertical uses top/middle/bottom.
+layout_mode "horizontal"
+
+
+// --- Colors ---
+// Color alias
+// Pattern: color_<name>
+// Defines a named color alias that can be referenced as $name inside format strings.
+// Note: Any key beginning with color_ is collected into the alias map.
+// Note: Values are passed through the existing color parser, so aliases can point to hex, rgb(...), or named colors.
+color_base "#1e1e2e"
+color_accent "#a6e3a1"
+
+
+// --- Sections ---
+// Section format entry
+// Pattern: format_<index>_<zone>[_<align-or-side>]
+// Defines a section row in a zone, including aligned rows and split left/right pairs.
+// Note: index must be a positive integer.
+// Note: zone accepts start/middle/end plus aliases left/center/right/top/bottom.
+// Note: A _left + _right pair with the same index and zone creates a split row.
+// Note: A single _left or _right entry without its partner is treated as an aligned row.
+format_1_left "{mode} {tabs}"
+format_3_right_left "#[fg=$overlay0] {session}"
+format_3_right_right "#[fg=$overlay0]{datetime}"
+
+// Zone spacer style
+// Sets the style used for the spacer between major zones.
+// Default: 
+// Note: Most useful in horizontal mode where the bar has visible gaps between start, middle, and end zones.
+format_space "#[bg=$mantle]"
+
+// Overlength precedence
+// Controls which zones keep priority when the bar is wider than the terminal.
+// Default: 123
+// Note: Use digits 1, 2, and 3 exactly once.
+// Note: 1=start or top, 2=middle, 3=end or bottom.
+format_precedence "132"
+
+// Hide on overlength
+// When true, lower-priority zones are hidden on narrow terminals instead of being squeezed.
+// Default: false
+// Note: The plugin checks for the literal string true.
+format_hide_on_overlength "true"
+
+
+// --- Tabs ---
+// Normal tab format
+// Format string for an inactive tab.
+// Default: {index}:{name}
+// Placeholders: {index}, {name}, {sync_indicator}, {fullscreen_indicator}, {floating_indicator}, {notification}
+tab_normal "#[fg=$overlay0] {index} {name} {notification}"
+
+// Active tab format
+// Format string for the active tab.
+// Default: tab_normal
+// Placeholders: {index}, {name}, {sync_indicator}, {fullscreen_indicator}, {floating_indicator}, {notification}
+tab_active "#[fg=$base,bg=$green,bold,fill] {index} {name} {notification} #[bg=default]"
+
+// Normal fullscreen tab format
+// Format string for an inactive tab when fullscreen is active.
+// Default: tab_normal
+// Placeholders: {index}, {name}, {fullscreen_indicator}, {notification}
+tab_normal_fullscreen "#[fg=$overlay0] {index} {name} {fullscreen_indicator}{notification}"
+
+// Active fullscreen tab format
+// Format string for the active tab when fullscreen is active.
+// Default: tab_active
+// Placeholders: {index}, {name}, {fullscreen_indicator}, {notification}
+tab_active_fullscreen "#[fg=$base,bg=$green,bold,fill] {index} {name} {fullscreen_indicator}{notification} #[bg=default]"
+
+// Normal sync tab format
+// Format string for an inactive tab when sync panes is active.
+// Default: tab_normal
+// Placeholders: {index}, {name}, {sync_indicator}, {notification}
+tab_normal_sync "#[fg=$overlay0] {index} {name} {sync_indicator}{notification}"
+
+// Active sync tab format
+// Format string for the active tab when sync panes is active.
+// Default: tab_active
+// Placeholders: {index}, {name}, {sync_indicator}, {notification}
+tab_active_sync "#[fg=$base,bg=$green,bold,fill] {index} {name} {sync_indicator}{notification} #[bg=default]"
+
+// Rename tab format
+// Format string for the active tab while Rename Tab mode is active.
+// Default: tab_active
+// Placeholders: {index}, {name}
+tab_rename "#[fg=$green,italic] {index} {name} "
+
+// Horizontal tab separator
+// Separator rendered between tabs in horizontal mode.
+// Default: 
+// Note: Vertical mode does not use the separator between tab rows.
+tab_separator "#[fg=$surface1]|"
+
+// Overflow indicator above
+// Indicator shown above the visible tab range in vertical mode.
+// Default:   ^ +{count}
+// Placeholders: {count}
+tab_overflow_above "#[fg=$overlay0,bg=$mantle]  ^ +{count}"
+
+// Overflow indicator below
+// Indicator shown below the visible tab range in vertical mode.
+// Default:   v +{count}
+// Placeholders: {count}
+tab_overflow_below "#[fg=$overlay0,bg=$mantle]  v +{count}"
+
+// Tab name max length
+// Maximum display width for tab names before truncation.
+// Default: 20
+tab_max_name_length 18
+
+// Vertical tab top padding
+// Number of blank rows to render above the vertical tab list.
+// Default: 0
+tab_padding_top 0
+
+// Vertical tab border
+// Optional right-side border appended to each vertical tab row.
+// Default: 
+tab_border "#[fg=$surface1]│"
+
+// Tab index offset
+// Controls the displayed starting index for tabs.
+// Default: 1
+tab_start_index 1
+
+// Sync indicator
+// Text or icon substituted for {sync_indicator} when sync panes is active.
+// Default: 
+tab_indicator_sync "🔄"
+
+// Fullscreen indicator
+// Text or icon substituted for {fullscreen_indicator} when fullscreen is active.
+// Default: 
+tab_indicator_fullscreen "↔️"
+
+// Floating panes indicator
+// Text or icon substituted for {floating_indicator} when floating panes are visible.
+// Default: 
+tab_indicator_floating "🛟"
+
+
+// --- Notifications ---
+// Notifications enabled
+// Turns the notification system on or off.
+// Default: true
+// Note: The aggregate widget and per-tab indicator both respect this flag.
+notification_enabled "true"
+
+// Aggregate notification format
+// Format string for the aggregate {notifications} widget.
+// Default:  {count}
+// Placeholders: {count}
+notification_format "#[fg=$peach,bold] {count} "
+
+// Show aggregate when empty
+// When true, the aggregate notification widget renders even when the count is zero.
+// Default: false
+notification_show_if_empty "false"
+
+// Per-tab notification fallback format
+// Fallback format for the per-tab {notification} placeholder.
+// Default: {icon}
+// Placeholders: {icon}
+notification_format_tab "{icon}"
+
+// Per-tab waiting format
+// Override format for waiting notifications in tab strings.
+// Default: notification_format_tab
+// Placeholders: {icon}
+notification_format_waiting "#[fg=$yellow,bold]{icon}"
+
+// Per-tab in-progress format
+// Override format for in-progress notifications in tab strings.
+// Default: notification_format_tab
+// Placeholders: {icon}
+notification_format_in_progress "{icon}"
+
+// Per-tab completed format
+// Override format for completed notifications in tab strings.
+// Default: notification_format_tab
+// Placeholders: {icon}
+notification_format_completed "#[fg=$green,bold]{icon}"
+
+// Waiting indicator
+// Icon or text used for waiting notifications.
+// Default: ⏳
+notification_indicator_waiting "⏳"
+
+// In-progress indicator
+// Icon or text used for in-progress notifications.
+// Default: 🔄
+notification_indicator_in_progress "🚀"
+
+// Completed indicator
+// Icon or text used for completed notifications.
+// Default: ✅
+notification_indicator_completed "✅"
+
+
+// --- Widgets ---
+// Mode widget format
+// Pattern: mode_<mode>
+// Defines the rendered label for a specific Zellij input mode.
+// Note: Any key beginning with mode_ is treated as a mode format.
+// Note: Unconfigured modes fall back to the plugin's built-in uppercase labels.
+mode_normal "#[bg=$blue,fg=$base,bold,fill] NORMAL "
+mode_resize "#[bg=$teal,fg=$base,bold,fill] RESIZE "
+
+// Datetime format
+// strftime format string used by the datetime widget.
+// Default: %Y-%m-%d %H:%M
+datetime_format "%H:%M"
+
+// Datetime timezone
+// IANA timezone name used by the datetime widget.
+// Default: UTC
+datetime_timezone "America/Los_Angeles"
+
+// Swap layout format
+// Format string used by the swap layout widget.
+// Default: {name}
+// Placeholders: {name}
+swap_layout_format "#[fg=$overlay0] {name}"
+
+// Hide empty swap layout
+// When true, hides the swap layout widget if there is no active layout name.
+// Default: true
+swap_layout_hide_if_empty "true"
+
+// Command widget property
+// Pattern: command_<name>_<property>
+// Defines a command widget instance, including its command, format, polling interval, render mode, click action, and optional working directory.
+// Note: Supported property suffixes are _command, _format, _interval, _rendermode, _clickaction, and _cwd.
+// Note: command_<name>_rendermode accepts static, dynamic, or raw.
+// Note: command_<name>_interval is parsed as a non-negative integer string.
+command_git_command "git branch --show-current"
+command_git_format "#[fg=$blue] {stdout} "
+command_git_interval "10"
+command_git_rendermode "static"
+
+// Pipe widget format
+// Pattern: pipe_<name>_format
+// Defines a pipe widget that renders externally supplied data.
+// Placeholders: {output}
+// Note: Pipe widgets consume values sent through zellij-status::pipe::<name>::<value>.
+// Note: Use the {output} placeholder to insert the latest pipe payload.
+pipe_status_format "#[fg=$green] {output} "
+
+
+// --- Caps ---
+// Global cap background
+// Background color or alias placed behind generated cap arrows.
+// Default: 
+cap_bg "$mantle"
+
+// Global cap foreground
+// Optional override foreground color for generated cap arrows.
+// Default: 
+// Note: If omitted, the cap widget derives its foreground from the source widget fill background when possible.
+cap_fg "$green"
+
+// Global cap symbol
+// Override symbol used for generated cap arrows.
+// Default: 
+cap_symbol ""
+
+// Scoped cap override
+// Pattern: <source>_cap_<property>
+// Overrides cap styling for a specific source widget, falling back to the global cap settings when absent.
+// Note: Supported scoped properties are _cap_bg, _cap_fg, and _cap_symbol.
+// Note: Examples include mode_cap_bg and mode_cap_symbol.
+mode_cap_bg "$base"
+mode_cap_symbol ""
+

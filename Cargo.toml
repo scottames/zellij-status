@@ -15,8 +15,10 @@ chrono = "0.4"
 chrono-tz = "0.10"
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [dev-dependencies]
+kdl = "4.7"
 rstest = "0.25"
 
 [profile.release]

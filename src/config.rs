@@ -195,10 +195,7 @@ impl TabConfig {
             .and_then(|v| v.parse().ok())
             .unwrap_or(1);
 
-        let indicator_sync = raw
-            .get("tab_indicator_sync")
-            .cloned()
-            .unwrap_or_default();
+        let indicator_sync = raw.get("tab_indicator_sync").cloned().unwrap_or_default();
 
         let indicator_fullscreen = raw
             .get("tab_indicator_fullscreen")
@@ -332,52 +329,32 @@ fn parse_format_sections(config: &BTreeMap<String, String>) -> Vec<FormatSection
         priority: SinglePriority,
     }
 
-    fn parse_format_key(key: &str) -> Option<ParsedFormatKey> {
-        let rest = key.strip_prefix("format_")?;
-        let mut parts = rest.split('_');
-        let index = parts.next()?.parse::<usize>().ok()?;
-        if index == 0 {
-            return None;
-        }
-
-        let zone = SectionZone::parse(parts.next()?)?;
-        let suffix = parts.next();
-        if parts.next().is_some() {
-            return None;
-        }
-
-        let (align, split_side, priority) = match suffix {
-            None => (TextAlign::Left, None, SinglePriority::Base),
-            Some("left") => (
-                TextAlign::Left,
-                Some(SplitSide::Left),
-                SinglePriority::Align,
-            ),
-            Some("right") => (
-                TextAlign::Right,
-                Some(SplitSide::Right),
-                SinglePriority::Align,
-            ),
-            Some(raw) => (TextAlign::parse(raw)?, None, SinglePriority::Align),
-        };
-
-        Some(ParsedFormatKey {
-            index,
-            zone,
-            align,
-            split_side,
-            priority,
-        })
-    }
-
     let mut singles: BTreeMap<(usize, SectionZone), (SinglePriority, FormatSection)> =
         BTreeMap::new();
     let mut split_candidates: BTreeMap<(usize, SectionZone), (Option<String>, Option<String>)> =
         BTreeMap::new();
 
     for (key, value) in config {
-        let Some(parsed) = parse_format_key(key) else {
+        let Some((index, zone, align, split_side_flag)) = parse_format_key(key) else {
             continue;
+        };
+
+        let parsed = ParsedFormatKey {
+            index,
+            zone,
+            align,
+            split_side: split_side_flag.map(|is_left| {
+                if is_left {
+                    SplitSide::Left
+                } else {
+                    SplitSide::Right
+                }
+            }),
+            priority: if split_side_flag.is_some() || align != TextAlign::Left {
+                SinglePriority::Align
+            } else {
+                SinglePriority::Base
+            },
         };
 
         let section = FormatSection {
@@ -427,6 +404,47 @@ fn parse_format_sections(config: &BTreeMap<String, String>) -> Vec<FormatSection
     }
 
     singles.into_values().map(|(_, section)| section).collect()
+}
+
+fn parse_format_key_parts(key: &str) -> Option<(usize, SectionZone, TextAlign, bool)> {
+    let rest = key.strip_prefix("format_")?;
+    let mut parts = rest.split('_');
+    let index = parts.next()?.parse::<usize>().ok()?;
+    if index == 0 {
+        return None;
+    }
+
+    let zone = SectionZone::parse(parts.next()?)?;
+    let suffix = parts.next();
+    if parts.next().is_some() {
+        return None;
+    }
+
+    let (align, is_split_side) = match suffix {
+        None => (TextAlign::Left, false),
+        Some("left") => (TextAlign::Left, true),
+        Some("right") => (TextAlign::Right, true),
+        Some(raw) => (TextAlign::parse(raw)?, false),
+    };
+
+    Some((index, zone, align, is_split_side))
+}
+
+pub(crate) fn is_valid_format_key(key: &str) -> bool {
+    parse_format_key_parts(key).is_some()
+}
+
+fn parse_format_key(key: &str) -> Option<(usize, SectionZone, TextAlign, Option<bool>)> {
+    let (index, zone, align, is_split_side) = parse_format_key_parts(key)?;
+    let split_side = if !is_split_side {
+        None
+    } else if key.ends_with("_left") {
+        Some(true)
+    } else {
+        Some(false)
+    };
+
+    Some((index, zone, align, split_side))
 }
 
 #[cfg(test)]
