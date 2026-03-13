@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/scottames/zellij-status/compare/v0.2.0...v0.2.1) (2026-03-13)
+
+
+### Miscellaneous Chores
+
+* **deps:** update ⬆️ github-actions to v2.9.1 ([#14](https://github.com/scottames/zellij-status/issues/14)) ([aed3768](https://github.com/scottames/zellij-status/commit/aed3768f8086ac4bd5f634c0bbaf8209b9849232))
+* upgrade trunk ([#10](https://github.com/scottames/zellij-status/issues/10)) ([7d5caf0](https://github.com/scottames/zellij-status/commit/7d5caf0cb085f6fbf85cd23c15944cb2d8e3b83c))
+
 ## [0.2.0](https://github.com/scottames/zellij-status/compare/v0.1.1...v0.2.0) (2026-03-09)
 
 
