@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/scottames/zellij-status/compare/v0.2.1...v0.2.2) (2026-03-17)
+
+
+### Miscellaneous Chores
+
+* **deps:** lock file maintenance ([#15](https://github.com/scottames/zellij-status/issues/15)) ([09396ea](https://github.com/scottames/zellij-status/commit/09396eaeac186cf1221bfb3acb67851fcdc7afa6))
+* **deps:** update rust crate rstest to 0.26 ([#12](https://github.com/scottames/zellij-status/issues/12)) ([f024894](https://github.com/scottames/zellij-status/commit/f0248945449ca318a9e9cff242799283047f86f3))
+
 ## [0.2.1](https://github.com/scottames/zellij-status/compare/v0.2.0...v0.2.1) (2026-03-17)
 
 
