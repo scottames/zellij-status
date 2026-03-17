@@ -112,7 +112,7 @@ impl TabsWidget {
     /// Expand a format string for a single tab, substituting variables.
     ///
     /// Supported variables:
-    /// - `{index}` — tab position (1-based by default, controlled by `start_index`)
+    /// - `{index}` — tab position (1-based by default, controlled by `start_index`, right-aligned to the widest current index)
     /// - `{name}` — tab name (shows "Enter name..." when renaming and name is empty)
     /// - `{sync_indicator}` — icon from `tab_indicator_sync` (shown only when sync active)
     /// - `{fullscreen_indicator}` — icon from `tab_indicator_fullscreen` (shown only when fullscreen active)
@@ -131,16 +131,24 @@ impl TabsWidget {
         let name_truncated = truncate_str(&name, max_name);
 
         let notification_fragment = resolve_notification_icon(tab, state);
-        let sync_val = resolve_indicator(&state.config.tabs.indicator_sync, tab.is_sync_panes_active);
-        let fs_val = resolve_indicator(&state.config.tabs.indicator_fullscreen, tab.is_fullscreen_active);
-        let float_val = resolve_indicator(&state.config.tabs.indicator_floating, tab.are_floating_panes_visible);
+        let sync_val =
+            resolve_indicator(&state.config.tabs.indicator_sync, tab.is_sync_panes_active);
+        let fs_val = resolve_indicator(
+            &state.config.tabs.indicator_fullscreen,
+            tab.is_fullscreen_active,
+        );
+        let float_val = resolve_indicator(
+            &state.config.tabs.indicator_floating,
+            tab.are_floating_panes_visible,
+        );
+        let padded_index = format_display_index(display_index, state);
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let mut out = String::new();
 
         for part in &parts {
             let mut content = part.content.clone();
             if content.contains("{index}") {
-                content = content.replace("{index}", &display_index.to_string());
+                content = content.replace("{index}", &padded_index);
             }
             if content.contains("{name}") {
                 content = content.replace("{name}", &name_truncated);
@@ -194,9 +202,17 @@ impl TabsWidget {
         let name = resolve_tab_name(tab, &state.mode.mode);
         let name_truncated = truncate_str(&name, max_name);
         let notification_fragment = resolve_notification_icon(tab, state);
-        let sync_val = resolve_indicator(&state.config.tabs.indicator_sync, tab.is_sync_panes_active);
-        let fs_val = resolve_indicator(&state.config.tabs.indicator_fullscreen, tab.is_fullscreen_active);
-        let float_val = resolve_indicator(&state.config.tabs.indicator_floating, tab.are_floating_panes_visible);
+        let sync_val =
+            resolve_indicator(&state.config.tabs.indicator_sync, tab.is_sync_panes_active);
+        let fs_val = resolve_indicator(
+            &state.config.tabs.indicator_fullscreen,
+            tab.is_fullscreen_active,
+        );
+        let float_val = resolve_indicator(
+            &state.config.tabs.indicator_floating,
+            tab.are_floating_panes_visible,
+        );
+        let padded_index = format_display_index(display_index, state);
 
         let parts = parse_format_string(format_str, &state.config.color_aliases);
         let fill_idx = parts.iter().position(|p| p.fill)?;
@@ -221,7 +237,7 @@ impl TabsWidget {
             for part in range {
                 let mut content = part.content.clone();
                 if content.contains("{index}") {
-                    content = content.replace("{index}", &display_index.to_string());
+                    content = content.replace("{index}", &padded_index);
                 }
                 if content.contains("{name}") {
                     content = content.replace("{name}", &name_truncated);
@@ -387,7 +403,22 @@ fn render_notification_fragment(
 /// Resolve a tab state indicator: returns the configured icon when the state
 /// is active, empty string otherwise.
 fn resolve_indicator(icon: &str, active: bool) -> String {
-    if active { icon.to_string() } else { String::new() }
+    if active {
+        icon.to_string()
+    } else {
+        String::new()
+    }
+}
+
+fn format_display_index(display_index: usize, state: &PluginState<'_>) -> String {
+    let max_display_index = state
+        .config
+        .tabs
+        .start_index
+        .saturating_add(state.tabs.len().saturating_sub(1));
+    let width = max_display_index.max(1).to_string().len();
+
+    format!("{display_index:>width$}")
 }
 
 /// Resolve what name to display for a tab.
@@ -589,18 +620,55 @@ mod tests {
     fn expand_index_variable() {
         let config = BTreeMap::from([("tab_normal".to_string(), "{index}".to_string())]);
         let w = make_widget(&config);
-        let tab = make_tab(2, "foo", false);
-        // strip_ansi_width helps check visible output
-        let rendered = {
-            // Build a minimal PluginState-like call — we test render_tab indirectly
-            // by checking truncate_str and variable substitution separately
-            let format_str = w.select_format(&tab, &InputMode::Normal);
-            assert_eq!(format_str, "{index}");
-            // Expansion is done inside render_tab; verify via truncate_str
-            let idx = (2 + 1).to_string(); // start_index=1, position=2 → display 3
-            assert_eq!(idx, "3");
-        };
-        let _ = rendered; // silence unused warning
+        let tabs = vec![
+            make_tab(0, "one", true),
+            make_tab(1, "two", false),
+            make_tab(2, "three", false),
+        ];
+        let panes = PaneManifest::default();
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        let notifications = NotificationTracker::default();
+        let mode = ModeInfo::default();
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &parsed,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        assert_eq!(w.render_tab(&tabs[2], &state, 3), "3");
+    }
+
+    #[test]
+    fn expand_index_variable_pads_to_widest_tab_index() {
+        let config = BTreeMap::from([("tab_normal".to_string(), "{index}>".to_string())]);
+        let w = make_widget(&config);
+        let parsed = PluginConfig::from_configuration(config).unwrap();
+        let tabs: Vec<TabInfo> = (0..11)
+            .map(|position| make_tab(position, &format!("tab-{position}"), position == 0))
+            .collect();
+        let panes = PaneManifest::default();
+        let notifications = NotificationTracker::default();
+        let mode = ModeInfo::default();
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &parsed,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        assert_eq!(w.render_tab(&tabs[0], &state, 1), " 1>");
+        assert_eq!(w.render_tab(&tabs[9], &state, 10), "10>");
     }
 
     #[test]
@@ -711,7 +779,10 @@ mod tests {
         )]);
 
         let raw = BTreeMap::from([
-            ("notification_indicator_waiting".to_string(), "WAIT".to_string()),
+            (
+                "notification_indicator_waiting".to_string(),
+                "WAIT".to_string(),
+            ),
             (
                 "notification_format_waiting".to_string(),
                 "#[fg=green,bold]{icon}".to_string(),

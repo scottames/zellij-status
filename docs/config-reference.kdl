@@ -58,6 +58,7 @@ format_hide_on_overlength "true"
 // Format string for an inactive tab.
 // Default: {index}:{name}
 // Placeholders: {index}, {name}, {sync_indicator}, {fullscreen_indicator}, {floating_indicator}, {notification}
+// Note: {index} is right-aligned to the widest current tab index.
 tab_normal "#[fg=$overlay0] {index} {name} {notification}"
 
 // Active tab format

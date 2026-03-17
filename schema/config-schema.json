@@ -138,7 +138,8 @@
             "{fullscreen_indicator}",
             "{floating_indicator}",
             "{notification}"
-          ]
+          ],
+          "notes": ["{index} is right-aligned to the widest current tab index."]
         },
         {
           "kind": "key",
