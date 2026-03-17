@@ -3,4 +3,11 @@
   extends: [
     'github>scottames/renovate:default.json5',
   ],
+  packageRules: [
+    {
+      matchPackageNames: ['kdl'],
+      allowedVersions: '<5',
+      description: 'Keep kdl aligned with current upstream Zellij support. zellij-org/zellij#3891',
+    },
+  ],
 }
