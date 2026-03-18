@@ -30,7 +30,19 @@ with KDL-only configuration.
       <td align="center" width="100%">
         <img src="docs/assets/default.png" alt="Default horizontal status bar" />
         <br />
-        <sub><strong>Horizontal</strong> · default</sub>
+        <sub><strong>Horizontal</strong> · default (tokyo night)</sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="100%">
+        <img src="docs/assets/powerline.png" alt="Powerline horizontal status bar" />
+        <br />
+        <sub><strong>Horizontal</strong> · powerline (nord)</sub>
       </td>
     </tr>
   </table>
@@ -42,12 +54,12 @@ with KDL-only configuration.
       <td align="center" width="50%">
         <img src="docs/assets/vertical.png" alt="Vertical left sidebar layout" width="460" />
         <br />
-        <sub><strong>Vertical</strong> · Left sidebar</sub>
+        <sub><strong>Vertical</strong> · left sidebar (tokyo night)</sub>
       </td>
       <td align="center" width="50%">
         <img src="docs/assets/vertical-right.png" alt="Vertical right sidebar layout" width="460" />
         <br />
-        <sub><strong>Vertical-right</strong> · Right sidebar</sub>
+        <sub><strong>Vertical-right</strong> · right sidebar (tokyo night)</sub>
       </td>
     </tr>
   </table>
@@ -85,9 +97,10 @@ cp target/wasm32-wasip1/release/zellij-status.wasm ~/.config/zellij/plugins/
 
 ## Quick start
 
-Add this plugin block inside `default_tab_template` in your Zellij layout file
-(see [`examples/minimal/layout.kdl`](examples/minimal/layout.kdl) for a complete
-working layout):
+Add the following plugin block inside `default_tab_template` in your Zellij
+layout file.
+
+- See [`examples`](examples/) for several complete working layouts
 
 ```kdl
 plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
@@ -97,25 +110,69 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
     color_fg     "#cdd6f4"
     color_accent "#a6e3a1"
 
+    // format_<row>_<zone>: numbered rows inside left/center/right zones
     format_1_left  "#[fg=$accent,bold]{mode} {tabs}"
+    // aggregate notification count across all tabs
     format_2_right "{notifications}"
     format_3_right "#[fg=$fg] {session} "
 
+    // {notification} must be present here for per-tab notification icons to render
     tab_normal "#[fg=$fg] {index}:{name} {notification}"
     tab_active "#[fg=$bg,bg=$accent,bold] {index}:{name} {notification} #[bg=default]"
 
-    notification_enabled            "true"
-    notification_indicator_waiting       "⏳"
-    notification_indicator_in_progress   "🔄"
-    notification_indicator_completed     "✅"
-    notification_format_tab         "{icon}"
-    notification_format_waiting     "#[fg=yellow,bold]{icon}"
-    notification_format_in_progress "{icon}"
-    notification_format_completed   "#[fg=$accent,bold]{icon}"
-    notification_format             "#[fg=$accent,bold] {count} "
-    notification_show_if_empty      "false"
+    // optionally show notification indicators on tabs
+    notification_enabled               "true"
+    notification_indicator_waiting     "⏳" // emoji work out of the box; Nerd Font glyphs work too
+    notification_indicator_in_progress "🔄"
+    notification_indicator_completed   "✅"
+    // customize per-tab notification icon styling by state
+    // fallback icon format when a state-specific format is not set
+    notification_format_tab            "{icon}"
+    notification_format_waiting        "#[fg=yellow,bold]{icon}"
+    notification_format_in_progress    "{icon}" // (aka no format)
+    notification_format_completed      "#[fg=$accent,bold]{icon}"
+    // optionally restyle the whole tab when a notification is present
+    // leave these unset to keep whole-tab overlays disabled
+    notification_tab_style_waiting     "#[bg=yellow,fg=$bg,bold]"
+    notification_tab_style_in_progress "#[bg=yellow,fg=$bg]"
+    notification_tab_style_completed   "#[bg=$accent,fg=$bg]"
+    // customize the format for the notification count
+    notification_format                "#[fg=$accent,bold] {count} "
+    // hide the aggregate counter when there are no notifications
+    notification_show_if_empty         "false"
 }
 ```
+
+Mental model for the snippet above:
+
+- `format_*` keys place widgets into the bar
+- `tab_*` keys control how each tab looks
+- `notification_format_*` keys style the per-tab icon only
+- `notification_tab_style_*` keys optionally restyle the whole tab
+- `{notifications}` shows the aggregate count; `{notification}` shows the
+  per-tab state
+
+<!-- prettier-ignore-start -->
+
+> [!NOTE]
+> Need more than the quick start?
+>
+> - [`docs/advanced-features.md`](./docs/advanced-features.md) deeper
+>   examples and behavior notes
+> - [`docs/config-reference.kdl`](./docs/config-reference.kdl)
+>   generated key-by-key config reference
+
+<!-- prettier-ignore-end -->
+
+Per-tab `{notification}` formatting uses `notification_format_*` keys and
+supports `{icon}` as a placeholder.
+
+Whole-tab notification overlays use `notification_tab_style*` keys. They are
+opt-in: if you leave those keys out, tabs keep their existing styling and only
+the `{notification}` fragment changes. When configured, overlays apply only to
+inactive tabs by default so the active-tab style remains the primary focus
+signal; set `notification_tab_style_apply_to_active` to `"true"` if you want
+active tabs to restyle as well.
 
 <!-- prettier-ignore-start -->
 > [!TIP]
@@ -123,8 +180,11 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
 > (for tabs, status segments, notifications, etc).
 <!-- prettier-ignore-end -->
 
-Per-tab `{notification}` formatting uses `notification_format_*` keys and
-supports `{icon}` as a placeholder.
+On first run, Zellij prompts for plugin permissions:
+
+- `ReadApplicationState`
+- `ChangeApplicationState`
+- `ReadCliPipes`
 
 <!-- prettier-ignore-start -->
 > [!IMPORTANT]
@@ -135,12 +195,6 @@ supports `{icon}` as a placeholder.
 > - For _vertical_ layouts, define `new_tab_template` with `pane command="bash"`
 > as the content pane (see the vertical examples).
 <!-- prettier-ignore-end -->
-
-On first run, Zellij prompts for plugin permissions:
-
-- `ReadApplicationState`
-- `ChangeApplicationState`
-- `ReadCliPipes`
 
 ## Examples
 
@@ -177,12 +231,8 @@ mise run example <profile>
 For an interactive walkthrough, see `examples/GUIDE.txt`. (also launched in each
 of the examples)
 
-For advanced customization (notifications, format composition, pipe protocol,
-caps, and vertical specifics), see
-[`docs/advanced-features.md`](./docs/advanced-features.md).
-
-For a generated key-by-key config reference, see
-[`docs/config-reference.kdl`](./docs/config-reference.kdl).
+For advanced customization details and the full generated config reference, see
+the links in the quick start section above.
 
 ## Acknowledgments
 

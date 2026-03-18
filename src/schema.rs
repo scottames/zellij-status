@@ -540,7 +540,11 @@ fn write_comment_block(out: &mut String, metadata: &impl CommentMetadata) {
         ));
     }
     if let Some(default) = metadata.default_value() {
-        out.push_str(&format!("// Default: {}\n", default));
+        if default.is_empty() {
+            out.push_str("// Default:\n");
+        } else {
+            out.push_str(&format!("// Default: {}\n", default));
+        }
     }
     if !metadata.placeholders().is_empty() {
         out.push_str(&format!(
@@ -671,6 +675,11 @@ mod tests {
             "notification_format_waiting",
             "notification_format_in_progress",
             "notification_format_completed",
+            "notification_tab_style",
+            "notification_tab_style_waiting",
+            "notification_tab_style_in_progress",
+            "notification_tab_style_completed",
+            "notification_tab_style_apply_to_active",
             "notification_indicator_waiting",
             "notification_indicator_in_progress",
             "notification_indicator_completed",

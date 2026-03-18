@@ -98,6 +98,9 @@ notification_format_completed      "#[fg=$green,bold]{icon}"
 notification_format_in_progress    "{icon}"
 notification_format_tab            "{icon}"
 notification_format_waiting        "#[fg=$peach,bold]{icon}"
+notification_tab_style_waiting     "#[bg=$peach,fg=$base,bold]"
+notification_tab_style_in_progress "#[bg=$yellow,fg=$base,bold]"
+notification_tab_style_completed   "#[bg=$green,fg=$base]"
 notification_indicator_completed   "✅"
 notification_indicator_in_progress "🔄"
 notification_indicator_waiting     "⏳"
@@ -107,6 +110,15 @@ notification_show_if_empty         "false"
 `notification_format_*` keys style the per-tab `{notification}` icon.
 `notification_format_tab` is the fallback for any state-specific format key you
 do not set.
+
+`notification_tab_style*` keys apply a style overlay to the selected base tab
+format after normal active/fullscreen/sync/rename precedence is resolved.
+State-specific keys fall back to `notification_tab_style`. If you omit these
+keys entirely, whole-tab overlays stay disabled and only the per-tab
+`{notification}` fragment changes. When configured, the overlay applies only to
+inactive tabs by default so active-tab styling stays intact; set
+`notification_tab_style_apply_to_active` to `"true"` to opt into active-tab
+overlays too.
 
 If your tab format already has surrounding style, prefer isolating
 `{notification}` in its own segment so icon styling is predictable, for example:

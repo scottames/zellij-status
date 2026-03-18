@@ -35,7 +35,7 @@ format_3_right_right "#[fg=$overlay0]{datetime}"
 
 // Zone spacer style
 // Sets the style used for the spacer between major zones.
-// Default: 
+// Default:
 // Note: Most useful in horizontal mode where the bar has visible gaps between start, middle, and end zones.
 format_space "#[bg=$mantle]"
 
@@ -99,7 +99,7 @@ tab_rename "#[fg=$green,italic] {index} {name} "
 
 // Horizontal tab separator
 // Separator rendered between tabs in horizontal mode.
-// Default: 
+// Default:
 // Note: Vertical mode does not use the separator between tab rows.
 tab_separator "#[fg=$surface1]|"
 
@@ -127,7 +127,7 @@ tab_padding_top 0
 
 // Vertical tab border
 // Optional right-side border appended to each vertical tab row.
-// Default: 
+// Default:
 tab_border "#[fg=$surface1]│"
 
 // Tab index offset
@@ -137,17 +137,17 @@ tab_start_index 1
 
 // Sync indicator
 // Text or icon substituted for {sync_indicator} when sync panes is active.
-// Default: 
+// Default:
 tab_indicator_sync "🔄"
 
 // Fullscreen indicator
 // Text or icon substituted for {fullscreen_indicator} when fullscreen is active.
-// Default: 
+// Default:
 tab_indicator_fullscreen "↔️"
 
 // Floating panes indicator
 // Text or icon substituted for {floating_indicator} when floating panes are visible.
-// Default: 
+// Default:
 tab_indicator_floating "🛟"
 
 
@@ -192,6 +192,37 @@ notification_format_in_progress "{icon}"
 // Default: notification_format_tab
 // Placeholders: {icon}
 notification_format_completed "#[fg=$green,bold]{icon}"
+
+// Whole-tab notification fallback style
+// Fallback style overlay applied to notified tabs after the base tab format is selected.
+// Default:
+// Note: Leave this key unset to keep whole-tab overlays disabled.
+// Note: This changes tab-wide styling only; the per-tab {notification} fragment remains controlled by notification_format_* keys.
+notification_tab_style "#[bg=$peach,fg=$base,bold]"
+
+// Whole-tab waiting style
+// Override style overlay for waiting tabs.
+// Default: notification_tab_style
+// Note: Only takes effect when this key or notification_tab_style is configured.
+notification_tab_style_waiting "#[bg=$peach,fg=$base,bold]"
+
+// Whole-tab in-progress style
+// Override style overlay for in-progress tabs.
+// Default: notification_tab_style
+// Note: Only takes effect when this key or notification_tab_style is configured.
+notification_tab_style_in_progress "#[bg=$yellow,fg=$base,bold]"
+
+// Whole-tab completed style
+// Override style overlay for completed tabs.
+// Default: notification_tab_style
+// Note: Only takes effect when this key or notification_tab_style is configured.
+notification_tab_style_completed "#[bg=$green,fg=$base]"
+
+// Apply whole-tab notification style to active tabs
+// When true, whole-tab notification overlays also apply to active tabs.
+// Default: false
+// Note: This flag has no visible effect unless a whole-tab notification style key is configured.
+notification_tab_style_apply_to_active "false"
 
 // Waiting indicator
 // Icon or text used for waiting notifications.
@@ -262,12 +293,12 @@ pipe_status_format "#[fg=$green] {output} "
 // --- Caps ---
 // Global cap background
 // Background color or alias placed behind generated cap arrows.
-// Default: 
+// Default:
 cap_bg "$mantle"
 
 // Global cap foreground
 // Optional override foreground color for generated cap arrows.
-// Default: 
+// Default:
 // Note: If omitted, the cap widget derives its foreground from the source widget fill background when possible.
 cap_fg "$green"
 

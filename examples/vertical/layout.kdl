@@ -145,9 +145,13 @@ layout {
                     // --- Notifications ---
                     notification_enabled               "true"
                     notification_format                "#[bg=$surface1,fg=$peach,bold] {count} "
-                    notification_indicator_completed   "✅"
-                    notification_indicator_in_progress "🔄"
-                    notification_indicator_waiting     "⏳"
+                    notification_indicator_completed   ""
+                    notification_indicator_in_progress "󰔛"
+                    notification_indicator_waiting     ""
+                    notification_tab_style_waiting     "#[bg=$red,fg=$base,bold]"
+                    // omit to match tab format
+                    // notification_tab_style_in_progress "#[bg=$yellow,fg=$base,bold]"
+                    notification_tab_style_completed   "#[bg=$peach,fg=$base]"
                     notification_show_if_empty         "false"
 
                     // --- Mode widget ---
@@ -275,9 +279,13 @@ layout {
                     // --- Notifications ---
                     notification_enabled               "true"
                     notification_format                "#[bg=$surface1,fg=$peach,bold] {count} "
-                    notification_indicator_completed   "✅"
-                    notification_indicator_in_progress "🔄"
-                    notification_indicator_waiting     "⏳"
+                    notification_indicator_completed   ""
+                    notification_indicator_in_progress "󰔛"
+                    notification_indicator_waiting     ""
+                    notification_tab_style_waiting     "#[bg=$red,fg=$base,bold]"
+                    // omit to match tab format
+                    // notification_tab_style_in_progress "#[bg=$yellow,fg=$base,bold]"
+                    notification_tab_style_completed   "#[bg=$peach,fg=$base]"
                     notification_show_if_empty         "false"
 
                     // --- Mode widget ---

@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use anstyle::Effects;
 use unicode_width::UnicodeWidthStr;
 use zellij_tile::prelude::{InputMode, PaneInfo, TabInfo};
 #[cfg(target_arch = "wasm32")]
@@ -124,7 +125,6 @@ impl TabsWidget {
         state: &PluginState<'_>,
         display_index: usize,
     ) -> String {
-        let format_str = self.select_format(tab, &state.mode.mode);
         let max_name = state.config.tabs.max_name_length;
 
         let name = resolve_tab_name(tab, &state.mode.mode);
@@ -142,7 +142,7 @@ impl TabsWidget {
             tab.are_floating_panes_visible,
         );
         let padded_index = format_display_index(display_index, state);
-        let parts = parse_format_string(format_str, &state.config.color_aliases);
+        let parts = self.parts_for_tab(tab, state);
         let mut out = String::new();
 
         for part in &parts {
@@ -197,7 +197,6 @@ impl TabsWidget {
         state: &PluginState<'_>,
         display_index: usize,
     ) -> Option<(String, String, FormattedPart)> {
-        let format_str = self.select_format(tab, &state.mode.mode);
         let max_name = state.config.tabs.max_name_length;
         let name = resolve_tab_name(tab, &state.mode.mode);
         let name_truncated = truncate_str(&name, max_name);
@@ -214,7 +213,7 @@ impl TabsWidget {
         );
         let padded_index = format_display_index(display_index, state);
 
-        let parts = parse_format_string(format_str, &state.config.color_aliases);
+        let parts = self.parts_for_tab(tab, state);
         let fill_idx = parts.iter().position(|p| p.fill)?;
 
         // A fill part with substantive content (variables like {name}) is a
@@ -278,6 +277,13 @@ impl TabsWidget {
         Some((left, right, parts[fill_idx].clone()))
     }
 
+    fn parts_for_tab(&self, tab: &TabInfo, state: &PluginState<'_>) -> Vec<FormattedPart> {
+        let format_str = self.select_format(tab, &state.mode.mode);
+        let mut parts = parse_format_string(format_str, &state.config.color_aliases);
+        apply_notification_tab_style(tab, state, &mut parts);
+        parts
+    }
+
     /// Horizontal-mode rendering: all tabs joined with separator.
     fn render_inline(&self, state: &PluginState<'_>) -> String {
         let start = state.config.tabs.start_index;
@@ -335,11 +341,20 @@ impl Widget for TabsWidget {
         state: &PluginState<'_>,
     ) -> Option<crate::render::format::FormattedPart> {
         let active = state.tabs.iter().find(|tab| tab.active)?;
-        let fmt = self.select_format(active, &state.mode.mode);
-        parse_format_string(fmt, &state.config.color_aliases)
+        self.parts_for_tab(active, state)
             .into_iter()
             .find(|part| part.fill)
     }
+}
+
+fn resolve_notification_state(tab: &TabInfo, state: &PluginState<'_>) -> Option<NotificationType> {
+    if !state.config.notifications.enabled {
+        return None;
+    }
+
+    state
+        .notifications
+        .get_tab_notification(tab.position, state.panes)
 }
 
 /// Resolve the rendered notification content for a tab based on tracker state
@@ -349,14 +364,7 @@ impl Widget for TabsWidget {
 /// notification is active or notifications are disabled.
 fn resolve_notification_icon(tab: &TabInfo, state: &PluginState<'_>) -> String {
     let notify_config = &state.config.notifications;
-    if !notify_config.enabled {
-        return String::new();
-    }
-
-    let (icon, format_template) = match state
-        .notifications
-        .get_tab_notification(tab.position, state.panes)
-    {
+    let (icon, format_template) = match resolve_notification_state(tab, state) {
         Some(NotificationType::Waiting) => {
             (&notify_config.waiting_icon, &notify_config.waiting_format)
         }
@@ -372,6 +380,77 @@ fn resolve_notification_icon(tab: &TabInfo, state: &PluginState<'_>) -> String {
     };
 
     format_template.replace("{icon}", icon)
+}
+
+fn apply_notification_tab_style(
+    tab: &TabInfo,
+    state: &PluginState<'_>,
+    parts: &mut [FormattedPart],
+) {
+    let Some(overlay) = resolve_notification_tab_style(tab, state) else {
+        return;
+    };
+
+    let base_bg = parts
+        .iter()
+        .find_map(|part| if part.fill { part.bg } else { None })
+        .or_else(|| parts.iter().find_map(|part| part.bg));
+
+    for part in parts {
+        let cap_only = is_cap_only_part(part);
+
+        if let Some(overlay_bg) = overlay.bg {
+            if cap_only {
+                if part.bg == base_bg {
+                    part.bg = Some(overlay_bg);
+                }
+                if part.fg == base_bg {
+                    part.fg = Some(overlay_bg);
+                }
+            } else {
+                part.bg = Some(overlay_bg);
+            }
+        }
+
+        if !cap_only {
+            if let Some(overlay_fg) = overlay.fg {
+                part.fg = Some(overlay_fg);
+            }
+            part.effects |= overlay.effects;
+        }
+    }
+}
+
+fn resolve_notification_tab_style(tab: &TabInfo, state: &PluginState<'_>) -> Option<FormattedPart> {
+    let notify_config = &state.config.notifications;
+    if tab.active && !notify_config.tab_style_apply_to_active {
+        return None;
+    }
+
+    let template = match resolve_notification_state(tab, state)? {
+        NotificationType::Waiting => &notify_config.waiting_tab_style,
+        NotificationType::InProgress => &notify_config.in_progress_tab_style,
+        NotificationType::Completed => &notify_config.completed_tab_style,
+    };
+
+    let overlay = parse_format_string(template, &state.config.color_aliases)
+        .into_iter()
+        .next()?;
+
+    if overlay.fg.is_none() && overlay.bg.is_none() && overlay.effects == Effects::new() {
+        return None;
+    }
+
+    Some(FormattedPart {
+        content: String::new(),
+        fill: false,
+        ..overlay
+    })
+}
+
+fn is_cap_only_part(part: &FormattedPart) -> bool {
+    let trimmed = part.content.trim();
+    !trimmed.is_empty() && trimmed.chars().all(|ch| matches!(ch, '' | ''))
 }
 
 fn render_notification_fragment(
@@ -852,5 +931,153 @@ mod tests {
         );
 
         assert_eq!(resolve_notification_icon(&tab, &state), "[DONE]");
+    }
+
+    #[test]
+    fn render_tab_applies_notification_tab_style_to_inactive_tabs() {
+        let tab = make_tab(0, "work", false);
+        let tabs = vec![tab.clone()];
+        let mode = ModeInfo::default();
+        let panes = make_pane_manifest(vec![(
+            0,
+            vec![PaneInfo {
+                id: 11,
+                is_plugin: false,
+                ..Default::default()
+            }],
+        )]);
+
+        let raw = BTreeMap::from([
+            (
+                "tab_normal".to_string(),
+                "#[bg=black,fg=white] {name} #[bg=default,fg=black]".to_string(),
+            ),
+            (
+                "notification_tab_style_waiting".to_string(),
+                "#[bg=yellow,fg=black,bold]".to_string(),
+            ),
+        ]);
+        let widget = make_widget(&raw);
+        let config = PluginConfig::from_configuration(raw).unwrap();
+
+        let mut notifications = NotificationTracker::default();
+        notifications.add(11, NotificationType::Waiting);
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &config,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        let parts = widget.parts_for_tab(&tab, &state);
+        assert_eq!(parts.len(), 2);
+        assert_eq!(parts[0].content, " {name} ");
+        assert_eq!(parts[1].content, "");
+        assert!(parts[0].bg.is_some());
+        assert_eq!(parts[0].bg, parts[1].fg);
+        assert!(parts[0].effects.contains(Effects::BOLD));
+    }
+
+    #[test]
+    fn render_tab_keeps_active_style_by_default() {
+        let tab = make_tab(0, "focus", true);
+        let tabs = vec![tab.clone()];
+        let mode = ModeInfo::default();
+        let panes = make_pane_manifest(vec![(
+            0,
+            vec![PaneInfo {
+                id: 12,
+                is_plugin: false,
+                ..Default::default()
+            }],
+        )]);
+
+        let raw = BTreeMap::from([
+            (
+                "tab_active".to_string(),
+                "#[bg=green,fg=black] {name} ".to_string(),
+            ),
+            (
+                "notification_tab_style_waiting".to_string(),
+                "#[bg=yellow,fg=black,bold]".to_string(),
+            ),
+        ]);
+        let widget = make_widget(&raw);
+        let config = PluginConfig::from_configuration(raw).unwrap();
+
+        let mut notifications = NotificationTracker::default();
+        notifications.add(12, NotificationType::Waiting);
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &config,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        let parts = widget.parts_for_tab(&tab, &state);
+        assert_eq!(parts.len(), 1);
+        assert_eq!(parts[0].content, " {name} ");
+        assert!(!parts[0].effects.contains(Effects::BOLD));
+    }
+
+    #[test]
+    fn render_tab_updates_powerline_cap_transition_colors() {
+        let tab = make_tab(0, "power", false);
+        let tabs = vec![tab.clone()];
+        let mode = ModeInfo::default();
+        let panes = make_pane_manifest(vec![(
+            0,
+            vec![PaneInfo {
+                id: 13,
+                is_plugin: false,
+                ..Default::default()
+            }],
+        )]);
+
+        let raw = BTreeMap::from([
+            (
+                "tab_normal".to_string(),
+                "#[bg=black,fg=white]#[bg=black,fg=white] {name} #[bg=default,fg=black]"
+                    .to_string(),
+            ),
+            (
+                "notification_tab_style_waiting".to_string(),
+                "#[bg=yellow,fg=black]".to_string(),
+            ),
+        ]);
+        let widget = make_widget(&raw);
+        let config = PluginConfig::from_configuration(raw).unwrap();
+
+        let mut notifications = NotificationTracker::default();
+        notifications.add(13, NotificationType::Waiting);
+        let command_results = BTreeMap::new();
+        let pipe_data = BTreeMap::new();
+        let state = make_plugin_state_for_notification_test(
+            &tabs,
+            &panes,
+            &config,
+            &notifications,
+            &mode,
+            &command_results,
+            &pipe_data,
+        );
+
+        let parts = widget.parts_for_tab(&tab, &state);
+        assert_eq!(parts.len(), 3);
+        assert_eq!(parts[0].content, "");
+        assert_eq!(parts[1].content, " {name} ");
+        assert_eq!(parts[2].content, "");
+        assert_eq!(parts[0].bg, parts[1].bg);
+        assert_eq!(parts[2].fg, parts[1].bg);
     }
 }

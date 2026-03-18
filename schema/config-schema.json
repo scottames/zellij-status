@@ -402,6 +402,67 @@
         },
         {
           "kind": "key",
+          "key": "notification_tab_style",
+          "title": "Whole-tab notification fallback style",
+          "value_type": "format_string",
+          "default": "",
+          "example_value": "#[bg=$peach,fg=$base,bold]",
+          "description": "Fallback style overlay applied to notified tabs after the base tab format is selected.",
+          "notes": [
+            "Leave this key unset to keep whole-tab overlays disabled.",
+            "This changes tab-wide styling only; the per-tab {notification} fragment remains controlled by notification_format_* keys."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "notification_tab_style_waiting",
+          "title": "Whole-tab waiting style",
+          "value_type": "format_string",
+          "default": "notification_tab_style",
+          "example_value": "#[bg=$peach,fg=$base,bold]",
+          "description": "Override style overlay for waiting tabs.",
+          "notes": [
+            "Only takes effect when this key or notification_tab_style is configured."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "notification_tab_style_in_progress",
+          "title": "Whole-tab in-progress style",
+          "value_type": "format_string",
+          "default": "notification_tab_style",
+          "example_value": "#[bg=$yellow,fg=$base,bold]",
+          "description": "Override style overlay for in-progress tabs.",
+          "notes": [
+            "Only takes effect when this key or notification_tab_style is configured."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "notification_tab_style_completed",
+          "title": "Whole-tab completed style",
+          "value_type": "format_string",
+          "default": "notification_tab_style",
+          "example_value": "#[bg=$green,fg=$base]",
+          "description": "Override style overlay for completed tabs.",
+          "notes": [
+            "Only takes effect when this key or notification_tab_style is configured."
+          ]
+        },
+        {
+          "kind": "key",
+          "key": "notification_tab_style_apply_to_active",
+          "title": "Apply whole-tab notification style to active tabs",
+          "value_type": "bool_string",
+          "default": "false",
+          "example_value": "false",
+          "description": "When true, whole-tab notification overlays also apply to active tabs.",
+          "notes": [
+            "This flag has no visible effect unless a whole-tab notification style key is configured."
+          ]
+        },
+        {
+          "kind": "key",
           "key": "notification_indicator_waiting",
           "title": "Waiting indicator",
           "value_type": "string",
