@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/scottames/zellij-status/compare/v0.2.2...v0.3.0) (2026-03-18)
+
+
+### Features
+
+* add opt-in whole-tab notification styles ([d351e83](https://github.com/scottames/zellij-status/commit/d351e83b70c9c048d05e6170f2256458fa25b151))
+
 ## [0.2.2](https://github.com/scottames/zellij-status/compare/v0.2.1...v0.2.2) (2026-03-17)
 
 
