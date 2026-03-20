@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/scottames/zellij-status/compare/v0.3.0...v0.3.1) (2026-03-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** update github-actions ([#19](https://github.com/scottames/zellij-status/issues/19)) ([ed2ec5d](https://github.com/scottames/zellij-status/commit/ed2ec5da05cfbf8472b07f2d4b9f030e1b612de5))
+* **deps:** update github-actions (major) ([#20](https://github.com/scottames/zellij-status/issues/20)) ([f3764ef](https://github.com/scottames/zellij-status/commit/f3764ef207b2d5b28a2e6a36a15e379e410e0574))
+
 ## [0.3.0](https://github.com/scottames/zellij-status/compare/v0.2.2...v0.3.0) (2026-03-18)
 
 
