@@ -62,21 +62,22 @@ pub struct State {
 
 impl ZellijPlugin for State {
     fn load(&mut self, configuration: BTreeMap<String, String>) {
-        request_permission(&[
-            PermissionType::ReadApplicationState,
-            PermissionType::ChangeApplicationState,
-            PermissionType::ReadCliPipes,
-            PermissionType::RunCommands,
-        ]);
-
         subscribe(&[
             EventType::Mouse,
             EventType::ModeUpdate,
             EventType::TabUpdate,
             EventType::PaneUpdate,
+            EventType::PluginConfigurationChanged,
             EventType::PermissionRequestResult,
             EventType::SessionUpdate,
             EventType::RunCommandResult,
+        ]);
+
+        request_permission(&[
+            PermissionType::ReadApplicationState,
+            PermissionType::ChangeApplicationState,
+            PermissionType::ReadCliPipes,
+            PermissionType::RunCommands,
         ]);
 
         match PluginConfig::from_configuration(configuration) {
@@ -142,7 +143,12 @@ impl ZellijPlugin for State {
     fn render(&mut self, rows: usize, cols: usize) {
         self.last_rows = rows;
 
-        if !self.permissions_granted || self.tabs.is_empty() {
+        if let Some(message) = self.permission_status_message(cols) {
+            print!("{message}");
+            return;
+        }
+
+        if self.tabs.is_empty() {
             return;
         }
 
@@ -176,6 +182,39 @@ impl ZellijPlugin for State {
 }
 
 impl State {
+    fn permission_status_message(&self, cols: usize) -> Option<String> {
+        if self.permissions_granted {
+            return None;
+        }
+
+        Some(
+            "zellij-status: grant plugin permissions"
+                .chars()
+                .take(cols)
+                .collect(),
+        )
+    }
+
+    fn merged_runtime_config(
+        &self,
+        updates: BTreeMap<String, String>,
+    ) -> Result<BTreeMap<String, String>, String> {
+        if let Some(layout_mode) = updates.get("layout_mode") {
+            let normalized = layout_mode.to_ascii_lowercase();
+            if normalized != "horizontal" && normalized != "vertical" {
+                return Err(format!("invalid layout_mode: {layout_mode}"));
+            }
+        }
+
+        let mut merged = self
+            .config
+            .as_ref()
+            .map(|config| config.raw.clone())
+            .unwrap_or_default();
+        merged.extend(updates);
+        Ok(merged)
+    }
+
     fn notification_store_path(&self) -> Option<PathBuf> {
         let session_name = self.mode.session_name.as_deref()?;
         let safe_name: String = session_name
@@ -269,6 +308,22 @@ impl State {
                 self.hydrate_notifications_from_store();
                 true
             }
+            Event::PluginConfigurationChanged(configuration) => {
+                match self
+                    .merged_runtime_config(configuration)
+                    .and_then(|config| {
+                        PluginConfig::from_configuration(config).map_err(|e| e.to_string())
+                    }) {
+                    Ok(config) => {
+                        self.config = Some(config);
+                        true
+                    }
+                    Err(e) => {
+                        eprintln!("zellij-status: config update error: {e}");
+                        false
+                    }
+                }
+            }
             Event::SessionUpdate(sessions, _) => {
                 self.sessions = sessions;
                 true
@@ -334,6 +389,7 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::{LayoutMode, PluginConfig};
     use crate::notify::NotificationType;
 
     fn state_with_session(session_name: &str) -> State {
@@ -450,5 +506,69 @@ mod tests {
         assert_eq!(hydrated.notifications.total_count(), 1);
 
         remove_store_file(&hydrated);
+    }
+
+    #[test]
+    fn plugin_configuration_changed_reloads_config() {
+        let mut state = State {
+            config: Some(PluginConfig::from_configuration(BTreeMap::new()).unwrap()),
+            ..Default::default()
+        };
+
+        let mut updated = BTreeMap::new();
+        updated.insert("layout_mode".to_string(), "vertical".to_string());
+
+        let changed = state.handle_event(Event::PluginConfigurationChanged(updated));
+
+        assert!(changed);
+        assert_eq!(
+            state.config.as_ref().map(|c| c.layout_mode),
+            Some(LayoutMode::Vertical)
+        );
+    }
+
+    #[test]
+    fn plugin_configuration_changed_preserves_previous_config_on_invalid_layout_mode() {
+        let mut state = State {
+            config: Some(
+                PluginConfig::from_configuration(BTreeMap::from([(
+                    "layout_mode".to_string(),
+                    "vertical".to_string(),
+                )]))
+                .unwrap(),
+            ),
+            ..Default::default()
+        };
+
+        let mut updated = BTreeMap::new();
+        updated.insert("layout_mode".to_string(), "diagonal".to_string());
+
+        let changed = state.handle_event(Event::PluginConfigurationChanged(updated));
+
+        assert!(!changed);
+        assert_eq!(
+            state.config.as_ref().map(|c| c.layout_mode),
+            Some(LayoutMode::Vertical)
+        );
+    }
+
+    #[test]
+    fn permission_status_message_is_shown_before_permissions_granted() {
+        let state = State::default();
+
+        assert_eq!(
+            state.permission_status_message(80).as_deref(),
+            Some("zellij-status: grant plugin permissions")
+        );
+    }
+
+    #[test]
+    fn permission_status_message_is_truncated_to_available_width() {
+        let state = State::default();
+
+        assert_eq!(
+            state.permission_status_message(12).as_deref(),
+            Some("zellij-statu")
+        );
     }
 }

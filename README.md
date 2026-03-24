@@ -67,6 +67,13 @@ with KDL-only configuration.
 
 ## Installation
 
+<!-- prettier-ignore-start -->
+> [!WARNING]
+> `zellij-status` currently supports Linux and MacOS workflows. Native Windows
+> support in Zellij 0.44 has not been tested.
+
+<!-- prettier-ignore-end -->
+
 ### From releases
 
 Download `zellij-status.wasm` from
@@ -195,6 +202,24 @@ On first run, Zellij prompts for plugin permissions:
 > - For _vertical_ layouts, define `new_tab_template` with `pane command="bash"`
 > as the content pane (see the vertical examples).
 <!-- prettier-ignore-end -->
+
+- `RunCommands`
+
+If you run the bundled examples against `target/wasm32-wasip1/debug/zellij-status.wasm`, the
+permission entry must match the exact plugin URL used in the layout. For the
+bundled examples that means:
+
+```kdl
+"file:target/wasm32-wasip1/debug/zellij-status.wasm" {
+    ReadApplicationState
+    ChangeApplicationState
+    ReadCliPipes
+    RunCommands
+}
+```
+
+A missing or mismatched permission entry can make the status pane appear blank
+until access is granted.
 
 ## Examples
 

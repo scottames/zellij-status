@@ -8,6 +8,10 @@ Thanks for your interest in contributing to zellij-status!
 - The `wasm32-wasip1` target: `rustup target add wasm32-wasip1`
 - [Zellij](https://zellij.dev/) for visual testing
 
+At the moment, contributor docs and example configs assume Linux/macOS-style
+shell environments. Zellij 0.44 added native Windows support, but this plugin
+does not yet document or test Windows support.
+
 Optionally, install [mise](https://mise.jdx.dev/) to use the task runner
 shortcuts described below.
 

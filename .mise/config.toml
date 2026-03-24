@@ -3,6 +3,7 @@
 show_full_cmd = true
 
 [tools]
+"aqua:zellij-org/zellij" = "0.44.0"
 rust = "latest"
 
 [tasks.build]
@@ -30,8 +31,27 @@ if [[ ! -d "$config_dir" ]]; then
   echo "available profiles: default, minimal, powerline, vertical, vertical-right" >&2
   exit 1
 fi
-zellij delete-session "zellij-status-$profile" >&2
-zellij \
+plugin_url="file:target/wasm32-wasip1/debug/zellij-status.wasm"
+permissions_file="$HOME/.cache/zellij/permissions.kdl"
+if [[ ! -f "$permissions_file" ]] || ! grep -Fq "\"$plugin_url\"" "$permissions_file"; then
+  cat >&2 <<EOF
+warning: missing Zellij permissions for the local build artifact.
+If the status pane appears blank, add this stanza to $permissions_file:
+
+"$plugin_url" {
+    ReadApplicationState
+    ChangeApplicationState
+    ReadCliPipes
+    RunCommands
+}
+
+Zellij 0.44 keys permissions by the plugin URL used in the layout. The examples
+use $plugin_url.
+
+EOF
+fi
+mise exec -- zellij delete-session "zellij-status-$profile" >&2
+mise exec -- zellij \
   -s "zellij-status-$profile" \
   --config-dir "$config_dir" \
   --config "$config_dir/config.kdl" \

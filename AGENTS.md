@@ -45,14 +45,16 @@ The first time the plugin runs, Zellij prompts for permissions. Add them to
 `~/.cache/zellij/permissions.kdl` so headless sessions don't stall:
 
 ```kdl
-"/absolute/path/to/target/wasm32-wasip1/debug/zellij-status.wasm" {
+"file:target/wasm32-wasip1/debug/zellij-status.wasm" {
     ReadApplicationState
     ChangeApplicationState
     ReadCliPipes
+    RunCommands
 }
 ```
 
-Use `realpath target/wasm32-wasip1/debug/zellij-status.wasm` for the exact path.
+For the bundled example layouts, use the exact plugin URL string from the
+layout file. Zellij 0.44 permission matching is sensitive to that exact value.
 
 ### running a visual test
 
@@ -87,3 +89,5 @@ zellij delete-session zellij-status-default --force
 - `--config-dir ./examples/<profile>` isolates the session from your user config
 - The wasm path in layout files uses a hyphen: `zellij-status.wasm` (matches the
   crate name); do not use underscores
+- Current examples/docs assume Linux/macOS-style shells; Windows support for the
+  plugin is not documented yet

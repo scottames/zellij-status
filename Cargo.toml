@@ -7,7 +7,7 @@ description = "A Zellij plugin that combines vertical tabs, styled status bars, 
 repository = "https://github.com/scottames/zellij-status"
 
 [dependencies]
-zellij-tile = "0.43.1"
+zellij-tile = "0.44.0"
 anstyle = "1.0"
 unicode-width = "0.2"
 regex = "1.12"
@@ -24,5 +24,6 @@ rstest = "0.26"
 [profile.release]
 opt-level = "z"
 lto = true
+strip = true
 codegen-units = 1
 panic = "abort"

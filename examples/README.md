@@ -4,6 +4,9 @@ Each directory is a self-contained Zellij config profile with a `config.kdl` and
 `layout.kdl`. Try any example, read the comments in `layout.kdl`, and copy the
 parts you like into your own config.
 
+These examples assume a Unix-like environment and currently target Linux/macOS
+usage. They are not yet Windows-ready.
+
 ## Profiles
 
 | Profile                             | Mode       | Palette          | What it shows                                 |
@@ -34,6 +37,15 @@ zellij \
   --config "./examples/${EXAMPLE}/config.kdl" \
   -n "./examples/${EXAMPLE}/layout.kdl"
 ```
+
+<!-- prettier-ignore-start -->
+>[!TIP]
+> If the plugin area appears blank, check `~/.cache/zellij/permissions.kdl`.
+> The example runs use the plugin URL
+> `file:target/wasm32-wasip1/debug/zellij-status.wasm`, and Zellij 0.44 keys
+> permissions by that exact string.
+
+<!-- prettier-ignore-end -->
 
 ## Which should I start with?
 
