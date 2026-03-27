@@ -143,6 +143,8 @@ plugin location="file:~/.config/zellij/plugins/zellij-status.wasm" {
     notification_tab_style_waiting     "#[bg=yellow,fg=$bg,bold]"
     notification_tab_style_in_progress "#[bg=yellow,fg=$bg]"
     notification_tab_style_completed   "#[bg=$accent,fg=$bg]"
+    // pane highlighting follows notifications by default; set this to false to opt out
+    notification_pane_highlight_enabled "true"
     // customize the format for the notification count
     notification_format                "#[fg=$accent,bold] {count} "
     // hide the aggregate counter when there are no notifications
@@ -180,6 +182,11 @@ the `{notification}` fragment changes. When configured, overlays apply only to
 inactive tabs by default so the active-tab style remains the primary focus
 signal; set `notification_tab_style_apply_to_active` to `"true"` if you want
 active tabs to restyle as well.
+
+Notified panes are also highlighted by default when notifications are enabled,
+including panes in other tabs once their state hydrates into the current
+session. Set `notification_pane_highlight_enabled` to `"false"` if you want to
+keep the tab indicators and aggregate counter without pane highlighting.
 
 <!-- prettier-ignore-start -->
 > [!TIP]

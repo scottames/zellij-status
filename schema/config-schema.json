@@ -463,6 +463,19 @@
         },
         {
           "kind": "key",
+          "key": "notification_pane_highlight_enabled",
+          "title": "Highlight notified panes",
+          "value_type": "bool_string",
+          "default": "true",
+          "example_value": "true",
+          "description": "When true, notified panes also use Zellij pane highlighting.",
+          "notes": [
+            "This is on by default whenever notifications are enabled.",
+            "Set it to false if you want tab indicators and aggregate counts without pane highlighting."
+          ]
+        },
+        {
+          "kind": "key",
           "key": "notification_indicator_waiting",
           "title": "Waiting indicator",
           "value_type": "string",

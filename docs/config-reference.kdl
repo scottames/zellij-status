@@ -224,6 +224,13 @@ notification_tab_style_completed "#[bg=$green,fg=$base]"
 // Note: This flag has no visible effect unless a whole-tab notification style key is configured.
 notification_tab_style_apply_to_active "false"
 
+// Highlight notified panes
+// When true, notified panes also use Zellij pane highlighting.
+// Default: true
+// Note: This is on by default whenever notifications are enabled.
+// Note: Set it to false if you want tab indicators and aggregate counts without pane highlighting.
+notification_pane_highlight_enabled "true"
+
 // Waiting indicator
 // Icon or text used for waiting notifications.
 // Default: ⏳

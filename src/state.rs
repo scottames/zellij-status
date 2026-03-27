@@ -1,13 +1,22 @@
 use std::cmp::{max, min};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
 
 use zellij_tile::prelude::*;
 #[cfg(target_arch = "wasm32")]
+use zellij_tile::shim::highlight_and_unhighlight_panes;
+#[cfg(target_arch = "wasm32")]
 use zellij_tile::shim::switch_tab_to;
 #[cfg(target_arch = "wasm32")]
 use zellij_tile::shim::unblock_cli_pipe_input;
+
+#[cfg(not(target_arch = "wasm32"))]
+fn highlight_and_unhighlight_panes(
+    _pane_ids_to_highlight: Vec<PaneId>,
+    _pane_ids_to_unhighlight: Vec<PaneId>,
+) {
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 fn switch_tab_to(_tab_index: u32) {}
@@ -58,6 +67,9 @@ pub struct State {
 
     /// Pipe widget data keyed by widget name (Phase 5).
     pipe_data: BTreeMap<String, String>,
+
+    /// Pane highlights currently applied for notification state.
+    highlighted_notification_panes: BTreeSet<PaneId>,
 }
 
 impl ZellijPlugin for State {
@@ -67,6 +79,7 @@ impl ZellijPlugin for State {
             EventType::ModeUpdate,
             EventType::TabUpdate,
             EventType::PaneUpdate,
+            EventType::PaneClosed,
             EventType::PluginConfigurationChanged,
             EventType::PermissionRequestResult,
             EventType::SessionUpdate,
@@ -96,6 +109,7 @@ impl ZellijPlugin for State {
             for e in pending {
                 self.handle_event(e);
             }
+            self.sync_notification_pane_highlights();
             return true;
         }
 
@@ -122,6 +136,7 @@ impl ZellijPlugin for State {
                 self.notifications
                     .add(notification.pane_id, notification.notification_type);
                 self.persist_notifications_to_store();
+                self.sync_notification_pane_highlights();
             }
 
             unblock_cli_pipe_input(&pipe_message.name);
@@ -274,6 +289,67 @@ impl State {
         let _ = fs::write(path, serialized);
     }
 
+    fn notification_pane_highlighting_enabled(&self) -> bool {
+        self.config.as_ref().is_some_and(|config| {
+            config.notifications.enabled && config.notifications.pane_highlight_enabled
+        })
+    }
+
+    fn sync_notification_pane_highlights(&mut self) {
+        if !self.permissions_granted {
+            return;
+        }
+
+        let desired: BTreeSet<PaneId> = if self.notification_pane_highlighting_enabled() {
+            self.notifications
+                .highlighted_panes(&self.tabs, &self.panes)
+                .into_iter()
+                .collect()
+        } else {
+            BTreeSet::new()
+        };
+
+        let panes_to_highlight: Vec<PaneId> = desired
+            .difference(&self.highlighted_notification_panes)
+            .copied()
+            .collect();
+        let panes_to_unhighlight: Vec<PaneId> = self
+            .highlighted_notification_panes
+            .difference(&desired)
+            .copied()
+            .collect();
+
+        if panes_to_highlight.is_empty() && panes_to_unhighlight.is_empty() {
+            return;
+        }
+
+        highlight_and_unhighlight_panes(panes_to_highlight, panes_to_unhighlight);
+        self.highlighted_notification_panes = desired;
+    }
+
+    fn handle_closed_pane(&mut self, pane_id: PaneId) -> bool {
+        let PaneId::Terminal(pane_id) = pane_id else {
+            return false;
+        };
+
+        let had_notification = self.notifications.total_count();
+        self.notifications.clear_pane(pane_id);
+        let notification_removed = self.notifications.total_count() != had_notification;
+
+        if notification_removed {
+            self.persist_notifications_to_store();
+        }
+
+        let pane_id = PaneId::Terminal(pane_id);
+        let highlight_removed = self.highlighted_notification_panes.remove(&pane_id);
+
+        if highlight_removed {
+            highlight_and_unhighlight_panes(Vec::new(), vec![pane_id]);
+        }
+
+        notification_removed || highlight_removed
+    }
+
     /// Handle a single event after permissions are granted.
     fn handle_event(&mut self, event: Event) -> bool {
         match event {
@@ -287,6 +363,7 @@ impl State {
                 } else {
                     self.persist_notifications_to_store();
                 }
+                self.sync_notification_pane_highlights();
                 // Always re-render on tab update; cleared/cleaned just confirm side effects
                 let _ = (cleared, cleaned);
                 true
@@ -301,11 +378,14 @@ impl State {
                 } else {
                     self.persist_notifications_to_store();
                 }
+                self.sync_notification_pane_highlights();
                 true
             }
+            Event::PaneClosed(pane_id) => self.handle_closed_pane(pane_id),
             Event::ModeUpdate(mode) => {
                 self.mode = mode;
                 self.hydrate_notifications_from_store();
+                self.sync_notification_pane_highlights();
                 true
             }
             Event::PluginConfigurationChanged(configuration) => {
@@ -316,6 +396,7 @@ impl State {
                     }) {
                     Ok(config) => {
                         self.config = Some(config);
+                        self.sync_notification_pane_highlights();
                         true
                     }
                     Err(e) => {
@@ -392,6 +473,22 @@ mod tests {
     use crate::config::{LayoutMode, PluginConfig};
     use crate::notify::NotificationType;
 
+    fn make_tab(position: usize, active: bool) -> TabInfo {
+        TabInfo {
+            position,
+            active,
+            ..Default::default()
+        }
+    }
+
+    fn make_pane(id: u32, is_focused: bool) -> PaneInfo {
+        PaneInfo {
+            id,
+            is_focused,
+            ..Default::default()
+        }
+    }
+
     fn state_with_session(session_name: &str) -> State {
         State {
             mode: ModeInfo {
@@ -406,6 +503,13 @@ mod tests {
         if let Some(path) = state.notification_store_path() {
             let _ = fs::remove_file(path);
         }
+    }
+
+    fn configured_state(session_name: &str, raw: BTreeMap<String, String>) -> State {
+        let mut state = state_with_session(session_name);
+        state.permissions_granted = true;
+        state.config = Some(PluginConfig::from_configuration(raw).unwrap());
+        state
     }
 
     #[test]
@@ -506,6 +610,106 @@ mod tests {
         assert_eq!(hydrated.notifications.total_count(), 1);
 
         remove_store_file(&hydrated);
+    }
+
+    #[test]
+    fn sync_notification_pane_highlights_tracks_notified_inactive_panes() {
+        let mut state = configured_state("highlight-session", BTreeMap::new());
+        state.tabs = vec![make_tab(0, true), make_tab(1, false)];
+        state.panes = PaneManifest {
+            panes: [
+                (0, vec![make_pane(1, false), make_pane(2, true)]),
+                (1, vec![make_pane(3, false)]),
+            ]
+            .into_iter()
+            .collect(),
+        };
+        state.notifications.add(1, NotificationType::Waiting);
+        state.notifications.add(2, NotificationType::InProgress);
+        state.notifications.add(3, NotificationType::Completed);
+
+        state.sync_notification_pane_highlights();
+
+        assert_eq!(
+            state.highlighted_notification_panes,
+            BTreeSet::from([PaneId::Terminal(1), PaneId::Terminal(3)])
+        );
+    }
+
+    #[test]
+    fn sync_notification_pane_highlights_is_disabled_with_notification_flag() {
+        let mut state = configured_state(
+            "highlight-opt-out",
+            BTreeMap::from([(
+                "notification_pane_highlight_enabled".to_string(),
+                "false".to_string(),
+            )]),
+        );
+        state.tabs = vec![make_tab(0, true)];
+        state.panes = PaneManifest {
+            panes: [(0, vec![make_pane(1, false)])].into_iter().collect(),
+        };
+        state.notifications.add(1, NotificationType::Waiting);
+
+        state.sync_notification_pane_highlights();
+
+        assert!(state.highlighted_notification_panes.is_empty());
+    }
+
+    #[test]
+    fn sync_notification_pane_highlights_is_disabled_when_notifications_are_off() {
+        let mut state = configured_state(
+            "highlight-disabled-notifications",
+            BTreeMap::from([("notification_enabled".to_string(), "false".to_string())]),
+        );
+        state.highlighted_notification_panes = BTreeSet::from([PaneId::Terminal(9)]);
+        state.tabs = vec![make_tab(0, true)];
+        state.panes = PaneManifest {
+            panes: [(0, vec![make_pane(1, false)])].into_iter().collect(),
+        };
+        state.notifications.add(1, NotificationType::Waiting);
+
+        state.sync_notification_pane_highlights();
+
+        assert!(state.highlighted_notification_panes.is_empty());
+    }
+
+    #[test]
+    fn pane_closed_clears_notification_and_cached_highlight() {
+        let session_name = format!(
+            "state-test-pane-closed-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        let mut state = configured_state(&session_name, BTreeMap::new());
+        remove_store_file(&state);
+        state.notifications.add(42, NotificationType::Waiting);
+        state.persist_notifications_to_store();
+        state.highlighted_notification_panes = BTreeSet::from([PaneId::Terminal(42)]);
+
+        assert!(state.handle_closed_pane(PaneId::Terminal(42)));
+        assert!(state.notifications.is_empty());
+        assert!(state.highlighted_notification_panes.is_empty());
+        assert!(!state
+            .notification_store_path()
+            .expect("session path")
+            .exists());
+    }
+
+    #[test]
+    fn pane_closed_ignores_plugin_pane_ids() {
+        let mut state = configured_state("state-test-pane-closed-plugin", BTreeMap::new());
+        state.notifications.add(42, NotificationType::Waiting);
+        state.highlighted_notification_panes = BTreeSet::from([PaneId::Terminal(42)]);
+
+        assert!(!state.handle_closed_pane(PaneId::Plugin(5)));
+        assert_eq!(state.notifications.total_count(), 1);
+        assert_eq!(
+            state.highlighted_notification_panes,
+            BTreeSet::from([PaneId::Terminal(42)])
+        );
     }
 
     #[test]

@@ -101,6 +101,7 @@ notification_format_waiting        "#[fg=$peach,bold]{icon}"
 notification_tab_style_waiting     "#[bg=$peach,fg=$base,bold]"
 notification_tab_style_in_progress "#[bg=$yellow,fg=$base,bold]"
 notification_tab_style_completed   "#[bg=$green,fg=$base]"
+notification_pane_highlight_enabled "true"
 notification_indicator_completed   "✅"
 notification_indicator_in_progress "🔄"
 notification_indicator_waiting     "⏳"
@@ -119,6 +120,11 @@ keys entirely, whole-tab overlays stay disabled and only the per-tab
 inactive tabs by default so active-tab styling stays intact; set
 `notification_tab_style_apply_to_active` to `"true"` to opt into active-tab
 overlays too.
+
+`notification_pane_highlight_enabled` controls whether notified panes also use
+Zellij's pane highlight treatment. It defaults to on whenever notifications are
+enabled, so inactive panes needing attention stand out even before you focus
+them. Set it to `"false"` if you only want tab indicators and aggregate counts.
 
 If your tab format already has surrounding style, prefer isolating
 `{notification}` in its own segment so icon styling is predictable, for example:

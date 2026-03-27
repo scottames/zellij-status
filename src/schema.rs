@@ -680,6 +680,7 @@ mod tests {
             "notification_tab_style_in_progress",
             "notification_tab_style_completed",
             "notification_tab_style_apply_to_active",
+            "notification_pane_highlight_enabled",
             "notification_indicator_waiting",
             "notification_indicator_in_progress",
             "notification_indicator_completed",

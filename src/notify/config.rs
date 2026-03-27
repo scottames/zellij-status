@@ -16,6 +16,7 @@ use std::collections::BTreeMap;
 /// - `notification_tab_style_in_progress` — whole-tab in-progress style (fallback: `notification_tab_style`)
 /// - `notification_tab_style_completed` — whole-tab completed style (fallback: `notification_tab_style`)
 /// - `notification_tab_style_apply_to_active` — whether overlays also apply to active tabs (default `false`)
+/// - `notification_pane_highlight_enabled` — whether notified panes should also use Zellij pane highlighting (default `true`)
 #[derive(Debug, Clone)]
 pub struct NotificationConfig {
     /// Whether the notification system is active.
@@ -44,6 +45,8 @@ pub struct NotificationConfig {
     pub completed_tab_style: String,
     /// Whether tab style overlays should also apply to active tabs.
     pub tab_style_apply_to_active: bool,
+    /// Whether notified panes should use Zellij pane highlighting.
+    pub pane_highlight_enabled: bool,
 }
 
 impl Default for NotificationConfig {
@@ -62,6 +65,7 @@ impl Default for NotificationConfig {
             in_progress_tab_style: String::new(),
             completed_tab_style: String::new(),
             tab_style_apply_to_active: false,
+            pane_highlight_enabled: true,
         }
     }
 }
@@ -123,6 +127,10 @@ impl NotificationConfig {
         config.tab_style_apply_to_active = raw
             .get("notification_tab_style_apply_to_active")
             .is_some_and(|value| value == "true");
+        config.pane_highlight_enabled = raw
+            .get("notification_pane_highlight_enabled")
+            .map(|value| value == "true")
+            .unwrap_or(true);
 
         config
     }
@@ -148,6 +156,7 @@ mod tests {
         assert_eq!(config.in_progress_tab_style, "");
         assert_eq!(config.completed_tab_style, "");
         assert!(!config.tab_style_apply_to_active);
+        assert!(config.pane_highlight_enabled);
     }
 
     #[test]
@@ -167,6 +176,7 @@ mod tests {
         assert_eq!(config.in_progress_tab_style, "");
         assert_eq!(config.completed_tab_style, "");
         assert!(!config.tab_style_apply_to_active);
+        assert!(config.pane_highlight_enabled);
     }
 
     #[test]
@@ -221,6 +231,10 @@ mod tests {
                 "notification_tab_style_apply_to_active".to_string(),
                 "true".to_string(),
             ),
+            (
+                "notification_pane_highlight_enabled".to_string(),
+                "false".to_string(),
+            ),
         ]);
         let config = NotificationConfig::from_raw(&raw);
         assert!(config.enabled);
@@ -236,6 +250,7 @@ mod tests {
         assert_eq!(config.in_progress_tab_style, "#[bg=blue,fg=white]");
         assert_eq!(config.completed_tab_style, "#[bg=green,fg=black]");
         assert!(config.tab_style_apply_to_active);
+        assert!(!config.pane_highlight_enabled);
     }
 
     #[test]
@@ -377,5 +392,15 @@ mod tests {
         )]);
         let config = NotificationConfig::from_raw(&raw);
         assert!(config.tab_style_apply_to_active);
+    }
+
+    #[test]
+    fn pane_highlight_enabled_parses_false() {
+        let raw = BTreeMap::from([(
+            "notification_pane_highlight_enabled".to_string(),
+            "false".to_string(),
+        )]);
+        let config = NotificationConfig::from_raw(&raw);
+        assert!(!config.pane_highlight_enabled);
     }
 }

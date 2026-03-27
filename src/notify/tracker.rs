@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use serde::{Deserialize, Serialize};
-use zellij_tile::prelude::PaneManifest;
+use zellij_tile::prelude::{PaneId, PaneManifest, TabInfo};
 
 use super::NotificationType;
 
@@ -90,27 +90,45 @@ impl NotificationTracker {
     /// Returns `true` if any notification was cleared.
     pub fn clear_focused(
         &mut self,
-        tabs: &[zellij_tile::prelude::TabInfo],
+        tabs: &[TabInfo],
         panes: &PaneManifest,
     ) -> bool {
-        let Some(active_tab) = tabs.iter().find(|t| t.active) else {
-            return false;
-        };
-        let Some(tab_panes) = panes.panes.get(&active_tab.position) else {
-            return false;
-        };
-
-        let focused = tab_panes.iter().find(|p| {
-            !p.is_plugin && p.is_focused && (p.is_floating == active_tab.are_floating_panes_visible)
-        });
-
-        if let Some(pane) = focused
-            && self.notifications.remove(&pane.id).is_some()
+        if let Some(pane_id) = self.focused_visible_pane_id(tabs, panes)
+            && self.notifications.remove(&pane_id).is_some()
         {
             return true;
         }
 
         false
+    }
+
+    /// Return the notified panes that should receive pane highlighting.
+    pub fn highlighted_panes(&self, tabs: &[TabInfo], panes: &PaneManifest) -> Vec<PaneId> {
+        if self.notifications.is_empty() {
+            return Vec::new();
+        }
+
+        let focused_visible_pane_id = self.focused_visible_pane_id(tabs, panes);
+
+        tabs.iter()
+            .filter_map(|tab| Some((tab, panes.panes.get(&tab.position)?)))
+            .flat_map(|(tab, tab_panes)| {
+                tab_panes.iter().filter_map(move |pane| {
+                    if pane.is_plugin || pane.is_suppressed {
+                        return None;
+                    }
+                    if pane.is_floating && !tab.are_floating_panes_visible {
+                        return None;
+                    }
+                    if focused_visible_pane_id == Some(pane.id) {
+                        return None;
+                    }
+                    self.notifications
+                        .contains_key(&pane.id)
+                        .then_some(PaneId::Terminal(pane.id))
+                })
+            })
+            .collect()
     }
 
     /// Remove notification entries for pane IDs that no longer exist.
@@ -144,12 +162,26 @@ impl NotificationTracker {
 
         true
     }
+
+    fn focused_visible_pane_id(&self, tabs: &[TabInfo], panes: &PaneManifest) -> Option<u32> {
+        let active_tab = tabs.iter().find(|t| t.active)?;
+        let tab_panes = panes.panes.get(&active_tab.position)?;
+
+        tab_panes
+            .iter()
+            .find(|p| {
+                !p.is_plugin
+                    && p.is_focused
+                    && (p.is_floating == active_tab.are_floating_panes_visible)
+            })
+            .map(|pane| pane.id)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use zellij_tile::prelude::{PaneInfo, PaneManifest};
+    use zellij_tile::prelude::{PaneInfo, PaneManifest, TabInfo};
 
     fn make_pane(id: u32, is_plugin: bool, is_focused: bool) -> PaneInfo {
         PaneInfo {
@@ -163,6 +195,14 @@ mod tests {
     fn make_manifest(entries: Vec<(usize, Vec<PaneInfo>)>) -> PaneManifest {
         PaneManifest {
             panes: entries.into_iter().collect(),
+        }
+    }
+
+    fn make_tab(position: usize, active: bool) -> TabInfo {
+        TabInfo {
+            position,
+            active,
+            ..Default::default()
         }
     }
 
@@ -329,6 +369,51 @@ mod tests {
         let panes = make_manifest(vec![(0, vec![make_pane(10, false, true)])]);
 
         assert!(!tracker.clear_focused(&tabs, &panes));
+    }
+
+    #[test]
+    fn highlighted_panes_returns_notified_non_focused_panes_across_tabs() {
+        let mut tracker = NotificationTracker::default();
+        tracker.add(1, NotificationType::Waiting);
+        tracker.add(2, NotificationType::InProgress);
+        tracker.add(3, NotificationType::Completed);
+
+        let tabs = vec![make_tab(0, true), make_tab(1, false)];
+        let panes = make_manifest(vec![
+            (0, vec![make_pane(1, false, false), make_pane(2, false, true)]),
+            (1, vec![make_pane(3, false, false)]),
+        ]);
+
+        assert_eq!(
+            tracker.highlighted_panes(&tabs, &panes),
+            vec![PaneId::Terminal(1), PaneId::Terminal(3)]
+        );
+    }
+
+    #[test]
+    fn highlighted_panes_skips_hidden_and_non_rendered_panes() {
+        let mut tracker = NotificationTracker::default();
+        tracker.add(1, NotificationType::Waiting);
+        tracker.add(2, NotificationType::Waiting);
+        tracker.add(3, NotificationType::Waiting);
+        tracker.add(4, NotificationType::Waiting);
+
+        let mut hidden_floating = make_pane(1, false, false);
+        hidden_floating.is_floating = true;
+
+        let mut suppressed = make_pane(2, false, false);
+        suppressed.is_suppressed = true;
+
+        let plugin = make_pane(3, true, false);
+        let visible = make_pane(4, false, false);
+
+        let tabs = vec![make_tab(0, false)];
+        let panes = make_manifest(vec![(0, vec![hidden_floating, suppressed, plugin, visible])]);
+
+        assert_eq!(
+            tracker.highlighted_panes(&tabs, &panes),
+            vec![PaneId::Terminal(4)]
+        );
     }
 
     // ---- stale cleanup ----
