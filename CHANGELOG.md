@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0](https://github.com/scottames/zellij-status/compare/v0.3.0...v0.4.0) (2026-04-02)
+
+
+### Features
+
+* highlight panes with notifications ([171718d](https://github.com/scottames/zellij-status/commit/171718d643a093d964a09c48168925ccbfef96ea))
+
+
+### Bug Fixes
+
+* align plugin with zellij 0.44 ([0046424](https://github.com/scottames/zellij-status/commit/0046424cc8201815ddb676987fd81775ebba50c8))
+
+
+### Miscellaneous Chores
+
+* **deps:** lock file maintenance ([#22](https://github.com/scottames/zellij-status/issues/22)) ([87f7794](https://github.com/scottames/zellij-status/commit/87f7794fdb8fb7f742df81c22d6fe206e9f52cbc))
+* **deps:** lock file maintenance ([#24](https://github.com/scottames/zellij-status/issues/24)) ([3368ea3](https://github.com/scottames/zellij-status/commit/3368ea36169c94f34bf92897d5ff23743d60488f))
+* **deps:** update github-actions ([#19](https://github.com/scottames/zellij-status/issues/19)) ([ed2ec5d](https://github.com/scottames/zellij-status/commit/ed2ec5da05cfbf8472b07f2d4b9f030e1b612de5))
+* **deps:** update github-actions ([#23](https://github.com/scottames/zellij-status/issues/23)) ([e7aec11](https://github.com/scottames/zellij-status/commit/e7aec1169973d37c6d97e117b71bf5ed8731a3cc))
+* **deps:** update github-actions (major) ([#20](https://github.com/scottames/zellij-status/issues/20)) ([f3764ef](https://github.com/scottames/zellij-status/commit/f3764ef207b2d5b28a2e6a36a15e379e410e0574))
+* upgrade trunk ([#18](https://github.com/scottames/zellij-status/issues/18)) ([c533d2f](https://github.com/scottames/zellij-status/commit/c533d2f996271e3cc30a7cdc1db87a27c12ebd17))
+* upgrade trunk ([#25](https://github.com/scottames/zellij-status/issues/25)) ([51050db](https://github.com/scottames/zellij-status/commit/51050dbde8028c9030b8172ce558e98fdb990430))
+
 ## [0.3.0](https://github.com/scottames/zellij-status/compare/v0.2.2...v0.3.0) (2026-03-18)
 
 
