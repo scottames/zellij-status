@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/scottames/zellij-status/compare/v0.4.0...v0.4.1) (2026-04-03)
+
+
+### Miscellaneous Chores
+
+* **deps:** update ⬆️ github-actions to 29eef33 ([#26](https://github.com/scottames/zellij-status/issues/26)) ([e7087c2](https://github.com/scottames/zellij-status/commit/e7087c299be423299be05c3074ec0f7ebe5465a7))
+
 ## [0.4.0](https://github.com/scottames/zellij-status/compare/v0.3.0...v0.4.0) (2026-04-02)
 
 
