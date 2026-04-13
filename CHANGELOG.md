@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.1](https://github.com/scottames/zellij-status/compare/v0.4.0...v0.4.1) (2026-04-13)
+
+
+### Miscellaneous Chores
+
+* **deps:** lock file maintenance ([#28](https://github.com/scottames/zellij-status/issues/28)) ([84ec694](https://github.com/scottames/zellij-status/commit/84ec694ca537dbd2eeed1bcfd982c2e6502da2c4))
+* **deps:** lock file maintenance ([#30](https://github.com/scottames/zellij-status/issues/30)) ([5869f78](https://github.com/scottames/zellij-status/commit/5869f78eed74c203469e0de45228c803d09e970f))
+* **deps:** update ⬆️ github-actions to 29eef33 ([#26](https://github.com/scottames/zellij-status/issues/26)) ([e7087c2](https://github.com/scottames/zellij-status/commit/e7087c299be423299be05c3074ec0f7ebe5465a7))
+
 ## [0.4.0](https://github.com/scottames/zellij-status/compare/v0.3.0...v0.4.0) (2026-04-02)
 
 
