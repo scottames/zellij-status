@@ -31,7 +31,7 @@ jobs:
         run: cargo build --release --target wasm32-wasip1
       - name: Upload WASM to release
         # yamllint disable-line rule:line-length
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           files: |
             target/wasm32-wasip1/release/zellij-status.wasm
