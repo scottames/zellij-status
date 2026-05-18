@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.1](https://github.com/scottames/zellij-status/compare/v0.4.0...v0.4.1) (2026-05-18)
+
+
+### Miscellaneous Chores
+
+* **deps:** lock file maintenance ([#28](https://github.com/scottames/zellij-status/issues/28)) ([84ec694](https://github.com/scottames/zellij-status/commit/84ec694ca537dbd2eeed1bcfd982c2e6502da2c4))
+* **deps:** lock file maintenance ([#30](https://github.com/scottames/zellij-status/issues/30)) ([5869f78](https://github.com/scottames/zellij-status/commit/5869f78eed74c203469e0de45228c803d09e970f))
+* **deps:** lock file maintenance ([#33](https://github.com/scottames/zellij-status/issues/33)) ([2724a6b](https://github.com/scottames/zellij-status/commit/2724a6b99a00609d995cfe166a2992187d67c3b8))
+* **deps:** lock file maintenance ([#36](https://github.com/scottames/zellij-status/issues/36)) ([95720b4](https://github.com/scottames/zellij-status/commit/95720b4a170c4248da4fb4f04e32ca9dd74bed31))
+* **deps:** lock file maintenance ([#39](https://github.com/scottames/zellij-status/issues/39)) ([478b206](https://github.com/scottames/zellij-status/commit/478b2069e8c4e23f4a68f9f1dbf52aa35d33443e))
+* **deps:** lock file maintenance ([#40](https://github.com/scottames/zellij-status/issues/40)) ([b6f2f21](https://github.com/scottames/zellij-status/commit/b6f2f2191c1bd454a00ea91b519fb8816a2588e2))
+* **deps:** lock file maintenance ([#43](https://github.com/scottames/zellij-status/issues/43)) ([6634f05](https://github.com/scottames/zellij-status/commit/6634f05b653241f4054143e3bf4331b3e648cafa))
+* **deps:** update ⬆️ github-actions to 29eef33 ([#26](https://github.com/scottames/zellij-status/issues/26)) ([e7087c2](https://github.com/scottames/zellij-status/commit/e7087c299be423299be05c3074ec0f7ebe5465a7))
+* **deps:** update ⬆️ github-actions to v3 ([#35](https://github.com/scottames/zellij-status/issues/35)) ([294cb85](https://github.com/scottames/zellij-status/commit/294cb85ab48911bf57c3e72e9abe851e7f0c07c4))
+* **deps:** update ⬆️ github-actions to v5 ([#38](https://github.com/scottames/zellij-status/issues/38)) ([0bce151](https://github.com/scottames/zellij-status/commit/0bce151eab07601123874555c7f6cb0056afc9bf))
+* **deps:** update dependency aqua:zellij-org/zellij to v0.44.1 ([#31](https://github.com/scottames/zellij-status/issues/31)) ([b195b01](https://github.com/scottames/zellij-status/commit/b195b012197987e93118ab9b4c2ca5e3187499ae))
+* **deps:** update github-actions ([#32](https://github.com/scottames/zellij-status/issues/32)) ([9f5616f](https://github.com/scottames/zellij-status/commit/9f5616f5d17bdd44cdeeadeb7e2bf65fc49bacfb))
+* upgrade trunk ([#29](https://github.com/scottames/zellij-status/issues/29)) ([e564ef2](https://github.com/scottames/zellij-status/commit/e564ef25a635aac63eb1b42c97d30c1aa111ce51))
+* upgrade trunk ([#34](https://github.com/scottames/zellij-status/issues/34)) ([cc6a2ea](https://github.com/scottames/zellij-status/commit/cc6a2ea311f287662884ed612156950eb4126994))
+* upgrade trunk ([#37](https://github.com/scottames/zellij-status/issues/37)) ([134cf05](https://github.com/scottames/zellij-status/commit/134cf05077ed89fe7fe7ce04bc31bda0f0390a3f))
+
 ## [0.4.0](https://github.com/scottames/zellij-status/compare/v0.3.0...v0.4.0) (2026-04-02)
 
 
