@@ -3,7 +3,7 @@
 show_full_cmd = true
 
 [tools]
-"aqua:zellij-org/zellij" = "0.44.1"
+"aqua:zellij-org/zellij" = "0.44.3"
 rust = "latest"
 
 [tasks.build]
