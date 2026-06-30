@@ -3,6 +3,10 @@
 A Zellij plugin that combines vertical tabs, styled status bars, and
 notification tracking into one WASM binary.
 
+> [!IMPORTANT]
+> This project is archived and no longer maintained. I have been won over by
+> [herdr](https://herdr.dev/) instead.
+
 Zellij-status unifies ideas from three amazing plugins
 ([`zjstatus`](https://github.com/dj95/zjstatus),
 [`zellij-vertical-tabs`](https://github.com/cfal/zellij-vertical-tabs), and
